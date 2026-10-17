@@ -37,7 +37,7 @@ Brigitte 把问题发现、领取、处理和回归串在同一个项目工作�
 | macOS | .NET MAUI / Mac Catalyst / AppKit 托盘桥接 | 源码已提供；需在配有 Xcode 的 Mac 上构建及验收 |
 | Linux | 不提供桌面宿主 | 可运行平台无关的 Core/UI 单元测试 |
 
-`1.0.0` 正在准备 Microsoft Store 发布，正式包标识和 MSIX 打包入口已提供，尚未代表商店上架或认证完成。macOS 的签名、公证和系统集成需由发布者在 Mac 上验证。
+`1.0.0` 已于 2026 年 10 月 17 日提交 Microsoft Store 认证，定价免费，通过认证后自动发布，目前尚未上架。macOS 的签名、公证和系统集成需由发布者在 Mac 上验证。
 
 ## 帮助、隐私与语言
 
@@ -47,7 +47,9 @@ Windows x64 便携版从 [GitHub Releases](https://github.com/BenLampson/Asgard.
 
 在**设置 → 普通设置 → 语言**选择**跟随系统 / 简体中文 / English**。中文系统语言使用简体中文，其他语言使用英文；切换即时作用于已打开窗口，偏好保存在当前设备。用户内容和服务端模板保持原文。
 
-商店中英文介绍、正式公开包标识、各项链接及待完成步骤见[Microsoft Store 提交指南](packaging/windows/store-submission.md)。已登记的商店产品仍是草稿，尚未上架。
+商店中英文介绍、正式公开包标识、各项链接及提交状态见[Microsoft Store 提交指南](packaging/windows/store-submission.md)。正式 MSIX、双语商品页、截图和年龄分级已提交，目前正在认证。
+
+![Asgard Brigitte 列表界面，使用虚构示例数据](docs/screenshots/zh-CN/02-list.png)
 
 ## 从源码运行
 

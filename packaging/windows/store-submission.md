@@ -19,7 +19,23 @@ This file contains public release information only. Never commit reviewer creden
 | Languages / 语言 | English (United States), Chinese (Simplified) / `en-US`, `zh-CN` |
 | Architecture / 架构 | x64 |
 
-Reserved on October 17, 2026. The product is a draft, not a published or certified app. The assigned [Store URL](https://apps.microsoft.com/detail/9N5X2FD6C0XC) becomes useful after publication; do not advertise it as already available. Partner Center indicated that a reserved name must be submitted within three months.
+Reserved and submitted for certification on October 17, 2026. The product is in certification, not yet published or certified. The assigned [Store URL](https://apps.microsoft.com/detail/9N5X2FD6C0XC) becomes useful after publication; do not advertise it as already available.
+
+## Submission status / 提交状态
+
+Updated October 17, 2026:
+
+- **Price:** free (`0`) in all selected markets. Public discovery and publication after certification are selected.
+- **Package:** `1.0.0.0`, x64, uploaded to Partner Center and accepted by package validation. The `runFullTrust` capability remains subject to Microsoft approval.
+- **Store listings:** English (United States) and Chinese (Simplified), with descriptions, features, keywords, license information, and four 1600 × 900 PNG screenshots per language.
+- **Privacy and support:** public GitHub URLs, with private privacy requests directed to the policy email.
+- **Age ratings:** the completed questionnaire was saved after the publisher confirmed the IARC terms and legal-age declaration. The generated ratings include Microsoft/IARC 12+, ESRB Teen, and PEGI Parental Guidance. The certificate ID is pending in Partner Center.
+- **Certification:** submitted on October 17, 2026. Partner Center shows **In certification**, with submission complete and pre-processing in progress. Publication is configured to start automatically after approval. The app is not yet certified or available in Microsoft Store.
+- **Reviewer access:** an ordinary dedicated account and synthetic workspace are saved in Partner Center's private Credentials and Additional Testing Info sections. Service sign-in, project and bug creation, a reply, and a harmless attachment were exercised. Reviewer credentials must never be added to this repository.
+
+已设置免费；正式 MSIX、中英文商品页、每种语言四张截图和年龄分级均已提交。发布者已确认 IARC 条款与法定成年声明。合作伙伴中心显示“正在认证”，当前处于预处理阶段；通过认证后自动发布，目前尚未上架。专用普通审核账号、演示项目与操作说明均已私密保存。
+
+Screenshots are captured from the release's actual Razor components and production styles using fictional local fixture data. They do not expose a real customer's workspace. The screenshot renderer is a temporary development tool and is not included in the app. Browse [English screenshots](../../docs/screenshots/en-US) and [中文截图](../../docs/screenshots/zh-CN), or download the [bilingual screenshot ZIP](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/download/v1.0.0/Asgard-Brigitte-1.0.0-store-screenshots.zip).
 
 ## Properties / 属性
 
@@ -42,7 +58,7 @@ The client copies prompts and manages MCP credentials; it does not itself genera
 
 ## Submission steps / 提交顺序
 
-1. In the **Asgard Brigitte** product, start a submission. Set pricing and markets according to the intended distribution. A source license does not determine the Store selling price.
+1. In the **Asgard Brigitte** product, start a submission. The intended price is **free**, with public availability in all selected markets. A source license does not determine the Store selling price.
 2. Complete Properties with the URLs above. Add **English (United States)** and **Chinese (Simplified)** Store listings, using the two listing files. The product name stays Asgard Brigitte in both.
 3. Build with the registered identity: `pwsh -NoProfile -File packaging/windows/publish-store.ps1 -SettingsPath packaging/windows/store-settings.public.json`. Upload the resulting `.msix` from `publish/store/1.0.0.0/packages/`. Never upload a preview-identity package.
 4. Supply real screenshots captured from this release in both languages using synthetic data. At least one desktop screenshot per listing is required; a useful set is board, details, editor, project invitations, and language settings. The current Microsoft documentation accepts desktop screenshots at 1366 × 768 or larger; follow the exact size and format validator in Partner Center. Do not upload mockups as if they were app screenshots.

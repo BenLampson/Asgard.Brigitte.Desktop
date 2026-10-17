@@ -29,7 +29,7 @@ This repository publishes the desktop client, shared synchronization contracts, 
 
 ## Platform status
 
-Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` is being prepared for Microsoft Store; store certification, macOS signing, and notarization remain separate release work.
+Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` has been submitted to Microsoft Store for certification as a free app; certification is pending. macOS signing and notarization remain separate release work.
 
 ## Help, privacy, and language
 
@@ -39,7 +39,9 @@ Use [GitHub Issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues
 
 Open **Settings → General → Language** to choose **Follow system**, **简体中文**, or **English**. Chinese system languages use Simplified Chinese; other languages use English. The preference is saved on the device and applies to open windows. User content and server-provided templates remain in their original language.
 
-Microsoft Store descriptions, public package identity, links, and remaining submission steps are in the [Store submission guide](packaging/windows/store-submission.md). The assigned Store product is still a draft; it is not yet available for download from the Store.
+Microsoft Store descriptions, public package identity, links, and submission status are in the [Store submission guide](packaging/windows/store-submission.md). The app was submitted for certification on October 17, 2026, with free pricing and automatic publication after approval. It is not yet available for download from the Store.
+
+![Asgard Brigitte list view with fictional sample data](docs/screenshots/en-US/02-list.png)
 
 ## Build on Windows
 
