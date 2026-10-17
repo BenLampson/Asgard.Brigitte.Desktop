@@ -65,7 +65,7 @@ internal sealed class WindowsSingleInstance : IDisposable
         catch (Exception ex) when (ex is IOException or OperationCanceledException or UnauthorizedAccessException)
         {
             // 已有进程正退出或暂时不可响应时仍不创建第二个客户端。
-            Debug.WriteLine($"Brigitte 激活已有实例未完成：{ex.GetType().Name}");
+            Debug.WriteLine(ClientText.T("Brigitte 激活已有实例未完成：{0}", ex.GetType().Name));
         }
     }
 

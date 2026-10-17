@@ -17,6 +17,7 @@ public sealed partial class DesktopHost : IClientHost
     private readonly DesktopRealtime _realtime;
     private readonly ThemePreferenceStore _theme;
     private readonly ClosePreferenceStore _closePreference;
+    private readonly LanguagePreferenceStore _language;
     /// <summary>同一连接状态供所有窗口显示。</summary>
     public string RealtimeStatus => _realtime.Status;
     public bool SyncReady => _realtime.Ready;
@@ -38,10 +39,12 @@ public sealed partial class DesktopHost : IClientHost
     /// <summary>供 CSS 使用的有效日夜模式。</summary>
     public string Theme => ThemePreference == "system" ? Application.Current?.RequestedTheme == AppTheme.Dark ? "dark" : "light" : ThemePreference;
     /// <summary>原生服务注入，不由组件持有平台句柄。</summary>
-    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference)
+    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference, LanguagePreferenceStore language)
     {
         _services = services; _session = session; _workspace = workspace; _realtime = realtime; _theme = theme;
         _closePreference = closePreference;
+        _language = language;
+        ClientText.SetLanguage(language.Language);
         realtime.Changed += RealtimeChanged;
         realtime.Notification += NotifyCommitted;
         realtime.StatusChanged += () => MainThread.BeginInvokeOnMainThread(() => StatusChanged?.Invoke());
@@ -93,7 +96,7 @@ public sealed partial class DesktopHost : IClientHost
             window.Deactivated += (_, _) => HidePopup();
         }
         _windows[view] = window;
-        window.Activated += (_, _) => { _activeView = view; };
+        window.Activated += (_, _) => { _activeView = view; RefreshSystemLanguage(); };
         window.Deactivated += (_, _) => { if (_activeView == view) _activeView = null; };
         window.Destroying += (_, _) => { _windows.Remove(view); if (_activeView == view) _activeView = null; if (view.Kind == DesktopViewKind.Tray) _popup = null; };
         window.HandlerChanged += (_, _) => AttachPlatformWindow(window, view.Kind, owner);
@@ -137,15 +140,15 @@ public sealed partial class DesktopHost : IClientHost
     public void NotifyThemeChanged() { foreach (var window in _windows.Values) if (window.Page is not null) window.Page.BackgroundColor = Theme == "dark" ? Color.FromArgb("#202428") : Colors.White; ApplyPlatformTheme(); Changed?.Invoke(); _tray?.Refresh(); }
     /// <summary>使用原生剪贴板，不通过网页权限。</summary>
     public Task CopyAsync(string value) => Clipboard.Default.SetTextAsync(value);
-    private Page ActivePage => Application.Current!.Windows.LastOrDefault(w => w != _popup)?.Page ?? _main?.Page ?? throw new InvalidOperationException("主窗口尚未创建。");
+    private Page ActivePage => Application.Current!.Windows.LastOrDefault(w => w != _popup)?.Page ?? _main?.Page ?? throw new InvalidOperationException(ClientText.T("主窗口尚未创建。"));
     /// <summary>复用平台确认对话框。</summary>
-    public Task<bool> ConfirmAsync(string title, string message) => MainThread.InvokeOnMainThreadAsync(() => ActivePage.DisplayAlertAsync(title, message, "确认", "取消"));
+    public Task<bool> ConfirmAsync(string title, string message) => MainThread.InvokeOnMainThreadAsync(() => ActivePage.DisplayAlertAsync(title, message, ClientText.T("确认"), ClientText.T("取消")));
     /// <summary>读取用户显式选择的多文件，限制单附件 50 MB。</summary>
     public async Task<IReadOnlyList<PickedFile>> PickFilesAsync()
     {
-        var selected = await FilePicker.Default.PickMultipleAsync(new PickOptions { PickerTitle = "选择 BUG 附件" });
+        var selected = await FilePicker.Default.PickMultipleAsync(new PickOptions { PickerTitle = ClientText.T("选择 BUG 附件") });
         var result = new List<PickedFile>();
-        foreach (var file in selected ?? []) { await using var stream = await file.OpenReadAsync(); if (stream.Length > 50 * 1024 * 1024) throw new InvalidOperationException("单附件不能超过 50 MB。"); using var memory = new MemoryStream(); await stream.CopyToAsync(memory); result.Add(new(file.FileName, file.ContentType ?? "application/octet-stream", memory.ToArray())); }
+        foreach (var file in selected ?? []) { await using var stream = await file.OpenReadAsync(); if (stream.Length > 50 * 1024 * 1024) throw new InvalidOperationException(ClientText.T("单附件不能超过 50 MB。")); using var memory = new MemoryStream(); await stream.CopyToAsync(memory); result.Add(new(file.FileName, file.ContentType ?? "application/octet-stream", memory.ToArray())); }
         return result;
     }
     /// <summary>保存通过原生平台的另存为对话框完成。</summary>
@@ -195,7 +198,7 @@ public sealed partial class DesktopHost : IClientHost
     private void Show(Window window, bool visible) { if (_tray is not null) _tray.Show(window, visible); else if (visible) Application.Current!.ActivateWindow(window); }
     /// <summary>显式退出才终止程序并移除系统图标。</summary>
     public void Quit() { _quitting = true; _tray?.Dispose(); Application.Current!.Quit(); }
-    private static string Title(DesktopViewKind kind) => "Brigitte · " + (kind switch { DesktopViewKind.Main => "BUG 管理器", DesktopViewKind.Detail => "BUG 详情", DesktopViewKind.Create => "提交 BUG", DesktopViewKind.Edit => "编辑 BUG", DesktopViewKind.Tray => "项目", DesktopViewKind.Settings => "设置", DesktopViewKind.About => "关于", DesktopViewKind.Privacy => "隐私与数据", DesktopViewKind.ProjectInvitations => "邀请项目成员", DesktopViewKind.JoinProject => "加入项目", _ => "BUG 管理" });
+    private static string Title(DesktopViewKind kind) => "Asgard Brigitte · " + (kind switch { DesktopViewKind.Main => ClientText.T("BUG 管理器"), DesktopViewKind.Detail => ClientText.T("BUG 详情"), DesktopViewKind.Create => ClientText.T("提交 BUG"), DesktopViewKind.Edit => ClientText.T("编辑 BUG"), DesktopViewKind.Tray => ClientText.T("项目"), DesktopViewKind.Settings => ClientText.T("设置"), DesktopViewKind.About => ClientText.T("关于"), DesktopViewKind.Privacy => ClientText.T("隐私与数据"), DesktopViewKind.ProjectInvitations => ClientText.T("邀请项目成员"), DesktopViewKind.JoinProject => ClientText.T("加入项目"), _ => ClientText.T("BUG 管理") });
     private partial IPlatformTray CreateTray();
     private partial void AttachPlatformWindow(Window window, DesktopViewKind kind, Window? owner);
     private partial Task SavePlatformAsync(string fileName, byte[] bytes);

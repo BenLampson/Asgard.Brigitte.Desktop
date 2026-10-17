@@ -6,8 +6,10 @@ public sealed partial class DesktopHost
     private bool _closeRequestPending;
     public string CloseBehavior => _closePreference.Behavior;
     public string AppVersion => AppInfo.Current.VersionString;
-    public string PrivacyPolicyUrl => StoreLink("Brigitte.PrivacyPolicyUrl");
-    public string SupportUrl => StoreLink("Brigitte.SupportUrl");
+    public string PrivacyPolicyUrl => StoreLink("Brigitte.PrivacyPolicyUrl") is { Length: > 0 } custom ? custom :
+        "https://github.com/BenLampson/Asgard.Brigitte.Desktop/blob/main/" + (Language == "zh-CN" ? "PRIVACY.zh-CN.md" : "PRIVACY.md");
+    public string SupportUrl => StoreLink("Brigitte.SupportUrl") is { Length: > 0 } custom ? custom :
+        "https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose";
     /// <summary>正式政策地址通过构建元数据注入，不推测域名或展示尚不存在的页面。</summary>
     private static string StoreLink(string key)
     {
@@ -42,7 +44,7 @@ public sealed partial class DesktopHost
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             if (_main?.Page is { } page)
-                await page.DisplayAlertAsync("未能保存关闭偏好", "设置文件暂时无法写入，窗口已保持打开。你可以不勾选“以后不再提示”再试一次。", "知道了");
+                await page.DisplayAlertAsync(ClientText.T("未能保存关闭偏好"), ClientText.T("设置文件暂时无法写入，窗口已保持打开。你可以不勾选“以后不再提示”再试一次。"), ClientText.T("知道了"));
         }
         catch (InvalidOperationException)
         {

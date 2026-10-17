@@ -24,7 +24,7 @@ public sealed class ClosePreferenceStore
     /// <summary>先原子落盘，再更新当前行为；保存失败由界面明确告知。</summary>
     public void Set(string behavior)
     {
-        if (behavior is not ("ask" or "tray" or "exit")) throw new ArgumentException("关闭行为无效。", nameof(behavior));
+        if (behavior is not ("ask" or "tray" or "exit")) throw new ArgumentException(ClientText.T("关闭行为无效。"), nameof(behavior));
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
         var temporary = _path + ".tmp";
         File.WriteAllText(temporary, JsonSerializer.Serialize(behavior));

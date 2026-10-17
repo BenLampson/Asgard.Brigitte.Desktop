@@ -13,5 +13,5 @@ public sealed class StoredSession
     /// <summary>仅显示的资料名。</summary>
     public string DisplayName { get; set; } = "";
     /// <summary>避免默认对象表示包含令牌。</summary>
-    public override string ToString() => "[受保护的 Brigitte 会话]";
+    public override string ToString() => ClientText.T("[受保护的 Brigitte 会话]");
 }

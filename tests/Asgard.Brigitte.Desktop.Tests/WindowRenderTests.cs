@@ -111,12 +111,13 @@ public sealed class WindowRenderTests
         var assets = Path.Combine(root, "src/Asgard.Brigitte.Desktop.UI/wwwroot/");
         var css = await File.ReadAllTextAsync(Path.Combine(assets, "styles.css"), TestContext.Current.CancellationToken)
             + await File.ReadAllTextAsync(Path.Combine(assets, "branding.css"), TestContext.Current.CancellationToken)
-            + await File.ReadAllTextAsync(Path.Combine(assets, "brigid-motion.css"), TestContext.Current.CancellationToken);
+            + await File.ReadAllTextAsync(Path.Combine(assets, "brigid-motion.css"), TestContext.Current.CancellationToken)
+            + await File.ReadAllTextAsync(Path.Combine(assets, "preferences.css"), TestContext.Current.CancellationToken);
         html = html.Replace("_content/Asgard.Brigitte.Desktop.UI/", new Uri(assets).AbsoluteUri);
         var output = Path.Combine(root, "tests/Asgard.Brigitte.Desktop.Tests/obj/ui-validation"); Directory.CreateDirectory(output);
-        await File.WriteAllTextAsync(Path.Combine(output, name + ".html"), "<!doctype html><html lang='zh-CN'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>" + css + "</style><body><div id='app'>" + html + "</div></body></html>", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(output, name + ".html"), "<!doctype html><html lang='" + ClientText.Language + "'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>" + css + "</style><body><div id='app'>" + html + "</div></body></html>", TestContext.Current.CancellationToken);
     }
-    private static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false)
+    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false)
     {
         using var transport = new TestTransport(_ => throw new InvalidOperationException("渲染业务界面不得读取 REST"));
         using var local = new SyncTestWorkspace();

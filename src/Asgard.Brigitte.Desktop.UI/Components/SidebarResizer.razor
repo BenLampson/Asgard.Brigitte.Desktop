@@ -1,9 +1,10 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 <div @ref="_handle" class="sidebar-resizer" role="separator" tabindex="0"
-     aria-label="调整项目栏宽度" aria-orientation="vertical" aria-controls="project-sidebar"
+     aria-label="@ClientText.T("调整项目栏宽度")" aria-orientation="vertical" aria-controls="project-sidebar"
      aria-valuemin="196" aria-valuemax="520" aria-valuenow="196"
-     title="拖动调整宽度，双击恢复默认；左右方向键可微调"></div>
+     data-pixel-unit="@ClientText.T("像素")"
+     title="@ClientText.T("拖动调整宽度，双击恢复默认；左右方向键可微调")"></div>
 @code {
     private ElementReference _handle;
     private IJSObjectReference? _module, _controller;

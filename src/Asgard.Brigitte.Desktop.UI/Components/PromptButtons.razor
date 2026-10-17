@@ -1,13 +1,13 @@
 @if(Actions.Count>0) {
 var choices = Actions.OrderBy(a => a.SortOrder).ToArray();
 <div class="prompt-buttons" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true">
-<button class="prompt-trigger" id="@(_menuId + "-trigger")" type="button" title="选择要复制的提示词" aria-haspopup="menu" aria-controls="@_menuId" popovertarget="@_menuId">
+<button class="prompt-trigger" id="@(_menuId + "-trigger")" type="button" title="@ClientText.T("选择要复制的提示词")" aria-haspopup="menu" aria-controls="@_menuId" popovertarget="@_menuId">
     <svg class="prompt-copy-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-    <span>提示词</span>
+    <span>@ClientText.T("提示词")</span>
     <svg class="prompt-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
 </button>
-    <div class="prompt-dropdown" id="@_menuId" popover="auto" role="menu" aria-label="选择要复制的提示词" data-prompt-trigger="@(_menuId + "-trigger")">
-    <div class="prompt-menu-label" role="presentation">选择要复制的提示词</div>
+    <div class="prompt-dropdown" id="@_menuId" popover="auto" role="menu" aria-label="@ClientText.T("选择要复制的提示词")" data-prompt-trigger="@(_menuId + "-trigger")">
+    <div class="prompt-menu-label" role="presentation">@ClientText.T("选择要复制的提示词")</div>
     @foreach(var action in choices) {
         <button type="button" role="menuitem" title="@action.Name" autofocus="@(action == choices[0])" popovertarget="@_menuId" popovertargetaction="hide" @onclick="()=>OnCopy.InvokeAsync(action)">
             <svg class="prompt-copy-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
@@ -26,6 +26,7 @@ var choices = Actions.OrderBy(a => a.SortOrder).ToArray();
     private static string CopyLabel(PromptAction action)
     {
         var label = (string.IsNullOrWhiteSpace(action.ActionLabel) ? action.Name : action.ActionLabel).Trim();
+        if (ClientText.Language == "en") return label.StartsWith("Copy ", StringComparison.OrdinalIgnoreCase) ? label : ClientText.T("复制提示词：{0}", label);
         if (!label.StartsWith("复制", StringComparison.Ordinal)) label = "复制" + label;
         if (!label.EndsWith("提示词", StringComparison.Ordinal)) label += "提示词";
         return label;

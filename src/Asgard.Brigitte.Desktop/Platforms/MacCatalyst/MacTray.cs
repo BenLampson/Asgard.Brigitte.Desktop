@@ -30,12 +30,29 @@ internal sealed class MacTray : IPlatformTray
         MainThread.BeginInvokeOnMainThread(async()=>{switch(action){case 0:_host.ShowPopup(x,y);break;case 1:await _host.OpenAsync(new(DesktopViewKind.Main));break;case 2:_host.RefreshTrayData();break;case 3:_host.Quit();break;case 4:await _host.OpenAsync(new(DesktopViewKind.Main,ProjectId:id));break;case 5:await _host.RequestMainCloseAsync();break;}});
     }
     /// <summary>原始项目名称由原生菜单自动截断，完整值保留 tooltip。</summary>
-    public void Refresh(){if(IsAvailable)Function<SetProjects>("BrigitteTraySetProjects")(JsonSerializer.Serialize(new{authenticated=_host.IsAuthenticated,projects=_host.Projects.Select(p=>new{id=p.Id,name=p.Name,count=_host.ProjectCount(p.Id)})}));}
+    public void Refresh()
+    {
+        if (!IsAvailable) return;
+        var strings = new Dictionary<string, string>
+        {
+            ["title"] = ClientText.T("Brigitte · BUG 管理器"), ["login"] = ClientText.T("登录 Brigitte"),
+            ["open"] = ClientText.T("打开主窗口"), ["refresh"] = ClientText.T("刷新"), ["quit"] = ClientText.T("退出"),
+            ["closeTitle"] = ClientText.T("关闭 Brigitte"), ["closeHelp"] = ClientText.T("退出程序会停止后台同步和通知。最小化到托盘会继续运行，可点击托盘图标重新打开。"),
+            ["noTray"] = ClientText.T("系统托盘暂不可用。你可以退出程序，或取消并保留窗口。"),
+            ["tray"] = ClientText.T("最小化到托盘"), ["exit"] = ClientText.T("退出程序"),
+            ["cancel"] = ClientText.T("取消"), ["remember"] = ClientText.T("以后不再提示，记住这次选择")
+        };
+        Function<SetProjects>("BrigitteTraySetProjects")(JsonSerializer.Serialize(new
+        {
+            authenticated = _host.IsAuthenticated, strings,
+            projects = _host.Projects.Select(p => new { id = p.Id, display = ClientText.T("{0} · {1} 未解决", p.Name, _host.ProjectCount(p.Id)) })
+        }));
+    }
     public void Notify(string title,string message)=>MacNotifications.Show(title,message);
     /// <summary>仅隐藏原生主窗口，应用继续保留状态栏入口。</summary>
     public void Show(Window window,bool visible){if(IsAvailable)Function<ShowWindow>("BrigitteTrayShowWindow")(window.Title,visible?1:0);else if(visible)Application.Current!.ActivateWindow(window);}
     internal static void Attach(string title,bool main){if(_library!=0)Function<AttachWindow>("BrigitteTrayAttachWindow")(title,main?1:0);}
-    internal static void Save(string name,byte[] bytes){if(_library==0)throw new InvalidOperationException("macOS 文件保存扩展未加载。");Function<SaveFile>("BrigitteTraySaveFile")(name,bytes,(nuint)bytes.Length);}
+    internal static void Save(string name,byte[] bytes){if(_library==0)throw new InvalidOperationException(ClientText.T("macOS 文件保存扩展未加载。"));Function<SaveFile>("BrigitteTraySaveFile")(name,bytes,(nuint)bytes.Length);}
     /// <summary>最低两位为动作，第三位为记住选择，取消永不写入偏好。</summary>
     internal static (string Action,bool Remember) PromptClose(bool canUseTray)
     {

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><LangVersion>14</LangVersion></PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Localization/en.*.json" />
     <ProjectReference Include="../Asgard.Brigitte.Sync/Asgard.Brigitte.Sync.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Asgard.Heimdall.Client" />

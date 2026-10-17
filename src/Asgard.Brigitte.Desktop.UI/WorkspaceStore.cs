@@ -28,7 +28,7 @@ public sealed class WorkspaceStore(BrigitteApi api, SessionService session)
         List<IdentityUser> users;
         string directoryError;
         try { users = await api.AllAsync<IdentityUser>("identity/users"); directoryError = ""; }
-        catch (HttpRequestException) { users = []; directoryError = "用户目录暂不可用，负责人保留原始标识。"; }
+        catch (HttpRequestException) { users = []; directoryError = ClientText.T("用户目录暂不可用，负责人保留原始标识。"); }
         if (version != session.IdentityVersion) return;
         Projects = projects; Statistics = statistics; Access = access; Users = users; DirectoryError = directoryError;
         Changed?.Invoke();

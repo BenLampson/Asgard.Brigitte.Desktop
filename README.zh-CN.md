@@ -2,7 +2,7 @@
   <img src="src/Asgard.Brigitte.Desktop/Resources/AppIcon/appicon.svg" width="88" alt="Brigitte" />
 </p>
 
-<h1 align="center">Brigitte Desktop</h1>
+<h1 align="center">Asgard Brigitte</h1>
 
 <p align="center">让灵感向前，让问题止步。<br />基于 .NET MAUI 与 Blazor Hybrid 的 BUG 协作桌面客户端。</p>
 
@@ -26,6 +26,7 @@ Brigitte 把问题发现、领取、处理和回归串在同一个项目工作�
 - 系统浏览器 OIDC/PKCE 登录，系统安全存储保存凭据，自动恢复与续期。
 - WebSocket 增量同步、SQLite 本地投影、未读动态、系统通知和托盘入口。
 - 独立业务窗口，白天、晚间和跟随系统主题，关闭行为与界面偏好设置。
+- 简体中文和 English 即时切换，默认跟随操作系统，语言偏好保存在设备上。
 - 复制单条或项目级修复提示词，管理用于外部 AI 工具的 MCP Key。客户端本身不内置 AI 模型。
 
 ## 平台与状态
@@ -36,7 +37,17 @@ Brigitte 把问题发现、领取、处理和回归串在同一个项目工作�
 | macOS | .NET MAUI / Mac Catalyst / AppKit 托盘桥接 | 源码已提供；需在配有 Xcode 的 Mac 上构建及验收 |
 | Linux | 不提供桌面宿主 | 可运行平台无关的 Core/UI 单元测试 |
 
-项目处于早期阶段，当前应用版本为 `0.1.0`。MSIX 打包入口已提供，尚未代表 Microsoft Store 上架或认证完成。macOS 的签名、公证和系统集成需由发布者在 Mac 上验证。
+`1.0.0` 正在准备 Microsoft Store 发布，正式包标识和 MSIX 打包入口已提供，尚未代表商店上架或认证完成。macOS 的签名、公证和系统集成需由发布者在 Mac 上验证。
+
+## 帮助、隐私与语言
+
+Windows x64 便携版从 [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest) 下载。完整解压 ZIP 后运行 `Asgard.Brigitte.Desktop.exe`，需要 WebView2 Runtime 和在线服务账号。平台范围和商店状态见 [1.0.0 更新说明](docs/releases/v1.0.0.md)。
+
+普通问题和功能建议统一[提交 GitHub Issue](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose)，支持中英文。Issue 是公开的，请先移除私有内容和凭据。详见[支持说明](SUPPORT.zh-CN.md)、[隐私政策](PRIVACY.zh-CN.md)（[English](PRIVACY.md)）及[使用说明](docs/usage.md)。隐私和账号删除请求请使用政策中的邮箱。
+
+在**设置 → 普通设置 → 语言**选择**跟随系统 / 简体中文 / English**。中文系统语言使用简体中文，其他语言使用英文；切换即时作用于已打开窗口，偏好保存在当前设备。用户内容和服务端模板保持原文。
+
+商店中英文介绍、正式公开包标识、各项链接及待完成步骤见[Microsoft Store 提交指南](packaging/windows/store-submission.md)。已登记的商店产品仍是草稿，尚未上架。
 
 ## 从源码运行
 

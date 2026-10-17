@@ -26,7 +26,8 @@ public sealed class SessionService(
     /// <summary>网络暂不可用时保留安全存储，允许后台或手动重新恢复。</summary>
     public bool RestorePending => _restorePending;
     /// <summary>持久化失败可见且可重试，不丢弃已经轮换的新令牌。</summary>
-    public string PersistenceWarning { get; private set; } = "";
+    private string _persistenceWarning = "";
+    public string PersistenceWarning => ClientText.T(_persistenceWarning);
     /// <summary>当前账号显示资料。</summary>
     public string DisplayName => _current?.DisplayName ?? "";
     /// <summary>已验证的用户标识，仅用于分隔本地数据库，不包含凭据。</summary>
@@ -57,7 +58,7 @@ public sealed class SessionService(
     public async Task LoginAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(options.Value.ClientId) || string.IsNullOrWhiteSpace(options.Value.ApplicationId))
-            throw new InvalidOperationException("尚未配置 Heimdall 原生客户端 ClientId / ApplicationId，请按客户端 README 登记回调。");
+            throw new InvalidOperationException(ClientText.T("尚未配置 Heimdall 原生客户端 ClientId / ApplicationId，请按客户端 README 登记回调。"));
         await _loginGate.WaitAsync(cancellationToken);
         using var pending = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _loginCancellation = pending;
@@ -75,7 +76,7 @@ public sealed class SessionService(
             await _gate.WaitAsync(pending.Token);
             try
             {
-                if (Version != version) throw new OperationCanceledException("会话已变化，请重新登录。");
+                if (Version != version) throw new OperationCanceledException(ClientText.T("会话已变化，请重新登录。"));
                 await CommitAsync(candidate, true);
             }
             finally { _gate.Release(); }
@@ -91,22 +92,22 @@ public sealed class SessionService(
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var saved = _current ?? throw new UnauthorizedAccessException("请先登录。");
+            var saved = _current ?? throw new UnauthorizedAccessException(ClientText.T("请先登录。"));
             if (_persistPending) await PersistAsync();
             if (saved.ExpiresAt <= _time.GetUtcNow().AddSeconds(60))
             {
-                if (string.IsNullOrEmpty(saved.Tokens.RefreshToken)) { await ClearAsync(); throw new UnauthorizedAccessException("登录已过期。"); }
+                if (string.IsNullOrEmpty(saved.Tokens.RefreshToken)) { await ClearAsync(); throw new UnauthorizedAccessException(ClientText.T("登录已过期。")); }
                 using var client = CreateClient();
                 try
                 {
                     var version = Version;
                     var tokens = await client.RefreshTokenAsync(saved.Tokens.RefreshToken, saved.SubjectId, saved.SessionId, cancellationToken);
-                    if (Version != version) throw new OperationCanceledException("会话已变化。");
+                    if (Version != version) throw new OperationCanceledException(ClientText.T("会话已变化。"));
                     var candidate = Build(tokens, saved.DisplayName);
                     await CommitAsync(candidate, false);
                 }
                 catch (HeimdallClientException ex) when (ex.Category == "invalid_grant")
-                { await ClearAsync(); throw new UnauthorizedAccessException("登录已失效，请重新登录。"); }
+                { await ClearAsync(); throw new UnauthorizedAccessException(ClientText.T("登录已失效，请重新登录。")); }
             }
             return new TokenLease(Version, _current!.Tokens.AccessToken) { IdentityVersion = IdentityVersion };
         }
@@ -130,8 +131,8 @@ public sealed class SessionService(
     private async Task PersistAsync()
     {
         var warning = PersistenceWarning;
-        try { await store.WriteAsync(JsonSerializer.Serialize(_current)); _persistPending = false; PersistenceWarning = ""; }
-        catch { PersistenceWarning = "登录信息暂时无法保存到本机，正在自动重试。保存成功前请保持客户端运行。"; }
+        try { await store.WriteAsync(JsonSerializer.Serialize(_current)); _persistPending = false; _persistenceWarning = ""; }
+        catch { _persistenceWarning = "登录信息暂时无法保存到本机，正在自动重试。保存成功前请保持客户端运行。"; }
         if (warning != PersistenceWarning) Changed?.Invoke();
     }
     /// <summary>只失效发起请求时捕获的会话。</summary>
@@ -163,7 +164,7 @@ public sealed class SessionService(
     private async Task ClearAsync()
     {
         _current = null;
-        _restorePending = false; _persistPending = false; PersistenceWarning = "";
+        _restorePending = false; _persistPending = false; _persistenceWarning = "";
         Interlocked.Increment(ref _version);
         Interlocked.Increment(ref _identityVersion);
         Changed?.Invoke();

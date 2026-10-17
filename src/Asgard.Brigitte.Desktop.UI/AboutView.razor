@@ -1,16 +1,16 @@
 @inject IClientHost Host
 <main class="about-window">
     <section class="about-hero">
-        <div class="about-brand"><Brand /><div><p class="preferences-eyebrow">ASGARD WORKSPACE</p><h1>Brigitte</h1><p>让灵感向前，让问题止步。</p></div></div>
+        <div class="about-brand"><Brand /><div><p class="preferences-eyebrow">ASGARD WORKSPACE</p><h1>Asgard Brigitte</h1><p>@ClientText.T("让灵感向前，让问题止步。")</p></div></div>
         <div class="about-art"><BrigidScene /></div>
     </section>
     <section class="about-copy">
-        <div class="about-title"><h2>每一个 BUG，都有归处。</h2><span class="version-badge">版本 @Host.AppVersion</span></div>
-        <p>Brigitte 是 Asgard 的 BUG 协作管理工具，把发现、领取、处理和回归串在一个工作区，让进展清晰、修复可追溯。</p>
-        <div class="about-origin"><span aria-hidden="true">✦</span><div><h3>由圣火女神守护</h3><p>致意圣火与锻造女神 Brigid，以炉火和锤子守护软件质量：发现问题，打磨修复，让创造继续向前。</p></div></div>
-        <ul class="about-features"><li><strong>协作有序</strong><span>项目、看板与状态流转</span></li><li><strong>变化可见</strong><span>实时同步与 BUG 动态</span></li><li><strong>修复有据</strong><span>回复、附件与处理记录</span></li><li><strong>人机协同</strong><span>提示词与 MCP 工作流</span></li></ul>
+        <div class="about-title"><h2>@ClientText.T("每一个 BUG，都有归处。")</h2><span class="version-badge">@ClientText.T("版本 {0}", Host.AppVersion)</span></div>
+        <p>@ClientText.T("Brigitte 是 Asgard 的 BUG 协作管理工具，把发现、领取、处理和回归串在一个工作区，让进展清晰、修复可追溯。")</p>
+        <div class="about-origin"><span aria-hidden="true">✦</span><div><h3>@ClientText.T("由圣火女神守护")</h3><p>@ClientText.T("致意圣火与锻造女神 Brigid，以炉火和锤子守护软件质量：发现问题，打磨修复，让创造继续向前。")</p></div></div>
+        <ul class="about-features"><li><strong>@ClientText.T("协作有序")</strong><span>@ClientText.T("项目、看板与状态流转")</span></li><li><strong>@ClientText.T("变化可见")</strong><span>@ClientText.T("实时同步与 BUG 动态")</span></li><li><strong>@ClientText.T("修复有据")</strong><span>@ClientText.T("回复、附件与处理记录")</span></li><li><strong>@ClientText.T("人机协同")</strong><span>@ClientText.T("提示词与 MCP 工作流")</span></li></ul>
     </section>
-    <footer class="about-footer"><div class="actions"><button class="link" @onclick="OpenProject">项目主页 ↗</button><button class="link" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Privacy), new(DesktopViewKind.About))">隐私与数据</button></div><button @onclick="() => Host.Close(new(DesktopViewKind.About))">关闭</button></footer>
+    <footer class="about-footer"><div class="actions"><button class="link" @onclick="OpenProject">@ClientText.T("项目主页 ↗")</button><button class="link" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Privacy), new(DesktopViewKind.About))">@ClientText.T("隐私与数据")</button></div><button @onclick="() => Host.Close(new(DesktopViewKind.About))">@ClientText.T("关闭")</button></footer>
 </main>
 @code {
     private Task OpenProject() => Host.OpenExternalAsync("https://github.com/BenLampson/Asgard.Brigitte.Desktop");

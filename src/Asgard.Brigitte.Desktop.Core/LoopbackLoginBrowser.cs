@@ -16,7 +16,7 @@ public sealed class LoopbackLoginBrowser(Func<Uri, Task<bool>> openBrowser, stri
         var expectedState = Parse(new Uri(authorizationUrl).Query).Single(p => p.Key == "state").Value;
         using var listener = new TcpListener(IPAddress.Loopback, callback.Port);
         listener.Start();
-        if (!await openBrowser(new Uri(authorizationUrl))) throw new InvalidOperationException("无法打开系统浏览器。");
+        if (!await openBrowser(new Uri(authorizationUrl))) throw new InvalidOperationException(ClientText.T("无法打开系统浏览器。"));
         while (true)
         {
             var connection = await listener.AcceptTcpClientAsync(cancellationToken);

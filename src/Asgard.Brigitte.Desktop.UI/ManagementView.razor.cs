@@ -17,7 +17,7 @@ public partial class ManagementView
     private string _error = "", _keyName = "", _setupPrompt = "";
     private bool _busy;
     private int _page = 1;
-    private string Title => View.Kind switch { DesktopViewKind.Projects => "我的项目", DesktopViewKind.Project => "项目详情", DesktopViewKind.ProjectEdit => "编辑项目", DesktopViewKind.ProjectCreate => "创建项目", DesktopViewKind.Keys => "MCP Key", DesktopViewKind.KeyCreate => "创建 MCP Key", DesktopViewKind.KeyResult => "保存 MCP Key", DesktopViewKind.Users => "用户目录", _ => "附件预览" };
+    private string Title => View.Kind switch { DesktopViewKind.Projects => ClientText.T("我的项目"), DesktopViewKind.Project => ClientText.T("项目详情"), DesktopViewKind.ProjectEdit => ClientText.T("编辑项目"), DesktopViewKind.ProjectCreate => ClientText.T("创建项目"), DesktopViewKind.Keys => "MCP Key", DesktopViewKind.KeyCreate => ClientText.T("创建 MCP Key"), DesktopViewKind.KeyResult => ClientText.T("保存 MCP Key"), DesktopViewKind.Users => ClientText.T("用户目录"), _ => ClientText.T("附件预览") };
     private string ImageSource => _image is null ? "" : "data:" + _image.ContentType + ";base64," + _image.Base64Content;
     /// <summary>项目负责人和租户管理员可编辑；成员仅有协作访问权。</summary>
     private bool CanManage(Project? project) => project is not null
@@ -54,21 +54,21 @@ public partial class ManagementView
     private async Task Run(Func<Task> action) { _busy = true; _error = ""; try { await action(); } catch (Exception ex) { _error = AppView.SafeError(ex); } finally { _busy = false; } }
     private Task SaveProject() => Run(async () =>
     {
-        if (View.Kind != DesktopViewKind.ProjectCreate && !CanManage(_project)) throw new InvalidOperationException("没有项目管理权限。");
-        if (string.IsNullOrWhiteSpace(_input.Name)) throw new InvalidOperationException("请填写项目名称。");
+        if (View.Kind != DesktopViewKind.ProjectCreate && !CanManage(_project)) throw new InvalidOperationException(ClientText.T("没有项目管理权限。"));
+        if (string.IsNullOrWhiteSpace(_input.Name)) throw new InvalidOperationException(ClientText.T("请填写项目名称。"));
         _input.MemberUserIds = _members.ToArray();
         await Api.WriteAsync<Project>(View.Kind == DesktopViewKind.ProjectCreate ? "projects" : "projects/" + Uri.EscapeDataString(View.Id ?? ""), _input, View.Kind == DesktopViewKind.ProjectCreate ? "POST" : "PUT");
         Host.PublishChange(); Close();
     });
     private Task CreateKey() => Run(async () =>
     {
-        if (string.IsNullOrWhiteSpace(_keyName) || _scopes.Count == 0) throw new InvalidOperationException("请填写名称并选择权限范围。");
+        if (string.IsNullOrWhiteSpace(_keyName) || _scopes.Count == 0) throw new InvalidOperationException(ClientText.T("请填写名称并选择权限范围。"));
         var value = await Api.WriteAsync<CreatedMcpKey>("mcp-api-keys", new { name = _keyName, scopes = _scopes.ToArray() });
         var id = KeyResultStore.Put(value); await Host.OpenAsync(new(DesktopViewKind.KeyResult, id), View); Host.PublishChange(); Close();
     });
     private Task Revoke(McpKey key) => Run(async () =>
     {
-        if (!await Host.ConfirmAsync("撤销 MCP Key？", "使用“" + key.Name + "”的客户端将立即无法访问 Brigitte。")) return;
+        if (!await Host.ConfirmAsync(ClientText.T("撤销 MCP Key？"), ClientText.T("使用“{0}”的客户端将立即无法访问 Brigitte。", key.Name))) return;
         await Api.WriteAsync<object>("mcp-api-keys/" + Uri.EscapeDataString(key.Id), null, "DELETE"); Host.PublishChange();
     });
     private Task BatchPrompt() => Run(async () =>
@@ -80,7 +80,7 @@ public partial class ManagementView
     {
         var endpoint = Options.Value.ApiBaseUrl.TrimEnd('/') + "/api/mcp";
         try { _setupPrompt = await Api.PromptAsync("mcpClientSetupPrompt", new() { ["mcpEndpoint"] = endpoint, ["mcpApiKey"] = _result!.PlainKey }); } catch { }
-        if (string.IsNullOrWhiteSpace(_setupPrompt)) _setupPrompt = "请帮我把 Brigitte MCP 接入当前使用的 MCP Client。\n\n服务地址：" + endpoint + "\nAPI Key：" + _result!.PlainKey + "\n\n配置示例：\n" + System.Text.Json.JsonSerializer.Serialize(new { mcpServers = new { brigitte = new { url = endpoint, headers = new Dictionary<string, string> { ["X-Api-Key"] = _result.PlainKey } } } }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + "\n请完成配置后验证工具能够正常列出，不要在日志、代码仓库或聊天中泄露这个 Key。";
+        if (string.IsNullOrWhiteSpace(_setupPrompt)) _setupPrompt = ClientText.T("请帮我把 Brigitte MCP 接入当前使用的 MCP Client。\n\n服务地址：") + endpoint + "\nAPI Key：" + _result!.PlainKey + ClientText.T("\n\n配置示例：\n") + System.Text.Json.JsonSerializer.Serialize(new { mcpServers = new { brigitte = new { url = endpoint, headers = new Dictionary<string, string> { ["X-Api-Key"] = _result.PlainKey } } } }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + ClientText.T("\n请完成配置后验证工具能够正常列出，不要在日志、代码仓库或聊天中泄露这个 Key。");
     }
     /// <summary>关闭后不保留密钥或预览图片。</summary>
     public void Dispose() { Host.Changed -= Changed; _result = null; _setupPrompt = ""; _image = null; }

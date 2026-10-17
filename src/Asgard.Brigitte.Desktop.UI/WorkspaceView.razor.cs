@@ -52,9 +52,9 @@ public partial class WorkspaceView
     private void ResetPage() => _page = 1;
     private Task OpenAccount() => Host.OpenExternalAsync(Options.Value.HeimdallWebBaseUrl.TrimEnd('/') + "/account");
     private static PromptAction Primary(List<PromptAction> actions) => actions.FirstOrDefault(a => a.IsPrimary) ?? actions[0];
-    private string OwnerTitle(Bug b) => "负责人：" + Workspace.Assignee(b.AssigneeId) + "\n标识：" + (b.AssigneeId ?? "未指派");
-    private static string ClaimTitle(Bug b) => "领取者：" + BugDisplay.Claimant(b) + "\nWorker ID：" + b.LockOwnerId + "\n到期：" + b.LockExpireTime?.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-    private async Task Copy(string value) { await Host.CopyAsync(value); _toast = "已复制"; }
+    private string OwnerTitle(Bug b) => ClientText.T("负责人：") + Workspace.Assignee(b.AssigneeId) + ClientText.T("\n标识：") + (b.AssigneeId ?? ClientText.T("未指派"));
+    private static string ClaimTitle(Bug b) => ClientText.T("领取者：") + BugDisplay.Claimant(b) + "\nWorker ID：" + b.LockOwnerId + ClientText.T("\n到期：") + b.LockExpireTime?.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    private async Task Copy(string value) { await Host.CopyAsync(value); _toast = ClientText.T("已复制"); }
     private Dictionary<string, string?> Variables(Bug? bug = null) => new()
     { ["projectId"] = Project?.Id, ["projectName"] = Project?.Name, ["projectCode"] = Project?.Code, ["bugId"] = bug?.Id, ["bugTitle"] = bug?.Title, ["mcpEndpoint"] = Options.Value.ApiBaseUrl.TrimEnd('/') + "/api/mcp" };
     private async Task CopyPrompt(PromptAction action, Bug bug)
@@ -63,8 +63,8 @@ public partial class WorkspaceView
     { try { await Copy(await Api.PromptAsync("projectBatchFixPrompt", Variables())); } catch (Exception ex) { _error = AppView.SafeError(ex); } }
     private async Task DeleteBug(Bug bug)
     {
-        if (!await Host.ConfirmAsync("确认删除 BUG？", bug.Title)) return;
-        if (!await Host.ConfirmAsync("再次确认物理删除？", "会同时删除 BUG、评论、状态历史和附件，此操作不可恢复。")) return;
+        if (!await Host.ConfirmAsync(ClientText.T("确认删除 BUG？"), bug.Title)) return;
+        if (!await Host.ConfirmAsync(ClientText.T("再次确认物理删除？"), ClientText.T("会同时删除 BUG、评论、状态历史和附件，此操作不可恢复。"))) return;
         try { await Api.DeleteBugAsync(bug.Id); Host.PublishChange(); } catch (Exception ex) { _error = AppView.SafeError(ex); }
     }
     private async Task Logout() { try { await Session.LogoutAsync(); } catch (Exception ex) { _error = AppView.SafeError(ex); } }

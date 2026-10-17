@@ -3,22 +3,22 @@
 <section class="brand-entry brand-sync" aria-busy="true">
     <aside class="brand-story">
         <div class="brand-signature"><Brand /><span>Brigitte<small>ASGARD WORKSPACE</small></span></div>
-        <div class="brand-story-copy"><p class="brand-eyebrow">A LITTLE FIRE. A FRESH START.</p><h2>为下一次创造，<br />做好准备。</h2><p>Brigid 正在炉火旁，陪你稍候片刻。</p></div>
+        <div class="brand-story-copy"><p class="brand-eyebrow">A LITTLE FIRE. A FRESH START.</p><h2>@ClientText.T("为下一次创造，")<br />@ClientText.T("做好准备。")</h2><p>@ClientText.T("Brigid 正在炉火旁，陪你稍候片刻。")</p></div>
         <BrigidScene Forging="true" />
     </aside>
     <main class="brand-entry-main">
       <div class="brand-entry-content">
         <p class="brand-eyebrow">PREPARING YOUR WORKSPACE</p>
-        <h1>正在同步你的工作区</h1>
-        <p class="brand-entry-intro">正在获取最新内容，同步完成后自动进入。</p>
+        <h1>@ClientText.T("正在同步你的工作区")</h1>
+        <p class="brand-entry-intro">@ClientText.T("正在获取最新内容，同步完成后自动进入。")</p>
         <div class="brand-sync-card">
         <div class="sync-progress-label" role="status"><strong>@Host.RealtimeStatus</strong><span>@(Host.SyncHasManifest && Host.SyncTotal>0 ? Percent+"%" : "")</span></div>
-        @if(Host.SyncHasManifest) { <progress max="100" value="@Percent" aria-label="同步进度"></progress> }
-        else { <progress aria-label="正在核对线上数据"></progress> }
-        <p class="sync-count">@(Host.SyncHasManifest ? $"已接收 {Host.SyncReceived:N0} / {Host.SyncTotal:N0} 条变更" : "正在核对线上数据，请稍候…")</p>
-        <ol class="sync-steps"><li class="@(Host.SyncHasManifest || Host.RealtimeStatus=="正在核对线上数据" ? "complete" : "current")">连接工作区</li><li class="@(Host.SyncHasManifest ? "complete" : Host.RealtimeStatus=="正在核对线上数据" ? "current" : "")">核对线上数据</li><li class="@(Host.SyncHasManifest ? "current" : "")">保存最新内容</li><li>完成同步后进入</li></ol>
+        @if(Host.SyncHasManifest) { <progress max="100" value="@Percent" aria-label="@ClientText.T("同步进度")"></progress> }
+        else { <progress aria-label="@ClientText.T("正在核对线上数据")"></progress> }
+        <p class="sync-count">@(Host.SyncHasManifest ? ClientText.T("已接收 {0:N0} / {1:N0} 条变更", Host.SyncReceived, Host.SyncTotal) : ClientText.T("正在核对线上数据，请稍候…"))</p>
+        <ol class="sync-steps"><li class="@(Host.SyncHasManifest || Host.RealtimeStatus==ClientText.T("正在核对线上数据") ? "complete" : "current")">@ClientText.T("连接工作区")</li><li class="@(Host.SyncHasManifest ? "complete" : Host.RealtimeStatus==ClientText.T("正在核对线上数据") ? "current" : "")">@ClientText.T("核对线上数据")</li><li class="@(Host.SyncHasManifest ? "current" : "")">@ClientText.T("保存最新内容")</li><li>@ClientText.T("完成同步后进入")</li></ol>
         </div>
-        <p class="sync-hint">首次进入可能需要一点时间。附件会在你打开时下载。</p>
+        <p class="sync-hint">@ClientText.T("首次进入可能需要一点时间。附件会在你打开时下载。")</p>
       </div>
       <footer class="brand-entry-footer"><span>BRIGITTE <span>·</span> BUG MANAGEMENT</span><DesktopUtilities /></footer>
     </main>

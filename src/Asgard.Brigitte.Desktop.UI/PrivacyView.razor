@@ -1,23 +1,24 @@
 @inject IClientHost Host
 <main class="preferences-window privacy-window">
-    <header class="preferences-header"><div><p class="preferences-eyebrow">BRIGITTE</p><h1>隐私与数据</h1><p class="muted">了解工作区使用哪些信息，以及它们保存在什么地方。</p></div></header>
+    <header class="preferences-header"><div><p class="preferences-eyebrow">BRIGITTE</p><h1>@ClientText.T("隐私与数据")</h1><p class="muted">@ClientText.T("了解工作区使用哪些信息，以及它们保存在什么地方。")</p></div></header>
     <section class="preferences-section privacy-copy">
-        <h2>账号与协作</h2>
-        <p>Brigitte 使用 Heimdall 完成登录，读取你的账号标识、显示名称、租户与权限，用来确认你能访问的项目及记录操作人。登录在系统浏览器中完成。</p>
-        <p>开放注册时，你在注册页提交的用户名、邮箱、显示名称及密码会经 Brigitte 服务发送给 Heimdall 创建账号；Brigitte 不保存注册密码。注册不代表已验证邮箱。登录后可创建自己的项目，访问他人的项目需要有效邀请或管理员分配。</p>
-        <p>你创建的项目由你管理，可修改名称、生成带可选密码的邀请链接，并移除成员。邀请链接的随机凭据只在创建时展示；服务器保存凭据摘要和可选口令哈希。你提交的项目、BUG、回复、处理记录及附件会发送到 Brigitte 服务，并按项目权限与其他成员共享。</p>
-        <h2>此设备上的数据</h2>
-        <p>登录凭据通过系统安全存储保存。工作区记录和未读动态缓存到本地数据库，用于同步与查看；界面还会保存主题、关闭偏好及 WebView 缓存。已读动态会从本地消息列表删除。</p>
-        <p>退出登录会删除此设备保存的当前登录凭据，并关闭业务窗口。已同步的工作区缓存可能仍保留在设备上，退出登录不会删除团队服务中的协作记录；需要管理账号或服务端数据时，请联系团队管理员。</p>
-        <h2>附件、通知与 AI</h2>
-        <p>附件由你主动选择、粘贴或拖入后上传。工作区动态可能通过系统通知显示项目、BUG 标题和操作摘要，可通过 Windows 通知设置管理。选择最小化到托盘后会继续同步，退出程序才会停止。</p>
-        <p>复制提示词不会自动发送到 AI 服务。将内容粘贴到 AI 工具，或向外部 MCP 客户端提供 Key 后，相关工具会按你的操作和授权访问协作数据；请按团队规定管理内容与 Key。</p>
+        <h2>@ClientText.T("账号与协作")</h2>
+        <p>@ClientText.T("Brigitte 使用 Heimdall 完成登录，读取你的账号标识、显示名称、租户与权限，用来确认你能访问的项目及记录操作人。登录在系统浏览器中完成。")</p>
+        <p>@ClientText.T("开放注册时，你在注册页提交的用户名、邮箱、显示名称及密码会经 Brigitte 服务发送给 Heimdall 创建账号；Brigitte 不保存注册密码。注册不代表已验证邮箱。登录后可创建自己的项目，访问他人的项目需要有效邀请或管理员分配。")</p>
+        <p>@ClientText.T("你创建的项目由你管理，可修改名称、生成带可选密码的邀请链接，并移除成员。邀请链接的随机凭据只在创建时展示；服务器保存凭据摘要和可选口令哈希。你提交的项目、BUG、回复、处理记录及附件会发送到 Brigitte 服务，并按项目权限与其他成员共享。")</p>
+        <h2>@ClientText.T("此设备上的数据")</h2>
+        <p>@ClientText.T("登录凭据通过系统安全存储保存。工作区记录和未读动态缓存到本地数据库，用于同步与查看；界面还会保存主题、语言、关闭偏好及 WebView 缓存。已读动态会从本地消息列表删除。")</p>
+        <p>@ClientText.T("退出登录会删除此设备保存的当前登录凭据，并关闭业务窗口。已同步的工作区缓存可能仍保留在设备上，退出登录不会删除团队服务中的协作记录；需要管理账号或服务端数据时，请联系团队管理员或隐私邮箱。")</p>
+        <h2>@ClientText.T("附件、通知与 AI")</h2>
+        <p>@ClientText.T("附件由你主动选择、粘贴或拖入后上传。系统通知只显示动态数量，项目、BUG 标题和操作摘要在应用内显示，可通过操作系统设置管理通知。选择最小化到托盘后会继续同步，退出程序才会停止。")</p>
+        <p>@ClientText.T("复制提示词不会自动发送到 AI 服务。将内容粘贴到 AI 工具，或向外部 MCP 客户端提供 Key 后，相关工具会按你的操作和授权访问协作数据；请按团队规定管理内容与 Key。")</p>
+        <p>@ClientText.T("隐私请求请发邮件至 cn.benlampson@gmail.com；普通问题请通过 GitHub Issue 反馈，请勿公开凭据或个人信息。")</p>
     </section>
     <footer class="preferences-footer">
         <div class="actions">
-            @if (Host.PrivacyPolicyUrl.Length > 0) { <button class="link" @onclick="() => Host.OpenExternalAsync(Host.PrivacyPolicyUrl)">隐私政策 ↗</button> }
-            @if (Host.SupportUrl.Length > 0) { <button class="link" @onclick="() => Host.OpenExternalAsync(Host.SupportUrl)">联系支持 ↗</button> }
+            @if (Host.PrivacyPolicyUrl.Length > 0) { <button class="link" @onclick="() => Host.OpenExternalAsync(Host.PrivacyPolicyUrl)">@ClientText.T("隐私政策 ↗")</button> }
+            @if (Host.SupportUrl.Length > 0) { <button class="link" @onclick="() => Host.OpenExternalAsync(Host.SupportUrl)">@ClientText.T("联系支持 ↗")</button> }
         </div>
-        <button @onclick="() => Host.Close(new(DesktopViewKind.Privacy))">关闭</button>
+        <button @onclick="() => Host.Close(new(DesktopViewKind.Privacy))">@ClientText.T("关闭")</button>
     </footer>
 </main>

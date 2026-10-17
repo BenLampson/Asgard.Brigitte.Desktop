@@ -25,19 +25,19 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
         if (body is not null) request.Content = JsonContent.Create(body, options: Json);
         using var client = factory.CreateClient("brigitte");
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        if (session.IdentityVersion != lease.IdentityVersion) throw new OperationCanceledException("会话已变化，已丢弃旧响应。");
+        if (session.IdentityVersion != lease.IdentityVersion) throw new OperationCanceledException(ClientText.T("会话已变化，已丢弃旧响应。"));
         if ((int)response.StatusCode is 401 or 419 or 440)
         {
             await session.InvalidateAsync(lease.Version);
-            throw new UnauthorizedAccessException("登录已失效，请重新登录。");
+            throw new UnauthorizedAccessException(ClientText.T("登录已失效，请重新登录。"));
         }
-        if ((int)response.StatusCode is >= 300 and < 400) throw new HttpRequestException("API 不允许重定向。");
+        if ((int)response.StatusCode is >= 300 and < 400) throw new HttpRequestException(ClientText.T("API 不允许重定向。"));
         using var payload = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-        if (session.IdentityVersion != lease.IdentityVersion) throw new OperationCanceledException("会话已变化，已丢弃旧响应。");
+        if (session.IdentityVersion != lease.IdentityVersion) throw new OperationCanceledException(ClientText.T("会话已变化，已丢弃旧响应。"));
         var root = payload.RootElement;
         if (!response.IsSuccessStatusCode || !root.TryGetProperty("code", out var code) || code.GetInt32() != 200)
             throw new HttpRequestException(root.TryGetProperty("message", out var message) ? message.GetString() : $"HTTP {(int)response.StatusCode}", null, response.StatusCode);
-        return root.Deserialize<T>(Json) ?? throw new JsonException("API 返回空响应。");
+        return root.Deserialize<T>(Json) ?? throw new JsonException(ClientText.T("API 返回空响应。"));
     }
     /// <summary>读取非分页数据。</summary>
     public async Task<T> GetAsync<T>(string path, CancellationToken cancellationToken = default)
@@ -47,18 +47,18 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     {
         var list = path.StartsWith("projects/", StringComparison.Ordinal) && path.EndsWith("/invitations", StringComparison.Ordinal) && path.Count(c => c == '/') == 2;
         if (path != "invitations/inspect" && !list)
-            throw new ArgumentException("不支持的邀请路径。", nameof(path));
+            throw new ArgumentException(ClientText.T("不支持的邀请路径。"), nameof(path));
         return (await RequestAsync<ApiResponse<T>>(body is null ? HttpMethod.Get : HttpMethod.Post, path, body, cancellationToken)).Data;
     }
     /// <summary>执行已有写接口，绝不自动重试。</summary>
     public async Task<T> WriteAsync<T>(string path, object? body, string method = "POST", CancellationToken cancellationToken = default)
     {
-        if (!sync.CanWrite) throw new InvalidOperationException("当前工作区只读，连接并完成同步后才能提交。");
-        if (method is not ("POST" or "PUT" or "DELETE" or "PATCH")) throw new ArgumentException("命令只允许写方法。");
+        if (!sync.CanWrite) throw new InvalidOperationException(ClientText.T("当前工作区只读，连接并完成同步后才能提交。"));
+        if (method is not ("POST" or "PUT" or "DELETE" or "PATCH")) throw new ArgumentException(ClientText.T("命令只允许写方法。"));
         var identity = session.IdentityVersion;
         var value = (await RequestAsync<ApiResponse<T>>(new HttpMethod(method), path, body, cancellationToken)).Data;
         await sync.ConfirmAsync(cancellationToken);
-        if (identity != session.IdentityVersion) throw new OperationCanceledException("会话已变化，已丢弃旧命令结果。");
+        if (identity != session.IdentityVersion) throw new OperationCanceledException(ClientText.T("会话已变化，已丢弃旧命令结果。"));
         return value;
     }
     /// <summary>读取已经同步的完整本地集合，不再执行 HTTP 分页。</summary>
@@ -85,7 +85,7 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
         => WriteAsync<Bug>("bugs/" + E(id) + "/status", new { status, reason, operatorType = "human", workerId });
     /// <summary>领取现有一小时处理锁。</summary>
     public Task<Bug> ClaimAsync(string id, string workerId)
-        => WriteAsync<Bug>("bugs/" + E(id) + "/claim", new { workerId, workerName = "Brigitte 桌面客户端", ttlMinutes = 60 });
+        => WriteAsync<Bug>("bugs/" + E(id) + "/claim", new { workerId, workerName = "Asgard Brigitte Desktop", ttlMinutes = 60 });
     /// <summary>仅释放本客户端的锁。</summary>
     public Task<Bug> ReleaseAsync(string id, string workerId) => WriteAsync<Bug>("bugs/" + E(id) + "/release-lock", new { workerId });
     /// <summary>新增现有评论或处理记录。</summary>

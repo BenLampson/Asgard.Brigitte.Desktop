@@ -1,5 +1,11 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Help and documentation / 帮助与文档
+    url: https://github.com/BenLampson/Asgard.Brigitte.Desktop/blob/main/SUPPORT.md
+    about: Usage, installation, language settings, and feedback channels / 使用、安装、语言设置及反馈渠道
+  - name: Privacy and account deletion / 隐私与账号删除
+    url: https://github.com/BenLampson/Asgard.Brigitte.Desktop/blob/main/PRIVACY.md
+    about: Use the private email contact in the policy; do not post personal data in public issues / 使用政策内的邮箱，请勿公开个人信息
   - name: Security vulnerability / 安全问题
     url: https://github.com/BenLampson/Asgard.Brigitte.Desktop/security/advisories/new
     about: Report sensitive security issues privately / 私密报告安全问题

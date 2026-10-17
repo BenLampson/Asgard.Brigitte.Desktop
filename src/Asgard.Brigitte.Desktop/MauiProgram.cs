@@ -13,7 +13,7 @@ public static class MauiProgram
         builder.Services.AddMauiBlazorWebView();
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Asgard.Brigitte.Desktop.Resources.Raw.clientsettings.json")!;
         var options = JsonSerializer.Deserialize<ClientOptions>(stream)!;
-        if (!options.IsValid()) throw new InvalidOperationException("客户端服务地址配置无效。");
+        if (!options.IsValid()) throw new InvalidOperationException(ClientText.T("客户端服务地址配置无效。"));
         builder.Services.AddSingleton<IOptions<ClientOptions>>(Options.Create(options));
         builder.Services.AddBrigitteDesktopHttp(options);
         builder.Services.AddSingleton<ICredentialStore, SecureCredentialStore>();
@@ -31,6 +31,9 @@ public static class MauiProgram
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "theme.json"),
             () => Preferences.Default.Get("brigitte.theme", "system")));
         builder.Services.AddSingleton<DesktopHost>();
+        builder.Services.AddSingleton(_ => new LanguagePreferenceStore(
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "language.json"),
+            DesktopHost.SystemLanguage));
         builder.Services.AddSingleton(_ => new ClosePreferenceStore(
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "close-behavior.json")));
         builder.Services.AddSingleton<IClientHost>(sp => sp.GetRequiredService<DesktopHost>());

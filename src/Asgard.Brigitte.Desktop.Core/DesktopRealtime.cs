@@ -20,7 +20,8 @@ public sealed class DesktopRealtime : IWorkspaceSync, IDisposable
     public event Action? Changed;
     public event Action? StatusChanged;
     public event Action<IReadOnlyList<SyncNotice>>? Notification;
-    public string Status { get; private set; } = "未连接";
+    private string _status = "未连接";
+    public string Status => ClientText.T(_status);
     public bool Ready => _database.Ready;
     public bool CanWrite => _connected && Ready;
     public int Received => _database.Received;
@@ -40,7 +41,7 @@ public sealed class DesktopRealtime : IWorkspaceSync, IDisposable
     {
         if (_identity == _session.IdentityVersion && _session.IsAuthenticated) return;
         _connected = false; HasManifest = false; _database.Close();
-        foreach (var receipt in _receipts.Values) receipt.TrySetException(new OperationCanceledException("会话已变化；线上已提交的操作不会重放。"));
+        foreach (var receipt in _receipts.Values) receipt.TrySetException(new OperationCanceledException(ClientText.T("会话已变化；线上已提交的操作不会重放。")));
         _receipts.Clear(); SetStatus(_session.IsAuthenticated ? "已登录，正在连接工作区" : "未登录");
     }
     private void OnCommitted(SyncCommit commit)
@@ -131,7 +132,7 @@ public sealed class DesktopRealtime : IWorkspaceSync, IDisposable
             try { await Task.Delay(3000, stopping); } catch (OperationCanceledException) { return; }
         }
     }
-    private void SetStatus(string status) { Status = status; StatusChanged?.Invoke(); }
+    private void SetStatus(string status) { _status = status; StatusChanged?.Invoke(); }
     public void Dispose()
     {
         _stopping.Cancel(); _session.Changed -= IdentityChanged; _database.Committed -= OnCommitted;

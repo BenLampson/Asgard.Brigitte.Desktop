@@ -11,7 +11,7 @@ public sealed partial class LocalWorkspaceDatabase
         {
             using var cmd = Connection.CreateCommand(); cmd.Transaction = transaction;
             cmd.CommandText = "INSERT OR IGNORE INTO notices(id,message,time) VALUES($id,$message,$time)";
-            cmd.Parameters.AddWithValue("$id", notice.Id); cmd.Parameters.AddWithValue("$message", notice.Message);
+            cmd.Parameters.AddWithValue("$id", notice.Id); cmd.Parameters.AddWithValue("$message", notice.EnglishMessage is null ? notice.Message : JsonSerializer.Serialize(new[] { notice.Message, notice.EnglishMessage }));
             cmd.Parameters.AddWithValue("$time", notice.Time.ToString("O")); cmd.ExecuteNonQuery();
         }
     }
@@ -22,7 +22,21 @@ public sealed partial class LocalWorkspaceDatabase
             if (_connection is null || !Ready) return [];
             using var cmd = Connection.CreateCommand(); cmd.CommandText = "SELECT id,message,time,seen FROM notices WHERE seen=0 ORDER BY time DESC,rowid DESC";
             using var reader = cmd.ExecuteReader(); var result = new List<SyncNotice>();
-            while (reader.Read()) result.Add(new(reader.GetString(0), reader.GetString(1), DateTimeOffset.Parse(reader.GetString(2), System.Globalization.CultureInfo.InvariantCulture), reader.GetInt32(3) != 0));
+            while (reader.Read())
+            {
+                var message = reader.GetString(1);
+                string? english = null;
+                if (message.StartsWith('['))
+                {
+                    try
+                    {
+                        var pair = JsonSerializer.Deserialize<string[]>(message);
+                        if (pair is { Length: 2 } && pair.All(x => x is not null)) { message = pair[0]; english = pair[1]; }
+                    }
+                    catch (JsonException) { /* 兼容升级前的纯文本动态。 */ }
+                }
+                result.Add(new(reader.GetString(0), message, DateTimeOffset.Parse(reader.GetString(2), System.Globalization.CultureInfo.InvariantCulture), reader.GetInt32(3) != 0) { EnglishMessage = english });
+            }
             return result;
         }
     }

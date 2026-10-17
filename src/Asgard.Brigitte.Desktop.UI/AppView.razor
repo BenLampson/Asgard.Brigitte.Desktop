@@ -5,7 +5,8 @@
 @inject BrigitteApi Api
 @inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
 <CascadingValue Value="View" Name="OwnerView">
-<div class="client @Host.Theme @(View.Kind == DesktopViewKind.Tray ? "tray-client" : null)">
+<CascadingValue Value="Host.Language" Name="DesktopLanguage">
+<div lang="@(Host.Language == "zh-CN" ? "zh-CN" : "en")" class="client @Host.Theme @(View.Kind == DesktopViewKind.Tray ? "tray-client" : null)">
 @if (View.Kind == DesktopViewKind.Settings) { <SettingsView /> }
 else if (View.Kind == DesktopViewKind.About) { <AboutView /> }
 else if (View.Kind == DesktopViewKind.Privacy) { <PrivacyView /> }
@@ -16,8 +17,8 @@ else if (!Session.IsAuthenticated) {
 } else if (!Host.SyncReady) {
     <SyncStartupView />
 } else {
-    @if (Host.PendingCommands>0) { <div class="sync-status" role="status">线上已保存，等待同步… 完成后会自动更新，请勿重复提交。</div> }
-    else if (!Host.CanWrite) { <div class="sync-status" role="status">连接已中断，正在重连。当前内容只读。</div> }
+    @if (Host.PendingCommands>0) { <div class="sync-status" role="status">@ClientText.T("线上已保存，等待同步… 完成后会自动更新，请勿重复提交。")</div> }
+    else if (!Host.CanWrite) { <div class="sync-status" role="status">@ClientText.T("连接已中断，正在重连。当前内容只读。")</div> }
     @if(Session.PersistenceWarning!="") { <div class="notice warning" role="alert">@Session.PersistenceWarning</div> }
     @if (!string.IsNullOrEmpty(_error)) { <div class="notice error" role="alert">@_error</div> }
     @switch (View.Kind) {
@@ -33,10 +34,11 @@ else if (!Session.IsAuthenticated) {
         default: <ManagementView View="View" /> break;
     }
     @if (Host.ShowNotification(View)) {
-        <aside class="sync-toast" role="status" aria-live="polite"><span class="sync-toast-icon">✓</span><div><strong>工作区动态</strong><p>@Host.NotificationText</p></div><button aria-label="关闭提示" @onclick="Host.DismissNotification">×</button></aside>
+        <aside class="sync-toast" role="status" aria-live="polite"><span class="sync-toast-icon">✓</span><div><strong>@ClientText.T("工作区动态")</strong><p>@Host.NotificationText</p></div><button aria-label="@ClientText.T("关闭提示")" @onclick="Host.DismissNotification">×</button></aside>
     }
 }
 </div>
+</CascadingValue>
 </CascadingValue>
 @code {
     /// <summary>每个原生窗口独立提供的导航上下文。</summary>
@@ -56,7 +58,7 @@ else if (!Session.IsAuthenticated) {
     {
         _busy = true; _error = "";
         try { await Session.LoginAsync(); }
-        catch (OperationCanceledException) { _error = "登录已取消或超时，可重新登录。"; }
+        catch (OperationCanceledException) { _error = ClientText.T("登录已取消或超时，可重新登录。"); }
         catch (Exception ex) { _error = SafeError(ex); }
         finally { _busy = false; }
     }
@@ -74,6 +76,6 @@ else if (!Session.IsAuthenticated) {
         _ = InvokeAsync(() => { if (Session.IsAuthenticated) _error = ""; StateHasChanged(); });
     }
     /// <summary>协议异常只显示安全分类，不输出回调或令牌。</summary>
-    public static string SafeError(Exception ex) => ex is Asgard.Heimdall.Client.HeimdallClientException sdk ? "登录服务返回：" + sdk.Category : ex.Message;
+    public static string SafeError(Exception ex) => ex is Asgard.Heimdall.Client.HeimdallClientException sdk ? ClientText.T("登录服务返回：") + sdk.Category : ex.Message;
     public void Dispose() { Session.Changed -= Changed; Host.Changed -= Changed; Host.StatusChanged -= Changed; }
 }

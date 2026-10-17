@@ -1,3 +1,16 @@
+// 首屏先随浏览器的系统语言，原生宿主恢复偏好后以工作区的 lang 为准。
+const bootLanguage = (navigator.languages?.[0] || navigator.language || "en").toLowerCase().startsWith("zh") ? "zh-CN" : "en";
+document.documentElement.lang = bootLanguage;
+const bootMessage = document.querySelector("[data-boot-message]");
+const bootDetail = document.querySelector("[data-boot-detail]");
+if (bootMessage) bootMessage.textContent = bootLanguage === "zh-CN" ? "正在点亮圣火…" : "Lighting the flame…";
+if (bootDetail) bootDetail.textContent = bootLanguage === "zh-CN" ? "正在启动 Asgard Brigitte" : "Starting Asgard Brigitte";
+const appRoot = document.getElementById("app");
+if (appRoot) new MutationObserver(() => {
+  const language = appRoot.querySelector(".client[lang]")?.lang;
+  if (language && document.documentElement.lang !== language) document.documentElement.lang = language;
+}).observe(appRoot, { subtree: true, childList: true, attributes: true, attributeFilter: ["lang"] });
+
 window.brigitte = {
   attachPaste(element, receiver) {
     element.addEventListener("paste", async (event) => {
@@ -18,7 +31,7 @@ window.brigitte = {
           data.slice(data.indexOf(",") + 1),
         );
       }
-      element.textContent = "在此粘贴图片或文件";
+      element.textContent = element.dataset.pastePlaceholder || "Paste an image or file here";
     });
   },
 };

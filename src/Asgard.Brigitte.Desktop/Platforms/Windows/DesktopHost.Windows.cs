@@ -125,7 +125,7 @@ public sealed partial class DesktopHost
     {
         var picker = new FileSavePicker { SuggestedFileName = fileName };
         var extension = Path.GetExtension(fileName); if (string.IsNullOrEmpty(extension)) extension = ".bin";
-        picker.FileTypeChoices.Add("附件", new List<string> { extension });
+        picker.FileTypeChoices.Add(ClientText.T("附件"), new List<string> { extension });
         var native = (Microsoft.UI.Xaml.Window)ActivePage.Window.Handler!.PlatformView!;
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(native));
         var file = await picker.PickSaveFileAsync(); if (file is not null) await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);

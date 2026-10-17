@@ -20,7 +20,7 @@ internal sealed class WindowsTray : IPlatformTray
         _window = NativeTray.CreateWindowEx(0, _className, "", 0, 0, 0, 0, 0, 0, 0, cls.Instance, 0);
         _taskbarCreated = NativeTray.RegisterWindowMessage("TaskbarCreated");
         _icon = TrayGlyph.Create(UseLightGlyph());
-        _data = new() { Size = (uint)Marshal.SizeOf<NativeTray.NotifyIconData>(), Window = _window, Id = 1, Flags = 7, Callback = 0x8001, Icon = _icon, Tip = "Brigitte · BUG 管理器", Info = "", InfoTitle = "" };
+        _data = new() { Size = (uint)Marshal.SizeOf<NativeTray.NotifyIconData>(), Window = _window, Id = 1, Flags = 7, Callback = 0x8001, Icon = _icon, Tip = ClientText.T("Brigitte · BUG 管理器"), Info = "", InfoTitle = "" };
         IsAvailable = NativeTray.Shell_NotifyIcon(0, ref _data);
     }
     /// <summary>项目数量进入提示，主题变更更新单色徽记。</summary>
@@ -28,12 +28,13 @@ internal sealed class WindowsTray : IPlatformTray
     {
         if (_window == 0) return;
         var old = _icon; _icon = TrayGlyph.Create(UseLightGlyph(), _host.UnreadChanges > 0); _data.Icon = _icon;
-        _data.Tip = _host.IsAuthenticated ? "Brigitte · " + _host.Projects.Count + " 个项目 · " + _host.Projects.Sum(p => _host.ProjectCount(p.Id)) + " 个未解决 BUG" : "Brigitte · 请先登录";
+        _data.Tip = _host.IsAuthenticated ? ClientText.T("Asgard Brigitte · {0} 个项目 · {1} 个未解决 BUG", _host.Projects.Count, _host.Projects.Sum(p => _host.ProjectCount(p.Id))) : ClientText.T("Brigitte · 请先登录");
+        if (_data.Tip.Length > 127) _data.Tip = _data.Tip[..127];
         IsAvailable = NativeTray.Shell_NotifyIcon(IsAvailable ? 1u : 0u, ref _data); if (old != 0) NativeTray.DestroyIcon(old);
     }
     private nint WndProc(nint window, uint message, nint wParam, nint lParam)
     {
-        if (message == 0x1A) { Refresh(); return 0; }
+        if (message == 0x1A) { MainThread.BeginInvokeOnMainThread(() => { _host.RefreshSystemLanguage(); Refresh(); }); return 0; }
         if (message == _taskbarCreated) { IsAvailable = false; Refresh(); return 0; }
         if (message == 0x8001)
         {

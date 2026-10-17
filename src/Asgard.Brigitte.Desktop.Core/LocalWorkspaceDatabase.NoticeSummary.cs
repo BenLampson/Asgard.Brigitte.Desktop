@@ -8,6 +8,14 @@ public sealed partial class LocalWorkspaceDatabase
     /// <summary>同批次按 BUG 合并，保留具体状态、领取者和回复类型；纯续锁与审计字段补齐静默。</summary>
     private SyncNotice[] BuildNotices(string batchId)
     {
+        SyncNotice[] chinese, english;
+        using (ClientText.UseLanguage("zh-CN")) chinese = BuildNoticesCore(batchId);
+        using (ClientText.UseLanguage("en")) english = BuildNoticesCore(batchId);
+        var translated = english.ToDictionary(x => x.Id, x => x.Message);
+        return chinese.Select(x => x with { EnglishMessage = translated.GetValueOrDefault(x.Id) }).ToArray();
+    }
+    private SyncNotice[] BuildNoticesCore(string batchId)
+    {
         var changes = new Dictionary<string, (JsonObject? Before, JsonObject? After)>();
         using (var cmd = Connection.CreateCommand())
         {
@@ -28,7 +36,7 @@ public sealed partial class LocalWorkspaceDatabase
         {
             if (string.IsNullOrWhiteSpace(id)) return "";
             // 仅用目录中的明确映射；旧的 MCP 审计前缀不在系统通知中展示。
-            if (id.StartsWith("mcp:", StringComparison.Ordinal)) return "MCP 操作者";
+            if (id.StartsWith("mcp:", StringComparison.Ordinal)) return ClientText.T("MCP 操作者");
             var user = Record("user/" + id);
             return NoticeLabel(Text(user, "displayName") is { Length: > 0 } name ? name :
                 Text(user, "username") is { Length: > 0 } username ? username : id, 48);
@@ -37,11 +45,11 @@ public sealed partial class LocalWorkspaceDatabase
         string ProjectLabel(JsonObject? bug)
         {
             var id = Text(bug, "projectId");
-            if (id.Length == 0) return "项目未提供";
+            if (id.Length == 0) return ClientText.T("项目未提供");
             // 优先同批次的项目资料；删除 BUG 或项目时仍可使用提交前的归属。
             var project = Record("project/" + id);
             return NoticeLabel(Text(project, "name") is { Length: > 0 } name ? name :
-                Text(project, "code") is { Length: > 0 } code ? code : "项目 #" + BugDisplay.ShortId(id), 40);
+                Text(project, "code") is { Length: > 0 } code ? code : ClientText.T("项目 #") + BugDisplay.ShortId(id), 40);
         }
         var summaries = new Dictionary<string, List<string>>();
         void Add(string key, string message)
@@ -55,14 +63,14 @@ public sealed partial class LocalWorkspaceDatabase
         {
             if (key.StartsWith("bug/"))
             {
-                if (after is null) { Add(key, "已移出当前工作区"); continue; }
+                if (after is null) { Add(key, ClientText.T("已移出当前工作区")); continue; }
                 if (before is null)
                 {
-                    Add(key, Actor(Text(after, "createdBy")) + "提交了 BUG");
+                    Add(key, Actor(Text(after, "createdBy")) + ClientText.T("提交了 BUG"));
                     if (Text(after, "status") is { Length: > 0 } status && status != "waiting")
-                        Add(key, "当前状态：" + BugDisplay.Statuses.GetValueOrDefault(status, status));
+                        Add(key, ClientText.T("当前状态：") + BugDisplay.Statuses.GetValueOrDefault(status, status));
                     if (Text(after, "lockOwnerId") is { Length: > 0 } owner)
-                        Add(key, $"由 {NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)} 领取");
+                        Add(key, ClientText.T("由 {0} 领取", NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)));
                     continue;
                 }
                 var actor = Actor(Text(after, "updatedBy"));
@@ -71,22 +79,22 @@ public sealed partial class LocalWorkspaceDatabase
                 if (Changed(before, after, "lockOwnerId"))
                 {
                     var owner = Text(after, "lockOwnerId");
-                    Add(key, owner.Length > 0 ? $"由 {NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)} 领取" :
-                        $"{NoticeLabel(Text(before, "lockOwnerName") is { Length: > 0 } oldName ? oldName : Text(before, "lockOwnerId"), 48)} 的领取已释放");
+                    Add(key, owner.Length > 0 ? ClientText.T("由 {0} 领取", NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)) :
+                        ClientText.T("{0} 的领取已释放", NoticeLabel(Text(before, "lockOwnerName") is { Length: > 0 } oldName ? oldName : Text(before, "lockOwnerId"), 48)));
                 }
-                if (Changed(before, after, "title")) Add(key, actor + "修改了标题");
-                if (Changed(before, after, "description", "content")) Add(key, actor + "修改了内容");
-                if (Changed(before, after, "priority")) Add(key, actor + "将优先级改为" + BugDisplay.Priorities.GetValueOrDefault(Text(after, "priority"), Text(after, "priority")));
-                if (Changed(before, after, "assigneeId")) Add(key, actor + "将负责人改为" + (Person(Text(after, "assigneeId")) is { Length: > 0 } assignee ? assignee : "未指派"));
-                if (Changed(before, after, "affectedServices")) Add(key, actor + "修改了涉及服务");
-                if (Changed(before, after, "deploymentNotes")) Add(key, actor + "修改了部署说明");
-                if (Changed(before, after, "source", "sourceRef")) Add(key, actor + "修改了来源信息");
+                if (Changed(before, after, "title")) Add(key, actor + ClientText.T("修改了标题"));
+                if (Changed(before, after, "description", "content")) Add(key, actor + ClientText.T("修改了内容"));
+                if (Changed(before, after, "priority")) Add(key, actor + ClientText.T("将优先级改为") + BugDisplay.Priorities.GetValueOrDefault(Text(after, "priority"), Text(after, "priority")));
+                if (Changed(before, after, "assigneeId")) Add(key, actor + ClientText.T("将负责人改为") + (Person(Text(after, "assigneeId")) is { Length: > 0 } assignee ? assignee : ClientText.T("未指派")));
+                if (Changed(before, after, "affectedServices")) Add(key, actor + ClientText.T("修改了涉及服务"));
+                if (Changed(before, after, "deploymentNotes")) Add(key, actor + ClientText.T("修改了部署说明"));
+                if (Changed(before, after, "source", "sourceRef")) Add(key, actor + ClientText.T("修改了来源信息"));
             }
             else if (key.StartsWith("project/"))
             {
-                if (after is null) Add(key, "已移出当前工作区");
-                else if (before is null) Add(key, "已加入当前工作区");
-                else if (Changed(before, after, "name", "code", "description", "status", "ownerId", "memberUserIds")) Add(key, "项目资料已更新");
+                if (after is null) Add(key, ClientText.T("已移出当前工作区"));
+                else if (before is null) Add(key, ClientText.T("已加入当前工作区"));
+                else if (Changed(before, after, "name", "code", "description", "status", "ownerId", "memberUserIds")) Add(key, ClientText.T("项目资料已更新"));
             }
             else if (key.StartsWith("comment/") || key.StartsWith("attachment/"))
             {
@@ -96,11 +104,11 @@ public sealed partial class LocalWorkspaceDatabase
                 if (key.StartsWith("attachment/"))
                 {
                     if (before is null || after is null || Changed(before, after, "fileName", "sizeBytes", "contentType"))
-                        Add(bugKey, after is null ? "删除了附件" : before is null ? "添加了附件" : "更新了附件");
+                        Add(bugKey, after is null ? ClientText.T("删除了附件") : before is null ? ClientText.T("添加了附件") : ClientText.T("更新了附件"));
                 }
-                else if (after is null) Add(bugKey, "删除了回复");
+                else if (after is null) Add(bugKey, ClientText.T("删除了回复"));
                 else if (before is null) Add(bugKey, Actor(Text(after, "authorId")) + CommentNotice(Text(after, "commentType")));
-                else if (Changed(before, after, "content", "commentType")) Add(bugKey, "修改了回复");
+                else if (Changed(before, after, "content", "commentType")) Add(bugKey, ClientText.T("修改了回复"));
             }
         }
         foreach (var history in histories)
@@ -115,7 +123,7 @@ public sealed partial class LocalWorkspaceDatabase
             var isBug = x.Key.StartsWith("bug/");
             var record = Record(x.Key);
             var label = NoticeLabel(Text(record, isBug ? "title" : "name"), 60);
-            var subject = isBug ? $"【{ProjectLabel(record)}】BUG #{BugDisplay.ShortId(x.Key[4..])}" + (label.Length > 0 ? " · " + label : "") : $"项目 {label}";
+            var subject = isBug ? $"【{ProjectLabel(record)}】BUG #{BugDisplay.ShortId(x.Key[4..])}" + (label.Length > 0 ? " · " + label : "") : ClientText.T("项目 {0}", label);
             return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value), now, false);
         }).ToArray();
     }
@@ -140,11 +148,11 @@ public sealed partial class LocalWorkspaceDatabase
     }
     /// <summary>状态显示中文名称，操作人缺失时不猜测当前领取者就是操作者。</summary>
     private static string StatusNotice(string actor, string from, string to) => actor +
-        (from.Length == 0 ? "将状态改为" : "将状态从" + BugDisplay.Statuses.GetValueOrDefault(from, from) + "改为") + BugDisplay.Statuses.GetValueOrDefault(to, to);
+        (from.Length == 0 ? ClientText.T("将状态改为") : ClientText.T("将状态从") + BugDisplay.Statuses.GetValueOrDefault(from, from) + ClientText.T("改为")) + BugDisplay.Statuses.GetValueOrDefault(to, to);
     /// <summary>提示回复或记录类别，不含具体回复正文。</summary>
     private static string CommentNotice(string type) => type switch
     {
-        "analysis" => "添加了分析记录", "fix" => "添加了修复记录", "regression" => "添加了回归记录",
-        "question" => "添加了补充问题", _ => "添加了回复"
+        "analysis" => ClientText.T("添加了分析记录"), "fix" => ClientText.T("添加了修复记录"), "regression" => ClientText.T("添加了回归记录"),
+        "question" => ClientText.T("添加了补充问题"), _ => ClientText.T("添加了回复")
     };
 }

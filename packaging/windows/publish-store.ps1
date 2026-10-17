@@ -45,7 +45,7 @@ $publishArguments = @('publish', $project, '-c', 'Release', '-f', 'net10.0-windo
     '-p:RuntimeIdentifier=win-x64', '-p:WindowsPackageType=MSIX', '-p:GenerateAppxPackageOnBuild=true',
     '-p:AppxPackageSigningEnabled=false', '-p:AppxBundle=Never', '-p:UapAppxPackageBuildMode=SideloadOnly', '-p:AppxSymbolPackageEnabled=false',
     '-p:WindowsAppSDKSelfContained=true', '-p:SelfContained=true', '-p:PublishTrimmed=false',
-    '-p:DefaultLanguage=zh-CN', "-p:BrigitteStoreManifest=$manifestPath", "-p:ApplicationId=$($settings.identityName)",
+    '-p:DefaultLanguage=en-US', "-p:BrigitteStoreManifest=$manifestPath", "-p:ApplicationId=$($settings.identityName)",
     "-p:ApplicationDisplayVersion=$($version.ToString(3))", '-p:ApplicationVersion=0',
     "-p:AppxPackageDir=$outputRoot/packages/", '-o', (Join-Path $outputRoot 'app'), '-v:minimal')
 if (!$Preview) {

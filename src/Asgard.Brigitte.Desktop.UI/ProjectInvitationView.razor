@@ -4,34 +4,34 @@
 @inject SessionService Session
 @inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
 <main class="management">
-<header class="window-heading"><Brand /><h1>@(Joining ? "通过邀请加入项目" : "邀请项目成员")</h1></header>
+<header class="window-heading"><Brand /><h1>@(Joining ? ClientText.T("通过邀请加入项目") : ClientText.T("邀请项目成员"))</h1></header>
 <div class="management-body">
 @if (_error != "") { <div class="notice error" role="alert">@_error</div> }
 @if (_success != "") { <div class="notice" role="status">@_success</div> }
 @if (Joining) {
     <div class="form">
-    <p class="muted">你将使用 @Session.DisplayName 加入项目。</p>
-    <label>邀请链接<textarea rows="3" maxlength="2048" @bind="_link" @bind:after="ResetPreview" placeholder="粘贴负责人分享的完整邀请链接"></textarea></label>
-    <button disabled="@_busy" @onclick="Inspect">查看邀请</button>
+    <p class="muted">@ClientText.T("你将使用 {0} 加入项目。", Session.DisplayName)</p>
+    <label>@ClientText.T("邀请链接")<textarea rows="3" maxlength="2048" @bind="_link" @bind:after="ResetPreview" placeholder="@ClientText.T("粘贴负责人分享的完整邀请链接")"></textarea></label>
+    <button disabled="@_busy" @onclick="Inspect">@ClientText.T("查看邀请")</button>
     @if (_preview is not null) {
-        <section class="invite-preview"><h2>@_preview.ProjectName</h2><p class="muted">到期时间：@_preview.ExpiresAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
-        @if (_preview.RequiresPassword && !_preview.AlreadyMember) { <label>邀请密码<input type="password" autocomplete="off" maxlength="64" @bind="_password" /></label> }
-        <div class="actions"><button class="primary" disabled="@(_busy || !Host.CanWrite || _preview.RequiresPassword && !_preview.AlreadyMember && _password.Length == 0)" @onclick="Accept">@(_preview.AlreadyMember ? "打开项目" : "确认加入项目")</button></div></section>
+        <section class="invite-preview"><h2>@_preview.ProjectName</h2><p class="muted">@ClientText.T("到期时间：{0}", _preview.ExpiresAt.ToLocalTime().ToString("g", ClientText.Culture))</p>
+        @if (_preview.RequiresPassword && !_preview.AlreadyMember) { <label>@ClientText.T("邀请密码")<input type="password" autocomplete="off" maxlength="64" @bind="_password" /></label> }
+        <div class="actions"><button class="primary" disabled="@(_busy || !Host.CanWrite || _preview.RequiresPassword && !_preview.AlreadyMember && _password.Length == 0)" @onclick="Accept">@(_preview.AlreadyMember ? ClientText.T("打开项目") : ClientText.T("确认加入项目"))</button></div></section>
     }
     </div>
 } else {
-    <p class="muted">对方注册或登录后即可加入本项目。邀请不授予项目管理权限。</p>
+    <p class="muted">@ClientText.T("对方注册或登录后即可加入本项目。邀请不授予项目管理权限。")</p>
     <div class="form">
-        <label>邀请密码（选填）<input type="password" autocomplete="new-password" maxlength="64" @bind="_password" placeholder="不填则凭链接加入" /></label>
-        <label>链接有效期<select @bind="_days"><option value="1">1 天</option><option value="7">7 天</option><option value="30">30 天</option></select></label>
-        <button class="primary" disabled="@(_busy || !Host.CanWrite)" @onclick="Create">生成邀请链接</button>
-        @if (_createdUrl != "") { <section class="invite-preview"><p class="notice">链接仅本次展示，请立即复制；密码请单独告知对方。</p><textarea readonly rows="3" value="@_createdUrl"></textarea><button @onclick="() => Host.CopyAsync(_createdUrl)">复制邀请链接</button></section> }
+        <label>@ClientText.T("邀请密码（选填）")<input type="password" autocomplete="new-password" maxlength="64" @bind="_password" placeholder="@ClientText.T("不填则凭链接加入")" /></label>
+        <label>@ClientText.T("链接有效期")<select @bind="_days"><option value="1">@ClientText.T("1 天")</option><option value="7">@ClientText.T("7 天")</option><option value="30">@ClientText.T("30 天")</option></select></label>
+        <button class="primary" disabled="@(_busy || !Host.CanWrite)" @onclick="Create">@ClientText.T("生成邀请链接")</button>
+        @if (_createdUrl != "") { <section class="invite-preview"><p class="notice">@ClientText.T("链接仅本次展示，请立即复制；密码请单独告知对方。")</p><textarea readonly rows="3" value="@_createdUrl"></textarea><button @onclick="() => Host.CopyAsync(_createdUrl)">@ClientText.T("复制邀请链接")</button></section> }
     </div>
-    <h2>最近的邀请</h2>
-    @if (_invitations.Count == 0) { <p class="muted">尚未创建邀请</p> }
+    <h2>@ClientText.T("最近的邀请")</h2>
+    @if (_invitations.Count == 0) { <p class="muted">@ClientText.T("尚未创建邀请")</p> }
     @foreach (var item in _invitations) {
         var expired = item.ExpiresAt <= DateTime.UtcNow;
-        <div class="invite-history"><div><strong>@(item.RequiresPassword ? "需要密码" : "凭链接加入") · @(item.Revoked ? "已撤销" : expired ? "已过期" : "有效")</strong><p class="muted">到期：@item.ExpiresAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p></div><button class="danger" disabled="@(_busy || item.Revoked || expired || !Host.CanWrite)" @onclick="() => Revoke(item.Id)">撤销</button></div>
+        <div class="invite-history"><div><strong>@(item.RequiresPassword ? ClientText.T("需要密码") : ClientText.T("凭链接加入")) · @(item.Revoked ? ClientText.T("已撤销") : expired ? ClientText.T("已过期") : ClientText.T("有效"))</strong><p class="muted">@ClientText.T("到期：{0}", item.ExpiresAt.ToLocalTime().ToString("g", ClientText.Culture))</p></div><button class="danger" disabled="@(_busy || item.Revoked || expired || !Host.CanWrite)" @onclick="() => Revoke(item.Id)">@ClientText.T("撤销")</button></div>
     }
 }
 </div></main>
@@ -61,7 +61,7 @@
         var value = _link.Trim();
         if (Uri.TryCreate(value, UriKind.Absolute, out var uri)) value = uri.Fragment.TrimStart('#');
         if (value.Length != 43 || value.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_'))
-            throw new InvalidOperationException("请粘贴有效的完整邀请链接。");
+            throw new InvalidOperationException(ClientText.T("请粘贴有效的完整邀请链接。"));
         _token = value;
         _preview = await Api.InvitationRequestAsync<ProjectInvitationPreview>("invitations/inspect", new { token = value });
     });
@@ -78,14 +78,14 @@
             var created = await Api.WriteAsync<ProjectInvitation>("projects/" + ProjectId + "/invitations", new { password = string.IsNullOrEmpty(_password) ? null : _password, validDays = _days });
             _createdId = created.Id;
             _createdUrl = new Uri(new Uri(Options.Value.ApiBaseUrl), "join").AbsoluteUri + "#" + created.Token;
-            _success = "邀请链接已生成。"; await Load();
+            _success = ClientText.T("邀请链接已生成。"); await Load();
         } finally { _password = ""; }
     });
     private Task Revoke(string id) => Run(async () =>
     {
         await Api.WriteAsync<object>("projects/" + ProjectId + "/invitations/" + Uri.EscapeDataString(id), null, "DELETE");
         if (_createdId == id) _createdUrl = "";
-        _success = "邀请已撤销。"; await Load();
+        _success = ClientText.T("邀请已撤销。"); await Load();
     });
     /// <summary>关闭时销毁本次链接及输入口令。</summary>
     public void Dispose() { _password = ""; _token = ""; _createdUrl = ""; _link = ""; }

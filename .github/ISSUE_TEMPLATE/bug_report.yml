@@ -12,6 +12,14 @@ body:
       placeholder: "0.1.0 or commit SHA"
     validations:
       required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: App language / 应用语言
+      options:
+        - Follow system / 跟随系统
+        - English
+        - 简体中文
   - type: input
     id: platform
     attributes:

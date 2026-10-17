@@ -1,23 +1,27 @@
 @inject IClientHost Host
 @implements IDisposable
 <main class="preferences-window">
-    <header class="preferences-header"><div><p class="preferences-eyebrow">BRIGITTE</p><h1>设置</h1><p class="muted">让工作区按你的习惯运行。</p></div></header>
+    <header class="preferences-header"><div><p class="preferences-eyebrow">BRIGITTE</p><h1>@ClientText.T("设置")</h1><p class="muted">@ClientText.T("让工作区按你的习惯运行。")</p></div></header>
     <section class="preferences-section" aria-labelledby="general-title">
-        <h2 id="general-title">普通设置</h2>
+        <h2 id="general-title">@ClientText.T("普通设置")</h2>
         <div class="preference-row">
-            <div><label for="close-behavior">关闭主窗口时</label><p>选择退出程序或最小化到系统托盘。</p></div>
+            <div><label for="language-preference">@ClientText.T("语言")</label><p>@ClientText.T("立即应用到所有窗口，默认跟随操作系统。")</p></div>
+            <select @key="_resetVersion" id="language-preference" value="@Host.LanguagePreference" @onchange="ChangeLanguage"><option value="system">@ClientText.T("跟随系统")</option><option value="zh-CN">简体中文</option><option value="en">English</option></select>
+        </div>
+        <div class="preference-row">
+            <div><label for="close-behavior">@ClientText.T("关闭主窗口时")</label><p>@ClientText.T("选择退出程序或最小化到系统托盘。")</p></div>
             <select @key="_resetVersion" id="close-behavior" value="@Host.CloseBehavior" @onchange="ChangeCloseBehavior">
-                <option value="ask">继续询问</option><option value="tray">最小化到托盘</option><option value="exit">退出程序</option>
+                <option value="ask">@ClientText.T("继续询问")</option><option value="tray">@ClientText.T("最小化到托盘")</option><option value="exit">@ClientText.T("退出程序")</option>
             </select>
         </div>
-        <p class="preference-help">选“继续询问”，下次点击主窗口的关闭按钮时会重新提示。最小化到托盘后，后台同步和通知仍会继续；退出程序后则会停止。</p>
+        <p class="preference-help">@ClientText.T("选“继续询问”，下次点击主窗口的关闭按钮时会重新提示。最小化到托盘后，后台同步和通知仍会继续；退出程序后则会停止。")</p>
         <div class="preference-row">
-            <div><label for="theme-preference">外观</label><p>为所有窗口选择统一的主题。</p></div>
-            <select @key="_resetVersion" id="theme-preference" value="@Host.ThemePreference" @onchange="ChangeTheme"><option value="system">跟随系统</option><option value="light">白天</option><option value="dark">晚间</option></select>
+            <div><label for="theme-preference">@ClientText.T("外观")</label><p>@ClientText.T("为所有窗口选择统一的主题。")</p></div>
+            <select @key="_resetVersion" id="theme-preference" value="@Host.ThemePreference" @onchange="ChangeTheme"><option value="system">@ClientText.T("跟随系统")</option><option value="light">@ClientText.T("白天")</option><option value="dark">@ClientText.T("晚间")</option></select>
         </div>
     </section>
-    <div class="preferences-feedback" aria-live="polite">@if (_error.Length > 0) { <p class="error" role="alert">@_error</p> } else { <p class="muted">@_message</p> }</div>
-    <footer class="preferences-footer"><span class="muted">偏好保存在此设备，重新启动后继续生效。</span><button @onclick="() => Host.Close(new(DesktopViewKind.Settings))">完成</button></footer>
+    <div class="preferences-feedback" aria-live="polite">@if (_error.Length > 0) { <p class="error" role="alert">@ClientText.T(_error)</p> } else { <p class="muted">@ClientText.T(_message)</p> }</div>
+    <footer class="preferences-footer"><span class="muted">@ClientText.T("偏好保存在此设备，重新启动后继续生效。")</span><button @onclick="() => Host.Close(new(DesktopViewKind.Settings))">@ClientText.T("完成")</button></footer>
 </main>
 @code {
     private string _error = "", _message = "修改后自动保存。";
@@ -26,6 +30,7 @@
     protected override void OnInitialized() { Host.StatusChanged += Refresh; Host.Changed += Refresh; }
     private void ChangeCloseBehavior(ChangeEventArgs e) => Save(() => Host.SetCloseBehavior(e.Value?.ToString() ?? "ask"));
     private void ChangeTheme(ChangeEventArgs e) => Save(() => Host.SetTheme(e.Value?.ToString() ?? "system"));
+    private void ChangeLanguage(ChangeEventArgs e) => Save(() => Host.SetLanguage(e.Value?.ToString() ?? "system"));
     /// <summary>保存失败时显示错误，选择器重新显示实际已保存的值。</summary>
     private void Save(Action update)
     {

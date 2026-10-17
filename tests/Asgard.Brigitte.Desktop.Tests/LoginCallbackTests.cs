@@ -27,7 +27,10 @@ public sealed class LoginCallbackTests
         while (true) { var line = await reader.ReadLineAsync(stopping.Token); Assert.NotNull(line); initial.AppendLine(line); if (line.Contains("history.replaceState")) break; }
         var html = initial.ToString(); Assert.Contains("data:image/svg+xml;base64,", html); Assert.Contains("关闭此页面", html); Assert.Contains("正在完成登录", html); Assert.DoesNotContain("登录成功", html); Assert.DoesNotContain("test-code", html); Assert.DoesNotContain("test-state", html);
         await browser.CompleteAsync(success);
-        var final = await reader.ReadToEndAsync(stopping.Token); Assert.Contains(success ? "登录成功" : "登录未完成", final); Assert.DoesNotContain(success ? "登录未完成" : "登录成功", final);
+        var final = await reader.ReadToEndAsync(stopping.Token);
+        // 最终状态作为 JSON 字符串注入脚本，先还原转义再核对可见文案。
+        var decodedFinal = System.Text.RegularExpressions.Regex.Unescape(final);
+        Assert.Contains(success ? "登录成功" : "登录未完成", decodedFinal); Assert.DoesNotContain(success ? "登录未完成" : "登录成功", decodedFinal);
         if (Environment.GetEnvironmentVariable("BRIGITTE_VALIDATE_CALLBACK") == "1")
         {
             var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));

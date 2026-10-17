@@ -3,33 +3,33 @@
 <section class="brand-entry" aria-busy="@(Verifying || Busy)">
     <aside class="brand-story">
         <div class="brand-signature"><Brand /><span>Brigitte<small>ASGARD WORKSPACE</small></span></div>
-        <div class="brand-story-copy"><p class="brand-eyebrow">KEEP THE FIRE. FIX THE BUG.</p><h2>让灵感向前，<br />让问题止步。</h2><p>一簇圣火，守护每一次创造。</p></div>
+        <div class="brand-story-copy"><p class="brand-eyebrow">KEEP THE FIRE. FIX THE BUG.</p><h2>@ClientText.T("让灵感向前，")<br />@ClientText.T("让问题止步。")</h2><p>@ClientText.T("一簇圣火，守护每一次创造。")</p></div>
         <BrigidScene Forging="@(Verifying || Busy)" />
     </aside>
     <main class="brand-entry-main">
         <div class="brand-entry-content">
             <p class="brand-eyebrow">WELCOME TO BRIGITTE</p>
-            <h1>@(Verifying ? "正在唤醒工作区" : "欢迎回来")</h1>
-            <p class="brand-entry-intro">@(Verifying ? "圣火已点亮，正在恢复你的登录状态。" : "和 Brigid 一起，让每一个 BUG 都有归处。")</p>
+            <h1>@(Verifying ? ClientText.T("正在唤醒工作区") : ClientText.T("欢迎回来"))</h1>
+            <p class="brand-entry-intro">@(Verifying ? ClientText.T("圣火已点亮，正在恢复你的登录状态。") : ClientText.T("和 Brigid 一起，让每一个 BUG 都有归处。"))</p>
             @if (Verifying)
             {
-                <div class="brand-wait" role="status"><span class="brand-spinner" aria-hidden="true"></span>正在验证登录…</div>
+                <div class="brand-wait" role="status"><span class="brand-spinner" aria-hidden="true"></span>@ClientText.T("正在验证登录…")</div>
             }
             else
             {
                 @if (RestorePending)
                 {
-                    <p class="brand-restore" role="status">已保存登录信息，暂时无法连接登录服务。恢复连接后即可继续。</p>
-                    <button class="brand-login" disabled="@Busy" @onclick="Restore">@(Restoring ? "正在恢复登录…" : "重试恢复登录")</button>
+                    <p class="brand-restore" role="status">@ClientText.T("已保存登录信息，暂时无法连接登录服务。恢复连接后即可继续。")</p>
+                    <button class="brand-login" disabled="@Busy" @onclick="Restore">@(Restoring ? ClientText.T("正在恢复登录…") : ClientText.T("重试恢复登录"))</button>
                 }
                 <button class="brand-login @(RestorePending ? "brand-login-secondary" : "")" disabled="@Busy" @onclick="Login">
                     @if (Busy && !Restoring) { <span class="brand-spinner" aria-hidden="true"></span> }
-                    <span>@(Busy && !Restoring ? "等待浏览器完成登录…" : RestorePending ? "重新登录" : "使用 Heimdall 登录")</span><span aria-hidden="true">↗</span>
+                    <span>@(Busy && !Restoring ? ClientText.T("等待浏览器完成登录…") : RestorePending ? ClientText.T("重新登录") : ClientText.T("使用 Heimdall 登录"))</span><span aria-hidden="true">↗</span>
                 </button>
-                <p class="brand-login-help">将在浏览器中安全登录，完成后自动返回。登录后可创建项目或通过邀请加入。</p>
-                <button class="brand-register" disabled="@Busy" @onclick="Register">没有账号？注册新账号 ↗</button>
+                <p class="brand-login-help">@ClientText.T("将在浏览器中安全登录，完成后自动返回。登录后可创建项目或通过邀请加入。")</p>
+                <button class="brand-register" disabled="@Busy" @onclick="Register">@ClientText.T("没有账号？注册新账号 ↗")</button>
                 @if (!string.IsNullOrEmpty(Error)) { <p class="brand-entry-error" role="alert">@Error</p> }
-                <div class="brand-entry-note"><span aria-hidden="true">✦</span><p>专注创造，安心交付。<small>从发现到修复，让团队的每一步都清晰可见。</small></p></div>
+                <div class="brand-entry-note"><span aria-hidden="true">✦</span><p>@ClientText.T("专注创造，安心交付。")<small>@ClientText.T("从发现到修复，让团队的每一步都清晰可见。")</small></p></div>
             }
         </div>
         <footer class="brand-entry-footer"><span>BRIGITTE <span>·</span> BUG MANAGEMENT</span><DesktopUtilities /></footer>

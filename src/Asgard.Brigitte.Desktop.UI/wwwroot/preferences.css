@@ -20,6 +20,7 @@
 .privacy-copy h2:first-child { margin-top:0; }
 .privacy-copy p { margin:8px 0; }
 .preference-row { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.preference-row + .preference-row { margin-top:24px; padding-top:24px; border-top:1px solid var(--line); }
 .preference-row label { display:block; font-size:14px; font-weight:600; }
 .preference-row p { font-size:12px; color:var(--muted); margin:6px 0 0; }
 .preference-row select { width:174px; flex:none; min-height:38px; border-radius:7px; }

@@ -7,7 +7,7 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database)
     public List<Bug> Bugs(string? project = null) => database.Read<Bug>("bug").Where(x => project is null || x.ProjectId == project).OrderByDescending(x => x.CreateTime).ThenByDescending(x => x.Id).ToList();
     public BugDetail Detail(string id) => new()
     {
-        Bug = Bugs().FirstOrDefault(x => x.Id == id) ?? throw new InvalidOperationException("此 BUG 已删除或已无访问权限。"),
+        Bug = Bugs().FirstOrDefault(x => x.Id == id) ?? throw new InvalidOperationException(ClientText.T("此 BUG 已删除或已无访问权限。")),
         Comments = database.Read<BugComment>("comment").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray(),
         Histories = database.Read<BugHistory>("history").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray(),
         Attachments = database.Read<BugAttachment>("attachment").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray()
@@ -27,7 +27,7 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database)
             IsPrimary = x.PrimaryStatuses.Contains(status, StringComparer.OrdinalIgnoreCase), SortOrder = x.SortOrder }).ToList();
     public string Prompt(string key, Dictionary<string, string?> variables)
     {
-        var content = database.Read<LocalPromptTemplate>("prompt").FirstOrDefault(x => x.Key == key)?.Content ?? throw new InvalidOperationException("提示词尚未同步。");
+        var content = database.Read<LocalPromptTemplate>("prompt").FirstOrDefault(x => x.Key == key)?.Content ?? throw new InvalidOperationException(ClientText.T("提示词尚未同步。"));
         foreach (var (name, value) in variables) content = content.Replace("{{" + name + "}}", value ?? "", StringComparison.Ordinal);
         return content;
     }
@@ -37,8 +37,8 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database)
         {
             "bugs/statistics" => Statistics(), "identity/access" => database.Read<CurrentAccess>("access").Single(),
             "mcp-api-keys" => database.Read<McpKey>("key"),
-            _ when path.StartsWith("projects/") => Projects().FirstOrDefault(x => x.Id == Uri.UnescapeDataString(path[9..])) ?? throw new InvalidOperationException("项目已删除或已无访问权限。"),
-            _ => throw new InvalidOperationException("不支持的本地查询。")
+            _ when path.StartsWith("projects/") => Projects().FirstOrDefault(x => x.Id == Uri.UnescapeDataString(path[9..])) ?? throw new InvalidOperationException(ClientText.T("项目已删除或已无访问权限。")),
+            _ => throw new InvalidOperationException(ClientText.T("不支持的本地查询。"))
         };
         return (T)result;
     }
@@ -46,6 +46,6 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database)
     {
         "projects" => (List<T>)(object)Projects(), "identity/users" => database.Read<T>("user"),
         _ when path.StartsWith("bugs?projectId=") => (List<T>)(object)Bugs(Uri.UnescapeDataString(path[15..])),
-        _ => throw new InvalidOperationException("不支持的本地集合查询。")
+        _ => throw new InvalidOperationException(ClientText.T("不支持的本地集合查询。"))
     };
 }

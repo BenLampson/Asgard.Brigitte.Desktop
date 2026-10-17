@@ -26,7 +26,7 @@ public sealed class ThemePreferenceStore
     /// <summary>先落盘再更新内存，保存失败不假装切换成功。</summary>
     public void Set(string mode)
     {
-        if (mode is not ("light" or "dark" or "system")) throw new ArgumentException("主题模式无效。", nameof(mode));
+        if (mode is not ("light" or "dark" or "system")) throw new ArgumentException(ClientText.T("主题模式无效。"), nameof(mode));
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
         var temporary = _path + ".tmp";
         File.WriteAllText(temporary, JsonSerializer.Serialize(mode));

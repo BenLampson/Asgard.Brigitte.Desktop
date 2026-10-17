@@ -8,7 +8,8 @@ public sealed partial class DesktopHost
     private int _notificationVersion;
     private long _notificationIdentity = -1;
     private bool _notificationScheduled;
-    public string NotificationText { get; private set; } = "";
+    private SyncNotice[] _visibleNotices = [];
+    public string NotificationText => string.Join("\n\n", _visibleNotices.Select(x => x.DisplayMessage));
     public IReadOnlyList<SyncNotice> RecentChanges => _realtime.Notices;
     public int UnreadChanges => RecentChanges.Count;
     public void MarkChangesRead() { _realtime.MarkNoticesRead(); DismissNotification(); RefreshNotices(); }
@@ -24,7 +25,7 @@ public sealed partial class DesktopHost
         _tray?.Refresh(); StatusChanged?.Invoke();
     }
     public bool ShowNotification(DesktopView view) => _notificationView == view && NotificationText.Length > 0;
-    public void DismissNotification() { NotificationText = ""; _notificationView = null; StatusChanged?.Invoke(); }
+    public void DismissNotification() { _visibleNotices = []; _notificationView = null; StatusChanged?.Invoke(); }
     private void NotifyCommitted(IReadOnlyList<SyncNotice> notices)
     {
         var identity = _session.IdentityVersion;
@@ -43,42 +44,20 @@ public sealed partial class DesktopHost
             var current = _pendingNotices.Where(x => unread.Contains(x.Id)).DistinctBy(x => x.Id).ToArray();
             _pendingNotices.Clear();
             if (current.Length == 0) return;
-            NotificationText = string.Join("\n\n", current.Select(x => x.Message));
+            _visibleNotices = current;
             _notificationView = _activeView?.Kind == DesktopViewKind.Tray ? null : _activeView;
-            if (_activeView is null) _tray?.Notify("Brigitte · 工作区动态", NativeNoticeText(current));
+            if (_activeView is null) _tray?.Notify(ClientText.T("Brigitte · 工作区动态"), NativeNoticeText(current));
             var version = ++_notificationVersion;
             RefreshNotices();
             await Task.Delay(8000);
             if (version == _notificationVersion) DismissNotification();
         });
     }
-    /// <summary>Windows 气泡正文上限为 255 个 UTF-16 字符；完整动态始终留在未读列表。</summary>
-    private static string NativeNoticeText(SyncNotice[] notices)
-    {
-        var suffix = notices.Length > 1 ? $"\n另有 {notices.Length - 1} 条动态，请查看托盘消息" : "";
-        var first = notices[0].Message;
-        var limit = 255 - suffix.Length;
-        var lines = first.Split('\n', 2);
-        if (lines.Length == 2)
-        {
-            // 项目和标题很长时也给操作人及变化留出空间，避免只看见 BUG 名称。
-            var subject = TrimNativeNotice(lines[0], 110);
-            first = subject + "\n" + TrimNativeNotice(lines[1], limit - subject.Length - 1);
-        }
-        else first = TrimNativeNotice(first, limit);
-        return first + suffix;
-    }
-    /// <summary>按 Windows 原生容量截断，不切开 UTF-16 代理对。</summary>
-    private static string TrimNativeNotice(string text, int limit)
-    {
-        if (text.Length <= limit) return text;
-        var end = limit - 1;
-        if (char.IsHighSurrogate(text[end - 1])) end--;
-        return text[..end] + "…";
-    }
+    /// <summary>系统横幅只显示动态数量，项目、人名和 BUG 标题留在应用内，避免锁屏泄露协作信息。</summary>
+    private static string NativeNoticeText(SyncNotice[] notices) => ClientText.T("有 {0} 条工作区动态，请打开 Asgard Brigitte 查看。", notices.Length);
     private void ClearNotifications()
     {
         _notificationVersion++; _notificationScheduled = false; _pendingNotices.Clear();
-        NotificationText = ""; _notificationView = null;
+        _visibleNotices = []; _notificationView = null;
     }
 }

@@ -2,24 +2,24 @@
 @inject BrigitteApi Api
 @inject WorkspaceStore Workspace
 @inject IClientHost Host
-@if (_loading) { <div class="center">正在读取…</div> } else {
+@if (_loading) { <div class="center">@ClientText.T("正在读取…")</div> } else {
 <div class="editor-window">
-<header class="heading"><h1>@(View.Kind==DesktopViewKind.Create ? "提交 BUG" : "编辑 BUG")</h1><div class="spacer"></div><button @onclick="Cancel">取消</button><button class="primary" disabled="@(_saving || !_canWrite || !Host.CanWrite)" @onclick="Save">@(_createdId is null ? View.Kind==DesktopViewKind.Create ? "提交 BUG" : "保存修改" : "重试剩余附件")</button></header>
+<header class="heading"><h1>@(View.Kind==DesktopViewKind.Create ? ClientText.T("提交 BUG") : ClientText.T("编辑 BUG"))</h1><div class="spacer"></div><button @onclick="Cancel">@ClientText.T("取消")</button><button class="primary" disabled="@(_saving || !_canWrite || !Host.CanWrite)" @onclick="Save">@(_createdId is null ? View.Kind==DesktopViewKind.Create ? ClientText.T("提交 BUG") : ClientText.T("保存修改") : ClientText.T("重试剩余附件"))</button></header>
 @if (_error!="") { <div class="notice error" role="alert">@_error</div> }
 <div class="editor-layout">
-<section><label>标题 *<input @bind="_input.Title" disabled="@(!_canWrite || _createdId is not null)" /></label>
-<label>问题描述 *<MarkdownEditor @bind-Value="_input.Description" Rows="3" Label="问题描述" Disabled="@(!_canWrite || _createdId is not null)" /></label>
-<label>问题内容 *<MarkdownEditor @bind-Value="_input.Content" Rows="15" Label="问题内容" Disabled="@(!_canWrite || _createdId is not null)" /></label>
-<div class="upload-zone" @ondragover:preventDefault="true"><InputFile OnChange="PickFromBrowser" multiple disabled="@(!_canWrite)" /><span>可添加多个附件，也可拖放或粘贴图片</span></div>
-<div class="paste-zone" contenteditable="true" data-paste-upload @ref="_paste" aria-label="粘贴附件" @onfocus="PreparePaste">在此粘贴图片或文件</div>
-@foreach(var f in _files) { <div class="attachment"><span>@f.FileName</span><small>@((f.Bytes.Length/1024d).ToString("0.0")) KB</small><button @onclick="() => _files.Remove(f)" disabled="@_saving">移除</button></div> }
-</section><aside><h3>BUG 属性</h3><label>项目<input value="@Workspace.Projects.FirstOrDefault(p=>p.Id==_input.ProjectId)?.Name" disabled /></label>
-<label>优先级<select @bind="_input.Priority" disabled="@(!_canWrite || _createdId is not null)">@foreach(var p in BugDisplay.Priorities) { <option value="@p.Key">@p.Value</option> }</select></label>
-<label>负责人<AssigneeSelect @bind-Value="_input.AssigneeId" Disabled="@(!_canWrite || _createdId is not null)" /></label>
-<label>涉及服务 / 组件<input @bind="_services" placeholder="使用逗号分隔，也可输入自定义服务名" disabled="@(!_canWrite || _createdId is not null)" /></label>
-<label>部署 / 变更说明<MarkdownEditor @bind-Value="_input.DeploymentNotes" Rows="5" Label="部署 / 变更说明" Disabled="@(!_canWrite || _createdId is not null)" /></label>
-@if(View.Kind==DesktopViewKind.Create) { <label>来源<input @bind="_input.Source" disabled="@(_createdId is not null)" /></label> }
-@if(!_canWrite) { <p class="warning">此 BUG 已由其他 Worker 领取，请关闭编辑窗口并刷新详情。</p> }
+<section><label>@ClientText.T("标题 *")<input @bind="_input.Title" disabled="@(!_canWrite || _createdId is not null)" /></label>
+<label>@ClientText.T("问题描述 *")<MarkdownEditor @bind-Value="_input.Description" Rows="3" Label="@ClientText.T("问题描述")" Disabled="@(!_canWrite || _createdId is not null)" /></label>
+<label>@ClientText.T("问题内容 *")<MarkdownEditor @bind-Value="_input.Content" Rows="15" Label="@ClientText.T("问题内容")" Disabled="@(!_canWrite || _createdId is not null)" /></label>
+<div class="upload-zone" @ondragover:preventDefault="true"><InputFile OnChange="PickFromBrowser" multiple disabled="@(!_canWrite)" /><span>@ClientText.T("可添加多个附件，也可拖放或粘贴图片")</span></div>
+<div class="paste-zone" contenteditable="true" data-paste-upload data-paste-placeholder="@ClientText.T("在此粘贴图片或文件")" @ref="_paste" aria-label="@ClientText.T("粘贴附件")" @onfocus="PreparePaste">@ClientText.T("在此粘贴图片或文件")</div>
+@foreach(var f in _files) { <div class="attachment"><span>@f.FileName</span><small>@((f.Bytes.Length/1024d).ToString("0.0")) KB</small><button @onclick="() => _files.Remove(f)" disabled="@_saving">@ClientText.T("移除")</button></div> }
+</section><aside><h3>@ClientText.T("BUG 属性")</h3><label>@ClientText.T("项目")<input value="@Workspace.Projects.FirstOrDefault(p=>p.Id==_input.ProjectId)?.Name" disabled /></label>
+<label>@ClientText.T("优先级")<select @bind="_input.Priority" disabled="@(!_canWrite || _createdId is not null)">@foreach(var p in BugDisplay.Priorities) { <option value="@p.Key">@p.Value</option> }</select></label>
+<label>@ClientText.T("负责人")<AssigneeSelect @bind-Value="_input.AssigneeId" Disabled="@(!_canWrite || _createdId is not null)" /></label>
+<label>@ClientText.T("涉及服务 / 组件")<input @bind="_services" placeholder="@ClientText.T("使用逗号分隔，也可输入自定义服务名")" disabled="@(!_canWrite || _createdId is not null)" /></label>
+<label>@ClientText.T("部署 / 变更说明")<MarkdownEditor @bind-Value="_input.DeploymentNotes" Rows="5" Label="@ClientText.T("部署 / 变更说明")" Disabled="@(!_canWrite || _createdId is not null)" /></label>
+@if(View.Kind==DesktopViewKind.Create) { <label>@ClientText.T("来源")<input @bind="_input.Source" disabled="@(_createdId is not null)" /></label> }
+@if(!_canWrite) { <p class="warning">@ClientText.T("此 BUG 已由其他 Worker 领取，请关闭编辑窗口并刷新详情。")</p> }
 </aside></div></div>
 }
 @code {
@@ -47,13 +47,13 @@
     private async Task Save() {
         if(_saving || !_canWrite) return;
         _error="";
-        if(string.IsNullOrWhiteSpace(_input.Title)||string.IsNullOrWhiteSpace(_input.Description)||string.IsNullOrWhiteSpace(_input.Content)) { _error="请填写标题、问题描述和问题内容。"; return; }
+        if(string.IsNullOrWhiteSpace(_input.Title)||string.IsNullOrWhiteSpace(_input.Description)||string.IsNullOrWhiteSpace(_input.Content)) { _error=ClientText.T("请填写标题、问题描述和问题内容。"); return; }
         _saving=true;
         try {
             _input.AffectedServices=_services.Split([',','，','\n'],StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
             if(View.Kind==DesktopViewKind.Edit || _createdId is not null) {
                 var current=(await Api.DetailAsync(_createdId??View.Id!)).Bug;
-                if(!BugDisplay.CanWrite(current,Host.WorkerId)) throw new InvalidOperationException("其他 Worker 已领取此 BUG，刷新详情后再操作。");
+                if(!BugDisplay.CanWrite(current,Host.WorkerId)) throw new InvalidOperationException(ClientText.T("其他 Worker 已领取此 BUG，刷新详情后再操作。"));
                 _input.WorkerId=BugDisplay.HasLock(current)?Host.WorkerId:null;
             }
             if(_createdId is null) {
@@ -64,9 +64,9 @@
                 await Api.UploadAsync(_createdId,f.FileName,f.ContentType,f.Bytes,_input.WorkerId); _files.Remove(f);
             }
             Host.PublishChange(); Host.Close(View);
-        } catch(Exception ex) { _error=(_createdId is null?"":"BUG 已保存，附件尚未全部上传。")+AppView.SafeError(ex); } finally { _saving=false; }
+        } catch(Exception ex) { _error=(_createdId is null?"":ClientText.T("BUG 已保存，附件尚未全部上传。"))+AppView.SafeError(ex); } finally { _saving=false; }
     }
-    private async Task Cancel() { if(await Host.ConfirmAsync("关闭编辑窗口？","未保存的修改将丢失。")) Host.Close(View); }
+    private async Task Cancel() { if(await Host.ConfirmAsync(ClientText.T("关闭编辑窗口？"),ClientText.T("未保存的修改将丢失。"))) Host.Close(View); }
     private async Task PickFromBrowser(InputFileChangeEventArgs e) {
         try { foreach(var file in e.GetMultipleFiles(100)) { using var memory=new MemoryStream(); await file.OpenReadStream(50*1024*1024).CopyToAsync(memory); _files.Add(new(file.Name,file.ContentType,memory.ToArray())); } } catch(Exception ex) { _error=ex.Message; }
     }

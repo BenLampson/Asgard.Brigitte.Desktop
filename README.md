@@ -1,6 +1,6 @@
 <p align="center"><img src="src/Asgard.Brigitte.Desktop/Resources/AppIcon/appicon.svg" width="88" alt="Brigitte" /></p>
 
-<h1 align="center">Brigitte Desktop</h1>
+<h1 align="center">Asgard Brigitte</h1>
 
 <p align="center">A native bug collaboration client built with .NET MAUI and Blazor Hybrid.</p>
 
@@ -23,12 +23,23 @@ This repository publishes the desktop client, shared synchronization contracts, 
 - Markdown editing, attachments, drag and drop, image paste, previews, and downloads.
 - Browser-based OIDC/PKCE login, platform secure credential storage, session restoration, and refresh.
 - Incremental synchronization, local SQLite reads, unread activity, desktop notifications, and a system tray.
-- Separate task windows, light/dark/system themes, and persistent window preferences.
+- Separate task windows, light/dark/system themes, and persistent device preferences.
+- English and Simplified Chinese, with instant language switching and system-language selection by default.
 - Copyable AI repair prompts and MCP Key management for external tools. No AI model is bundled.
 
 ## Platform status
 
-Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. The current application version is `0.1.0`. Store certification, macOS signing, and notarization remain separate release work.
+Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` is being prepared for Microsoft Store; store certification, macOS signing, and notarization remain separate release work.
+
+## Help, privacy, and language
+
+Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime and an online service account are required. See the [1.0.0 release notes](docs/releases/v1.0.0.md) for platform and Store status.
+
+Use [GitHub Issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose) for bugs and feature requests; English and Chinese are welcome. See the [support guide](SUPPORT.md), [privacy policy](PRIVACY.md) ([简体中文](PRIVACY.zh-CN.md)), and [usage guide](docs/usage.en.md). Issues are public: remove private content and credentials. Privacy and account-deletion requests go to the email in the policy.
+
+Open **Settings → General → Language** to choose **Follow system**, **简体中文**, or **English**. Chinese system languages use Simplified Chinese; other languages use English. The preference is saved on the device and applies to open windows. User content and server-provided templates remain in their original language.
+
+Microsoft Store descriptions, public package identity, links, and remaining submission steps are in the [Store submission guide](packaging/windows/store-submission.md). The assigned Store product is still a draft; it is not yet available for download from the Store.
 
 ## Build on Windows
 
@@ -52,6 +63,6 @@ The embedded configuration points to the existing Brigitte service and contains 
 dotnet test --project tests/Asgard.Brigitte.Desktop.Tests/Asgard.Brigitte.Desktop.Tests.csproj -c Release
 ```
 
-The tests use local transports and local OIDC fixtures. Core, Razor UI, and shared synchronization contracts are independent of the MAUI host. See the Chinese-language [development guide](docs/development.md), [usage guide](docs/usage.md), [synchronization protocol](src/Asgard.Brigitte.Desktop/SYNC.md), [data handling notes](docs/data.md), and [Windows packaging guide](packaging/windows/README.md).
+The tests use local transports and local OIDC fixtures. Core, Razor UI, and shared synchronization contracts are independent of the MAUI host. See the [usage guide](docs/usage.en.md), [Windows packaging guide](packaging/windows/README.md), and Chinese-language [development guide](docs/development.md), [synchronization protocol](src/Asgard.Brigitte.Desktop/SYNC.md), and [data handling notes](docs/data.md).
 
 Contributions are welcome through [issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues) and pull requests. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) first. Code and original assets are licensed under [Apache-2.0](LICENSE); see [NOTICE](NOTICE). Third-party dependencies retain their own licenses. The license does not grant trademark rights to the Brigitte or Asgard names or marks.

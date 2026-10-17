@@ -5,6 +5,8 @@ typedef void (*BrigitteCallback)(int,const char *,double,double);
 static BrigitteCallback callback;
 static NSStatusItem *statusItem;
 static NSMutableArray *windowDelegates;
+static NSDictionary *labels;
+static NSString *BrigitteLabel(NSString *key,NSString *fallback) { return labels[key] ?: fallback; }
 
 @interface BrigitteWindowDelegate : NSObject <NSWindowDelegate>
 @property(nonatomic,weak) id original;
@@ -44,21 +46,22 @@ static NSMenuItem *BrigitteItem(NSString *title,int action,NSString *project) {
 __attribute__((visibility("default"))) int BrigitteTrayStart(BrigitteCallback handler) {
     callback=handler;target=[BrigitteTrayTarget new];windowDelegates=[NSMutableArray new];
     statusItem=[NSStatusBar.systemStatusBar statusItemWithLength:NSSquareStatusItemLength];
-    statusItem.button.image=BrigitteImage();statusItem.button.toolTip=@"Brigitte · BUG 管理器";
+    statusItem.button.image=BrigitteImage();statusItem.button.toolTip=@"Asgard Brigitte";
     return statusItem ? 1 : 0;
 }
 __attribute__((visibility("default"))) void BrigitteTraySetProjects(const char *json) {
     NSData *data=[[NSString stringWithUTF8String:json]dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *value=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];NSMenu *menu=[NSMenu new];
+    labels=value[@"strings"];statusItem.button.toolTip=BrigitteLabel(@"title",@"Asgard Brigitte");
     if([value[@"authenticated"]boolValue]) {
         for(NSDictionary *project in value[@"projects"]) {
-            NSString *name=project[@"name"];NSString *title=[NSString stringWithFormat:@"%@  ·  %@ 未解决",name,project[@"count"]];
+            NSString *title=project[@"display"];
             NSMenuItem *item=BrigitteItem(title,4,project[@"id"]);item.toolTip=title;[menu addItem:item];
         }
-    } else { [menu addItem:BrigitteItem(@"登录 Brigitte",1,nil)]; }
-    [menu addItem:NSMenuItem.separatorItem];[menu addItem:BrigitteItem(@"打开主窗口",1,nil)];
-    NSMenuItem *refresh=BrigitteItem(@"刷新",2,nil);refresh.enabled=[value[@"authenticated"]boolValue];[menu addItem:refresh];
-    [menu addItem:BrigitteItem(@"退出",3,nil)];statusItem.menu=menu;
+    } else { [menu addItem:BrigitteItem(BrigitteLabel(@"login",@"Sign in to Asgard Brigitte"),1,nil)]; }
+    [menu addItem:NSMenuItem.separatorItem];[menu addItem:BrigitteItem(BrigitteLabel(@"open",@"Open main window"),1,nil)];
+    NSMenuItem *refresh=BrigitteItem(BrigitteLabel(@"refresh",@"Refresh"),2,nil);refresh.enabled=[value[@"authenticated"]boolValue];[menu addItem:refresh];
+    [menu addItem:BrigitteItem(BrigitteLabel(@"quit",@"Quit"),3,nil)];statusItem.menu=menu;
 }
 __attribute__((visibility("default"))) void BrigitteTrayAttachWindow(const char *title,int main) {
     NSString *name=[NSString stringWithUTF8String:title];
@@ -81,12 +84,12 @@ __attribute__((visibility("default"))) int BrigitteTraySaveFile(const char *name
 }
 // 与 Windows 共用关闭策略，原生对话框仅返回选择和“不再提示”标志。
 __attribute__((visibility("default"))) int BrigitteTrayChooseClose(int canUseTray) {
-    NSAlert *alert=[NSAlert new];alert.messageText=@"关闭 Brigitte";
-    alert.informativeText=canUseTray ? @"退出程序会停止后台同步和通知。最小化到托盘会继续运行。可在“设置 → 普通设置”中更改关闭行为。" : @"系统托盘暂不可用。你可以退出程序，或取消并保留窗口。";
-    NSButton *tray=[alert addButtonWithTitle:@"最小化到托盘"];tray.enabled=canUseTray!=0;tray.keyEquivalent=@"";
-    [alert addButtonWithTitle:@"退出程序"];
-    NSButton *cancel=[alert addButtonWithTitle:@"取消"];cancel.keyEquivalent=@"\r";
-    alert.showsSuppressionButton=YES;alert.suppressionButton.title=@"以后不再提示，记住这次选择";
+    NSAlert *alert=[NSAlert new];alert.messageText=BrigitteLabel(@"closeTitle",@"Close Asgard Brigitte");
+    alert.informativeText=canUseTray ? BrigitteLabel(@"closeHelp",@"Quitting stops background sync and notifications. Minimizing keeps the app running in the menu bar.") : BrigitteLabel(@"noTray",@"The menu bar icon is unavailable. Quit, or cancel to keep the window open.");
+    NSButton *tray=[alert addButtonWithTitle:BrigitteLabel(@"tray",@"Minimize to menu bar")];tray.enabled=canUseTray!=0;tray.keyEquivalent=@"";
+    [alert addButtonWithTitle:BrigitteLabel(@"exit",@"Quit application")];
+    NSButton *cancel=[alert addButtonWithTitle:BrigitteLabel(@"cancel",@"Cancel")];cancel.keyEquivalent=@"\r";
+    alert.showsSuppressionButton=YES;alert.suppressionButton.title=BrigitteLabel(@"remember",@"Remember my choice");
     NSModalResponse result=[alert runModal];
     int action=result==NSAlertFirstButtonReturn ? 1 : result==NSAlertSecondButtonReturn ? 2 : 0;
     return action==0 ? 0 : action | (alert.suppressionButton.state==NSControlStateValueOn ? 4 : 0);

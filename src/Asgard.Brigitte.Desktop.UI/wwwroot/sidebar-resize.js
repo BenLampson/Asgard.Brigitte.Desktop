@@ -24,7 +24,7 @@ export function attach(handle) {
     workspace.style.setProperty("--sidebar-width", `${width}px`);
     handle.setAttribute("aria-valuemax", String(upperBound()));
     handle.setAttribute("aria-valuenow", String(width));
-    handle.setAttribute("aria-valuetext", `${width} 像素`);
+    handle.setAttribute("aria-valuetext", `${width} ${handle.dataset.pixelUnit || "pixels"}`);
   };
   const persist = () => {
     try { localStorage.setItem(storageKey, String(preferred)); }
@@ -82,6 +82,8 @@ export function attach(handle) {
   window.addEventListener("blur", cancelDrag);
   const observer = new ResizeObserver(render);
   observer.observe(workspace);
+  const languageObserver = new MutationObserver(render);
+  languageObserver.observe(handle, { attributes: true, attributeFilter: ["data-pixel-unit"] });
   render();
 
   // 登出或切换到启动画面时移除所有监听，避免反复登录后重复绑定。
@@ -89,6 +91,7 @@ export function attach(handle) {
     dispose() {
       cancelDrag();
       observer.disconnect();
+      languageObserver.disconnect();
       handle.removeEventListener("pointerdown", onPointerDown);
       handle.removeEventListener("pointermove", onPointerMove);
       handle.removeEventListener("pointerup", onPointerEnd);

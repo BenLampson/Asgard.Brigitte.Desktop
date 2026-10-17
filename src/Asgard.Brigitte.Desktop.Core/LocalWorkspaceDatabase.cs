@@ -16,7 +16,7 @@ public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposab
     public int Received { get { lock (_gate) return _received; } }
     public int Total { get { lock (_gate) return _batch?.Total ?? _received; } }
     public event Action<SyncCommit>? Committed;
-    private SqliteConnection Connection => _connection ?? throw new InvalidOperationException("工作区尚未连接，请等待同步。");
+    private SqliteConnection Connection => _connection ?? throw new InvalidOperationException(ClientText.T("工作区尚未连接，请等待同步。"));
 
     /// <summary>按服务地址、租户与已验证用户隔离数据库；重新启动必须经服务端对账才能开放工作区。</summary>
     public void OpenAccount(string account)
@@ -54,7 +54,7 @@ public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposab
     {
         lock (_gate)
         {
-            if (!Ready) throw new InvalidOperationException("工作区正在同步，请稍候。");
+            if (!Ready) throw new InvalidOperationException(ClientText.T("工作区正在同步，请稍候。"));
             using var cmd = Connection.CreateCommand(); cmd.CommandText = "SELECT json FROM records WHERE key LIKE $prefix ORDER BY key";
             cmd.Parameters.AddWithValue("$prefix", kind + "/%");
             using var reader = cmd.ExecuteReader(); var rows = new List<T>();
@@ -85,28 +85,28 @@ public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposab
         {
             if (frame.Phase == "begin")
             {
-                if (frame.Total < 0 || SyncProtocol.Cursor(Manifest()) != frame.BaseCursor) throw new InvalidDataException("同步基线不一致，正在重新对账。");
+                if (frame.Total < 0 || SyncProtocol.Cursor(Manifest()) != frame.BaseCursor) throw new InvalidDataException(ClientText.T("同步基线不一致，正在重新对账。"));
                 Execute("DELETE FROM staging"); _batch = frame; _received = 0; return;
             }
-            var batch = _batch ?? throw new InvalidDataException("同步批次缺少起始帧。");
+            var batch = _batch ?? throw new InvalidDataException(ClientText.T("同步批次缺少起始帧。"));
             if (frame.BatchId != batch.BatchId || frame.Cursor != batch.Cursor || frame.BaseCursor != batch.BaseCursor || frame.Total != batch.Total)
-                throw new InvalidDataException("同步帧顺序无效。");
+                throw new InvalidDataException(ClientText.T("同步帧顺序无效。"));
             if (frame.Phase == "rows")
             {
                 using var transaction = Connection.BeginTransaction();
                 foreach (var row in frame.Rows)
                 {
-                    if (row.Json is not null && SyncProtocol.Hash(row.Json) != row.Hash) throw new InvalidDataException("同步内容校验失败。");
+                    if (row.Json is not null && SyncProtocol.Hash(row.Json) != row.Hash) throw new InvalidDataException(ClientText.T("同步内容校验失败。"));
                     using var cmd = Connection.CreateCommand(); cmd.Transaction = transaction;
                     cmd.CommandText = "INSERT INTO staging(key,hash,json) VALUES($key,$hash,$json)";
                     cmd.Parameters.AddWithValue("$key", row.Key); cmd.Parameters.AddWithValue("$hash", row.Hash); cmd.Parameters.AddWithValue("$json", (object?)row.Json ?? DBNull.Value);
                     cmd.ExecuteNonQuery();
                 }
                 transaction.Commit(); _received += frame.Rows.Length;
-                if (_received > batch.Total) throw new InvalidDataException("同步记录数超出清单。");
+                if (_received > batch.Total) throw new InvalidDataException(ClientText.T("同步记录数超出清单。"));
                 return;
             }
-            if (frame.Phase is not ("commit" or "denied") || _received != batch.Total) throw new InvalidDataException("同步批次不完整。");
+            if (frame.Phase is not ("commit" or "denied") || _received != batch.Total) throw new InvalidDataException(ClientText.T("同步批次不完整。"));
             var notices = batch.Replay || frame.Phase == "denied" ? [] : BuildNotices(batch.BatchId);
             using (var transaction = Connection.BeginTransaction())
             {
@@ -115,7 +115,7 @@ public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposab
                 using var check = Connection.CreateCommand(); check.Transaction = transaction; check.CommandText = "SELECT key,json FROM records";
                 var stamps = new List<SyncStamp>();
                 using (var reader = check.ExecuteReader()) while (reader.Read()) stamps.Add(new(reader.GetString(0), SyncProtocol.Hash(reader.GetString(1))));
-                if (SyncProtocol.Cursor(stamps) != batch.Cursor) throw new InvalidDataException("同步清单校验失败。");
+                if (SyncProtocol.Cursor(stamps) != batch.Cursor) throw new InvalidDataException(ClientText.T("同步清单校验失败。"));
                 using var cursor = Connection.CreateCommand(); cursor.Transaction = transaction;
                 cursor.CommandText = "INSERT OR REPLACE INTO metadata(key,value) VALUES('cursor',$cursor)"; cursor.Parameters.AddWithValue("$cursor", batch.Cursor); cursor.ExecuteNonQuery();
                 if (frame.Phase == "denied") Execute("DELETE FROM notices", transaction);

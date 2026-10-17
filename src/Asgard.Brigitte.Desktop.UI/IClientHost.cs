@@ -2,6 +2,10 @@ namespace Asgard.Brigitte.Desktop.UI;
 /// <summary>共享视图使用原生窗口和系统能力，不在 JS 中保存凭据。</summary>
 public interface IClientHost
 {
+    /// <summary>设备语言偏好与当前有效语言，默认随操作系统。</summary>
+    string LanguagePreference => "system";
+    string Language => ClientText.Language;
+    void SetLanguage(string language) { }
     /// <summary>用户选择的主题模式。</summary>
     string ThemePreference { get; }
     /// <summary>当前日夜模式。</summary>
@@ -15,7 +19,7 @@ public interface IClientHost
     string PrivacyPolicyUrl => "";
     string SupportUrl => "";
     /// <summary>实时连接状态，由原生共享连接提供。</summary>
-    string RealtimeStatus => "未连接";
+    string RealtimeStatus => ClientText.T("未连接");
     /// <summary>启动对账完成后才开放工作区；断网保留已同步内容只读。</summary>
     bool SyncReady => false;
     bool CanWrite => false;

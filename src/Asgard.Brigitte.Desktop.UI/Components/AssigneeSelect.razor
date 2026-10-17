@@ -1,8 +1,8 @@
 @inject WorkspaceStore Workspace
-<select value="@Value" @onchange="Change" disabled="@Disabled" title="@Workspace.Assignee(Value)" aria-label="负责人">
-<option value="">未指派</option>
+<select value="@Value" @onchange="Change" disabled="@Disabled" title="@Workspace.Assignee(Value)" aria-label="@ClientText.T("负责人")">
+<option value="">@ClientText.T("未指派")</option>
 @if (!string.IsNullOrEmpty(Value) && !Workspace.Users.Any(x => x.Id == Value)) { <option value="@Value">@Value</option> }
-@foreach (var user in Workspace.Users) { <option value="@user.Id" disabled="@(user.Status != 1)">@Workspace.Assignee(user.Id)@(user.Status != 1 ? "（已停用）" : "")</option> }
+@foreach (var user in Workspace.Users) { <option value="@user.Id" disabled="@(user.Status != 1)">@Workspace.Assignee(user.Id)@(user.Status != 1 ? ClientText.T("（已停用）") : "")</option> }
 </select>
 @code {
     /// <summary>保留服务器返回的原始标识。</summary>
