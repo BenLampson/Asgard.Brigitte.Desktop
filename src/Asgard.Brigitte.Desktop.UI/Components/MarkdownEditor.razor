@@ -1,0 +1,18 @@
+<div class="markdown-editor">
+<div class="md-tabs"><button class="@(!_preview ? "selected" : "")" @onclick="() => _preview = false" type="button">编辑</button><button class="@(_preview ? "selected" : "")" @onclick="() => _preview = true" type="button">预览</button><span>Markdown</span></div>
+@if (_preview) { <MarkdownView Value="@Value" /> } else { <textarea rows="@Rows" value="@Value" @oninput="OnInput" aria-label="@Label" disabled="@Disabled"></textarea> }
+</div>
+@code {
+    /// <summary>双向绑定的文本。</summary>
+    [Parameter] public string Value { get; set; } = "";
+    /// <summary>文本变化。</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    /// <summary>现有字段名称。</summary>
+    [Parameter] public string Label { get; set; } = "";
+    /// <summary>初始高度。</summary>
+    [Parameter] public int Rows { get; set; } = 6;
+    /// <summary>只读或保存后重试附件期间禁止修改正文。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    private bool _preview;
+    private Task OnInput(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value?.ToString() ?? "");
+}

@@ -1,0 +1,17 @@
+<figure class="brigid-scene @(Forging ? "is-forging" : "")" aria-hidden="true">
+    <div class="brigid-orbit" aria-hidden="true"></div>
+    <div class="brigid-art" aria-hidden="true">@Artwork</div>
+    <div class="brigid-embers" aria-hidden="true"><i></i><i></i><i></i></div>
+</figure>
+@code {
+    /// <summary>准备工作区时轻轻挥锤；动作不代表真实同步进度。</summary>
+    [Parameter] public bool Forging { get; set; }
+    // 只载入随程序集发布的可信矢量，不接受用户或远程 SVG。
+    private static readonly MarkupString Artwork = LoadArtwork();
+    private static MarkupString LoadArtwork()
+    {
+        using var stream = typeof(BrigidScene).Assembly.GetManifestResourceStream("Asgard.Brigitte.Desktop.UI.Brigid.svg")!;
+        using var reader = new StreamReader(stream);
+        return new(reader.ReadToEnd());
+    }
+}

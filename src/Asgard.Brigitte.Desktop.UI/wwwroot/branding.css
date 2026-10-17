@@ -1,0 +1,86 @@
+/* 圣火女神品牌：启动与登录共用同一角色，业务界面的可读性配色独立保留。 */
+.brand-mark { display:block; object-fit:contain; border-radius:22%; }
+.brand-entry { --brand-ink:#1d3445; --brand-muted:#66757d; --brand-paper:#f7f5ef; --brand-line:#e2dfd6; --brand-copper:#a46136; --brand-soft:#efe9dd; height:100%; display:grid; grid-template-columns:minmax(350px,46%) minmax(0,1fr); background:var(--brand-paper); color:var(--brand-ink); overflow:auto; }
+.dark .brand-entry { --brand-ink:#f1eadc; --brand-muted:#a5b1b8; --brand-paper:#1b2c38; --brand-line:#354650; --brand-copper:#e7ae76; --brand-soft:#263b48; }
+.brand-story { position:relative; min-height:640px; display:flex; flex-direction:column; padding:38px 48px 24px; overflow:hidden; color:#f6ecd8; background:radial-gradient(ellipse at 53% 60%,#294958 0,#162f40 48%,#112739 100%); }
+.brand-signature { display:flex; align-items:center; gap:12px; position:relative; z-index:1; }
+.brand-signature .brand-mark { width:44px; height:44px; }
+.brand-signature>span { font-family:Georgia,"Times New Roman",serif; font-size:28px; line-height:1.1; letter-spacing:.01em; }
+.brand-signature small { display:block; margin-top:7px; color:#b5c3c6; font-family:"Segoe UI",sans-serif; font-size:9px; letter-spacing:.2em; }
+.brand-story-copy { margin-top:42px; position:relative; z-index:1; }
+.brand-eyebrow { font-size:10px; font-weight:600; letter-spacing:.17em; margin:0 0 20px; color:var(--brand-copper); }
+.brand-story .brand-eyebrow { color:#dcaf79; font-size:9px; }
+.brand-story h2 { font-size:clamp(26px,2.6vw,36px); font-weight:500; line-height:1.55; letter-spacing:.07em; margin:0 0 12px; }
+.brand-story-copy>p:last-child { font-size:12px; letter-spacing:.04em; color:#b4c3c8; margin:0; }
+.brigid-scene { position:relative; width:min(100%,400px); aspect-ratio:400 / 450; margin:0 auto; flex:1; min-height:260px; max-height:450px; display:flex; align-items:center; justify-content:center; }
+.brigid-art { position:relative; width:100%; max-width:400px; height:100%; z-index:1; }
+.brigid-art>svg { display:block; width:100%; height:100%; overflow:visible; }
+.brigid-figure { transform-origin:200px 420px; animation:brigid-breathe 4.6s ease-in-out infinite; }
+.brigid-orbit { position:absolute; width:75%; aspect-ratio:1; border:1px solid #d8af7330; border-radius:50%; background:radial-gradient(circle,#efb96812,transparent 66%); box-shadow:0 0 0 24px #e7b87904,0 0 0 25px #e7b87909; animation:brigid-glow 4.6s ease-in-out infinite; }
+.brigid-embers { position:absolute; inset:0; pointer-events:none; }
+.brigid-embers i { position:absolute; width:3px; height:3px; left:20%; top:65%; background:#e7b879; border-radius:50%; animation:brigid-ember 4s ease-in-out infinite; }
+.brigid-embers i:nth-child(2) { left:80%; top:39%; animation-delay:-1.3s; }
+.brigid-embers i:nth-child(3) { left:77%; top:76%; animation-delay:-2.8s; width:2px; height:2px; }
+.brand-entry-main { position:relative; display:flex; flex-direction:column; padding:48px clamp(30px,5.5vw,88px) 24px; min-width:0; min-height:640px; }
+.brand-entry-content { width:100%; max-width:450px; margin:auto; padding:44px 0; }
+.brand-entry h1 { font-size:clamp(26px,2.5vw,34px); font-weight:600; letter-spacing:.015em; line-height:1.5; }
+.brand-entry-intro { font-size:14px; line-height:1.9; color:var(--brand-muted); margin:12px 0 38px; }
+.brand-entry button.brand-login { display:flex; justify-content:center; align-items:center; gap:12px; width:100%; min-height:52px; padding:14px 20px; border:1px solid #173346; border-radius:10px; color:#fff7e8; background:#173346; font-weight:600; box-shadow:0 5px 12px #132e4010; }
+.brand-login>span:last-child { margin-left:auto; font-size:18px; font-weight:400; }
+.brand-login>span:first-child { margin-right:auto; }
+.brand-entry button.brand-login:hover:not(:disabled) { background:#284959; border-color:#284959; }
+.brand-entry button.brand-login:focus-visible { outline-color:var(--brand-copper); outline-offset:4px; }
+.dark .brand-entry button.brand-login { color:#142b40; background:#edc494; border-color:#edc494; }
+.dark .brand-entry button.brand-login:hover:not(:disabled) { background:#f5d4ad; border-color:#f5d4ad; }
+.brand-entry button.brand-login-secondary { background:transparent; border-color:var(--brand-line); color:var(--brand-ink); margin-top:12px; box-shadow:none; }
+.brand-entry button.brand-login-secondary:hover:not(:disabled) { background:var(--brand-soft); }
+.brand-login-help { font-size:12px; color:var(--brand-muted); line-height:1.8; margin:16px 0 0; }
+.brand-entry button.brand-register { width:100%; padding:12px 4px; margin-top:4px; border:0; background:transparent; color:var(--brand-ink); font-size:13px; box-shadow:none; }
+.brand-entry button.brand-register:hover:not(:disabled) { color:var(--brand-copper); text-decoration:underline; text-underline-offset:4px; }
+.brand-entry-note { display:flex; align-items:flex-start; gap:15px; border-top:1px solid var(--brand-line); margin-top:48px; padding-top:28px; }
+.brand-entry-note>span { color:var(--brand-copper); font-size:22px; line-height:1.4; }
+.brand-entry-note p { margin:0; font-size:13px; line-height:1.8; }
+.brand-entry-note small { display:block; margin-top:5px; font-size:11px; color:var(--brand-muted); }
+.brand-entry-footer { display:flex; justify-content:space-between; gap:16px; color:var(--brand-muted); font-size:9px; letter-spacing:.07em; line-height:1.8; }
+.brand-entry-footer>span>span { padding:0 6px; color:var(--brand-copper); }
+.brand-restore,.brand-entry-error { padding:13px 16px; font-size:12px; line-height:1.8; border-radius:8px; overflow-wrap:anywhere; }
+.brand-restore { background:var(--brand-soft); margin:0 0 18px; }
+.brand-entry-error { color:#9f3d30; background:#f7e6df; border:1px solid #dfb6a9; margin:18px 0 0; }
+.dark .brand-entry-error { color:#ffc1ad; background:#4d302c; border-color:#7d4b40; }
+.brand-wait { display:flex; align-items:center; gap:12px; color:var(--brand-copper); font-size:14px; min-height:52px; }
+.brand-spinner { display:inline-block; width:17px; height:17px; flex:none; border:1.5px solid currentColor; border-right-color:transparent; border-radius:50%; animation:brigid-spin 1.2s linear infinite; }
+.brand-sync h1 { font-size:clamp(24px,2.2vw,30px); }
+.brand-sync-card { padding:22px; border:1px solid var(--brand-line); border-radius:12px; background:var(--brand-paper); }
+.brand-sync .sync-progress-label { display:flex; justify-content:space-between; gap:16px; margin-bottom:16px; align-items:baseline; font-size:12px; line-height:1.8; }
+.brand-sync .sync-progress-label strong { font-weight:500; }
+.brand-sync .sync-progress-label span { font-family:Georgia,serif; font-size:22px; color:var(--brand-copper); }
+.brand-sync progress { display:block; width:100%; height:5px; border:0; border-radius:8px; overflow:hidden; accent-color:var(--brand-copper); background:var(--brand-soft); }
+.brand-sync progress::-webkit-progress-bar { background:var(--brand-soft); border-radius:8px; }
+.brand-sync progress::-webkit-progress-value { background:var(--brand-copper); border-radius:8px; transition:width .35s ease; }
+.brand-sync progress:indeterminate { background:linear-gradient(90deg,var(--brand-soft) 0 30%,var(--brand-copper) 50%,var(--brand-soft) 70%); background-size:200% 100%; animation:brigid-progress 2.4s ease infinite; }
+.brand-sync progress:indeterminate::-webkit-progress-bar { background:transparent; }
+.brand-sync .sync-count { margin:12px 0 24px; color:var(--brand-muted); font-size:11px; }
+.brand-sync .sync-steps { list-style:none; padding:0; margin:0; display:grid; gap:14px; font-size:12px; color:var(--brand-muted); }
+.brand-sync .sync-steps li { display:flex; align-items:center; gap:10px; }
+.brand-sync .sync-steps li:before { content:'○'; width:18px; height:18px; display:grid; place-items:center; font-size:14px; }
+.brand-sync .sync-steps .current,.brand-sync .sync-steps .complete:before { color:var(--brand-copper); }
+.brand-sync .sync-steps .complete:before { content:'✓'; }
+.brand-sync .sync-steps .current:before { content:'◉'; }
+.brand-sync .sync-hint { color:var(--brand-muted); line-height:1.9; margin:20px 0 0; font-size:11px; }
+/* WebView 接管前的静态壳层也使用本地资源，避免启动时闪过无样式文字。 */
+.brand-boot { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; overflow:auto; gap:16px; background:radial-gradient(circle at 50% 40%,#294958,#142b40 65%); color:#f6ecd8; }
+.brand-boot-logo { display:flex; align-items:center; gap:12px; font-family:Georgia,serif; font-size:27px; }
+.brand-boot-logo img { width:42px; height:42px; }
+.brand-boot-art { width:220px; height:248px; object-fit:contain; animation:brigid-breathe 4.6s ease-in-out infinite; }
+.brand-boot p { display:flex; gap:10px; align-items:center; margin:0; font-size:12px; letter-spacing:.06em; color:#dbb583; }
+.brand-boot small { font-size:10px; color:#b5c5cc; }
+@keyframes brigid-breathe { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
+@keyframes brigid-glow { 0%,100% { opacity:.55; transform:scale(.98); } 50% { opacity:1; transform:scale(1.02); } }
+@keyframes brigid-ember { 0%,100% { opacity:0; transform:translateY(10px); } 35% { opacity:.65; } 80% { opacity:0; transform:translateY(-32px); } }
+@keyframes brigid-spin { to { transform:rotate(360deg); } }
+@keyframes brigid-progress { to { background-position:-200% 0; } }
+@media (max-height:740px) and (min-width:781px) { .brand-story { padding-top:26px; } .brand-story-copy { margin-top:24px; } .brand-story h2 { font-size:28px; } .brigid-scene { max-height:350px; } .brand-entry-main { padding-top:26px; } .brand-entry-content { padding:24px 0; } }
+@media (max-width:1000px) { .brand-story { padding-left:30px; padding-right:30px; } .brand-entry-main { padding-left:30px; padding-right:30px; } .brand-entry-footer { flex-direction:column; gap:3px; } }
+@media (max-width:780px) { .brand-entry { display:flex; flex-direction:column; } .brand-story { flex:none; min-height:250px; padding:24px; } .brand-signature .brand-mark { width:36px; height:36px; } .brand-signature>span { font-size:24px; } .brand-story-copy { margin-top:24px; width:55%; } .brand-story-copy .brand-eyebrow { font-size:7px; letter-spacing:.06em; margin-bottom:10px; } .brand-story h2 { font-size:22px; } .brand-story-copy>p:last-child { display:none; } .brigid-scene { position:absolute; right:16px; top:7px; width:220px; height:240px; min-height:0; margin:0; } .brand-entry-main { min-height:430px; padding:24px; flex:1; } .brand-entry-content { max-width:480px; padding:16px 0 32px; } .brand-entry-intro { margin-bottom:26px; } .brand-entry-note { margin-top:28px; padding-top:22px; } .brand-entry-footer { flex-direction:row; font-size:8px; } }
+@media (max-width:420px) { .brigid-scene { width:175px; right:0; } .brand-story h2 { font-size:20px; } .brand-story .brand-eyebrow { max-width:140px; line-height:1.8; } .brand-sync-card { padding:18px; } }
+@media (prefers-reduced-motion:reduce) { .brigid-scene *, .brand-boot-art, .brand-spinner, .brand-sync progress { animation:none !important; transition:none !important; } }

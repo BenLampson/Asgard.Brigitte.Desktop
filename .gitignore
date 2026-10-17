@@ -1,0 +1,46 @@
+# Editors and local tooling
+.DS_Store
+Thumbs.db
+.vs/
+.vscode/
+.idea/
+.codex/
+.playwright-cli/
+*.user
+*.suo
+*.userprefs
+*.rsuser
+*.sln.docstates
+
+# Build and test output
+bin/
+obj/
+TestResults/
+test-results/
+publish/
+output/
+coverage/
+node_modules/
+__pycache__/
+*.py[cod]
+*.nupkg
+*.snupkg
+*.log
+
+# Local credentials, signing material and workspace data
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+*.mobileprovision
+store-settings.json
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal

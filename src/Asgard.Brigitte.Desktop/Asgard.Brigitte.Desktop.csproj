@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework />
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">net10.0-maccatalyst</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Asgard.Brigitte.Desktop</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCssItems>false</EnableDefaultCssItems>
+    <ApplicationTitle>Brigitte</ApplicationTitle>
+    <ApplicationId>tech.mudou.asgard.brigitte</ApplicationId>
+    <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">None</WindowsPackageType>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+    <CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">Platforms/MacCatalyst/Entitlements.plist</CodesignEntitlements>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <!-- 显式嵌入女神 ICO，避免增量构建继续引用旧的 Resizetizer 图标。 -->
+    <ApplicationIcon>Resources/AppIcon/brigid.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyMetadata Include="Brigitte.PrivacyPolicyUrl" Value="$(BrigittePrivacyPolicyUrl)" Condition="'$(BrigittePrivacyPolicyUrl)' != ''" />
+    <AssemblyMetadata Include="Brigitte.SupportUrl" Value="$(BrigitteSupportUrl)" Condition="'$(BrigitteSupportUrl)' != ''" />
+    <MauiIcon Include="Resources/AppIcon/appicon.svg" Color="#142B40" />
+    <MauiSplashScreen Include="Resources/AppIcon/splash.svg" Color="#142B40" BaseSize="128,128" />
+    <MauiAsset Include="Resources/Raw/**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Resources/Raw/clientsettings.json" />
+    <EmbeddedResource Include="Resources/AppIcon/appicon.svg" />
+    <EmbeddedResource Include="Resources/AppIcon/tray-alpha.bin" LogicalName="Asgard.Brigitte.Desktop.TrayAlpha" />
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <ProjectReference Include="../Asgard.Brigitte.Desktop.UI/Asgard.Brigitte.Desktop.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <Content Include="Resources/AppIcon/brigid.ico" TargetPath="brigid.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <AppxManifest Include="$(BrigitteStoreManifest)" Condition="'$(BrigitteStoreManifest)' != ''" />
+  </ItemGroup>
+  <Target Name="ValidateBrigitteStoreManifest" BeforeTargets="PrepareForBuild" Condition="'$(WindowsPackageType)' != 'None' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <Error Condition="'$(BrigitteStoreManifest)' == '' or !Exists('$(BrigitteStoreManifest)')" Text="请使用 packaging/windows/publish-store.ps1 生成带登记信息的 MSIX 清单。" />
+  </Target>
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <BundleResource Include="Resources/AppIcon/tray-template.png" LogicalName="brigid-tray.png" />
+    <BundleResource Include="$(IntermediateOutputPath)native/libBrigitteTray.dylib" LogicalName="native/libBrigitteTray.dylib" />
+  </ItemGroup>
+  <Target Name="BuildMacTrayBridge" BeforeTargets="PrepareForBuild" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <Exec Command="sh &quot;$(MSBuildProjectDirectory)/Platforms/MacCatalyst/Native/build.sh&quot; &quot;$(MSBuildProjectDirectory)/$(IntermediateOutputPath)native/libBrigitteTray.dylib&quot; &quot;$(CodesignKey)&quot;" />
+  </Target>
+</Project>

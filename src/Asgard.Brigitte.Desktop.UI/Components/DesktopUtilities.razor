@@ -1,0 +1,9 @@
+@inject IClientHost Host
+<div class="desktop-utilities" role="group" aria-label="应用选项">
+    <button @onclick="() => Host.OpenAsync(new(DesktopViewKind.Settings), OwnerView)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3Z" /><circle cx="12" cy="12" r="3" /></svg>设置</button>
+    <button @onclick="() => Host.OpenAsync(new(DesktopViewKind.About), OwnerView)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v1" /></svg>关于</button>
+</div>
+@code {
+    /// <summary>登录页、同步页和工作区共用所在原生窗口的导航上下文。</summary>
+    [CascadingParameter(Name = "OwnerView")] public DesktopView? OwnerView { get; set; }
+}

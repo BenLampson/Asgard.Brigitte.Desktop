@@ -1,0 +1,37 @@
+name: Bug report / 问题反馈
+description: Report a reproducible desktop problem / 反馈可复现的桌面端问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Please remove tokens, invitation links and private workspace data. Report vulnerabilities through SECURITY.md. / 请移除凭据、邀请链接和真实工作区数据，安全问题请使用私密报告。"
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit / 版本或提交
+      placeholder: "0.1.0 or commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture / 操作系统与架构
+      placeholder: "Windows 11 x64"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / 复现步骤
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior / 预期与实际表现
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshots / 已脱敏日志或截图

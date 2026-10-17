@@ -1,0 +1,48 @@
+@implements IDisposable
+@inject WorkspaceStore Workspace
+@inject SessionService Session
+@inject IClientHost Host
+<div class="tray-panel @(!Session.IsAuthenticated ? "tray-signed-out" : null)">
+<header><Brand /><strong>Brigitte</strong><span class="tray-session-status">@(Session.IsAuthenticated ? "项目概览" : "未登录")</span></header>
+@if (!Session.IsAuthenticated)
+{
+    <p class="tray-login-hint">登录后查看项目与 BUG</p>
+    <div class="tray-login-actions">
+        <button class="primary" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Main))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg>登录</button>
+        <button @onclick="Host.Quit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>退出</button>
+    </div>
+}
+else
+{
+<div class="tray-projects">
+<div class="tray-labels"><span>项目</span><span title="不含已处理、已回归及已结束的 BUG">未解决</span><span title="未解决中的紧急和高优先级 BUG">高优先级</span></div>
+@foreach(var p in Workspace.Projects)
+{
+    var unresolved = Workspace.Stats(p.Id)?.Unresolved ?? 0;
+    var highPriority = Workspace.Stats(p.Id)?.UnresolvedHighPriority ?? 0;
+    <button class="tray-project" title="@p.Name" aria-label="@($"{p.Name}，未解决 {unresolved}，其中高优先级 {highPriority}")" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Main,ProjectId:p.Id))">
+        <span class="ellipsis">@p.Name</span><span class="tray-count @(unresolved == 0 ? "is-zero" : null)">@unresolved</span><span class="tray-count @(highPriority == 0 ? "is-zero" : "is-priority")">@highPriority</span>
+    </button>
+}
+@if(Workspace.Projects.Count == 0) { <p class="tray-empty">@(Host.SyncReady ? "暂无可访问项目" : "正在同步项目…")</p> }
+</div>
+@if(Host.RecentChanges.Count>0) {
+<section class="tray-updates"><div class="heading"><strong>未读动态 <span class="unread-count">@Host.UnreadChanges</span></strong><button class="link" @onclick="Host.MarkChangesRead">全部已读</button></div>
+<div class="tray-update-list">
+@foreach(var notice in Host.RecentChanges) {
+    <div class="tray-update" @key="notice.Id">
+        <p>@notice.Message</p>
+        <div class="tray-update-actions"><small>@notice.Time.ToLocalTime().ToString("MM-dd HH:mm")</small><button class="link" aria-label="标为已读并移除这条动态" @onclick="() => Host.MarkChangeRead(notice.Id)">已读</button></div>
+    </div>
+}
+</div>
+</section>
+}
+<footer><button class="primary tray-open" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Main))">打开工作区 <span aria-hidden="true">↗</span></button><button class="tray-quit" @onclick="Host.Quit">退出</button></footer>
+}
+</div>
+@code {
+    protected override void OnInitialized() { Host.Changed+=Changed; Host.StatusChanged+=Changed; Workspace.Changed+=Changed; }
+    private void Changed()=>_=InvokeAsync(StateHasChanged);
+    public void Dispose() { Host.Changed-=Changed; Host.StatusChanged-=Changed; Workspace.Changed-=Changed; }
+}

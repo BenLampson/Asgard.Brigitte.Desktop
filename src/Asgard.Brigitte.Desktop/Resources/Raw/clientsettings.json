@@ -1,0 +1,11 @@
+{
+  "ApiBaseUrl": "https://brigitte.mudou.tech/",
+  "Authority": "https://idp.mudou.tech/a962107b-f8bf-4c2f-aef0-3a503b0607b1",
+  "TenantId": "a962107b-f8bf-4c2f-aef0-3a503b0607b1",
+  "ClientId": "c3c29924-3bdd-4ed1-8b5c-b7d32e36ba1d",
+  "ApplicationId": "871fbf1bdce7d62d36c2cc2112e9a11b",
+  "Audience": "e6b956c2-d201-4493-b13f-e44efd6c26ec",
+  "Scope": "openid profile offline_access brigitte.api",
+  "RedirectUri": "http://127.0.0.1:51843/callback",
+  "HeimdallWebBaseUrl": "https://heimdall.mudou.tech/"
+}

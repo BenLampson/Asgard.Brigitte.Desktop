@@ -1,0 +1,7 @@
+Asgard.Brigitte.Desktop
+Copyright 2026 BenLampson and contributors
+
+This repository contains the Brigitte desktop client, its shared synchronization
+protocol, tests, and bundled application resources.
+
+Third-party dependencies retain their own copyright notices and licenses.

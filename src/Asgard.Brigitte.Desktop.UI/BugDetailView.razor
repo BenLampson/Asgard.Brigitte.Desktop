@@ -1,0 +1,80 @@
+@implements IDisposable
+@inject BrigitteApi Api
+@inject WorkspaceStore Workspace
+@inject IClientHost Host
+@inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
+@if (_error!="") { <div class="notice error" role="alert">@_error</div> }
+@if (_detail is null) { <div class="center">@(_error=="" ? "正在读取详情…" : "此内容暂不可用")</div> } else {
+var bug=_detail.Bug;
+<div class="detail-window">
+<header class="detail-header"><div class="breadcrumb"><span title="@bug.ProjectId">@Workspace.Projects.FirstOrDefault(p=>p.Id==bug.ProjectId)?.Name</span><button title="复制完整项目 ID" @onclick="() => Copy(bug.ProjectId)">⧉</button><span>/</span><span title="@bug.Id">@BugDisplay.ShortId(bug.Id)</span><button title="复制完整 BUG ID" @onclick="() => Copy(bug.Id)">⧉</button></div>
+<div class="heading"><h1>@bug.Title</h1><div class="spacer"></div>
+<PromptButtons Actions="_actions" OnCopy="Prompt" />
+<button disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Edit,bug.Id,bug.ProjectId), View)">编辑 BUG</button>
+</div></header>
+<div class="tabs">@foreach(var tab in new[]{"内容","回复 / 处理记录","状态历史","附件"}) { <button class="@(_tab==tab ? "selected" : "")" @onclick="() => _tab=tab">@tab</button> }</div>
+<div class="detail-layout"><section class="detail-content">
+@switch(_tab) {
+case "内容":
+<h3>问题描述</h3><MarkdownView Value="@bug.Description" /><h3>问题内容</h3><MarkdownView Value="@bug.Content" /> break;
+case "回复 / 处理记录":
+<div class="heading"><h3>回复和处理记录 · @_detail.Comments.Length</h3><div class="spacer"></div><button class="primary" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Comment,bug.Id,bug.ProjectId), View)">添加回复 / 处理记录</button></div>
+@foreach(var comment in _detail.Comments) { <article class="record"><small>@comment.AuthorType · @comment.CommentType · @comment.CreateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small><MarkdownView Value="@comment.Content" /></article> } break;
+case "状态历史":
+@foreach(var history in _detail.Histories) { <article class="record"><strong>@BugDisplay.Statuses.GetValueOrDefault(history.FromStatus??"","初始") → @BugDisplay.Statuses.GetValueOrDefault(history.ToStatus)</strong><small>@history.OperatorType · @history.CreateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small><MarkdownView Value="@history.Reason" /></article> } break;
+case "附件":
+<div class="heading"><h3>附件 · @_detail.Attachments.Length</h3><div class="spacer"></div><button disabled="@(!CanWrite || _busy)" @onclick="Upload">添加附件</button></div>
+@foreach(var file in _detail.Attachments) {
+<article class="attachment"><div><strong class="ellipsis" title="@file.FileName">@file.FileName</strong><small>@file.ContentType · @((file.SizeBytes/1024d).ToString("0.0")) KB</small></div><div class="spacer"></div>
+@if(file.ContentType.StartsWith("image/") && IsSafeImage(file.ContentType)) { <button @onclick="() => Preview(file)">预览</button> }
+<button @onclick="() => Download(file)">下载</button><button class="danger" disabled="@(!CanWrite || _busy)" @onclick="() => DeleteAttachment(file)">删除</button></article> } break;
+}
+</section>
+<aside class="attributes"><h3>BUG 属性</h3><dl>
+<dt>项目</dt><dd class="ellipsis" title="@bug.ProjectId">@Workspace.Projects.FirstOrDefault(p=>p.Id==bug.ProjectId)?.Name</dd>
+<dt>状态</dt><dd><button class="link" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Status,bug.Id,bug.ProjectId), View)">@BugDisplay.Statuses.GetValueOrDefault(bug.Status)</button></dd>
+<dt>负责人</dt><dd class="ellipsis" tabindex="0" title="@("负责人："+Workspace.Assignee(bug.AssigneeId)+"\n标识："+bug.AssigneeId)">@Workspace.Assignee(bug.AssigneeId)</dd>
+<dt>处理锁</dt><dd>@(BugDisplay.HasLock(bug) ? bug.LockOwnerId==Host.WorkerId ? "我已领取" : "他人持有" : "未锁定")</dd>
+<dt>领取者</dt><dd class="ellipsis" tabindex="0" title="@("领取者："+BugDisplay.Claimant(bug)+"\nWorker ID："+bug.LockOwnerId)">@BugDisplay.Claimant(bug)</dd>
+</dl>
+@if (BugDisplay.HasLock(bug)) { <small>@bug.LockExpireTime?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") 到期</small> }
+<div class="row-actions">
+@if(!BugDisplay.HasLock(bug)) { <button disabled="@(_busy || !Host.CanWrite)" @onclick="Claim">领取（1 小时）</button> }
+else if(bug.LockOwnerId==Host.WorkerId) { <button disabled="@(_busy || !Host.CanWrite)" @onclick="Release">释放锁</button> }
+<button disabled="@_busy" @onclick="Reload">↻ 刷新</button></div>
+@if(!CanWrite) { <small class="warning">他人持锁期间可阅读、下载和复制，暂时无法修改。</small> }
+<dl><dt>优先级</dt><dd><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority)</span></dd><dt>来源</dt><dd class="ellipsis" title="@bug.Source">@bug.Source</dd><dt>创建时间</dt><dd>@bug.CreateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd><dt>更新时间</dt><dd>@bug.UpdateTime?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd></dl>
+<h4>涉及服务 / 组件</h4><p>@string.Join(" · ",bug.AffectedServices)</p><h4>部署 / 变更说明</h4><MarkdownView Value="@bug.DeploymentNotes" />
+@if(!string.IsNullOrEmpty(bug.SourceRef)) { <h4>来源引用</h4><p class="break-word">@bug.SourceRef</p> }
+</aside></div>
+<footer class="window-footer"><span role="status">@_toast</span><div class="spacer"></div><button @onclick="() => Host.Close(View)">关闭</button></footer></div>
+}
+@code {
+    /// <summary>只读详情的独立窗口参数。</summary>
+    [Parameter] public DesktopView View { get; set; } = null!;
+    private BugDetail? _detail;
+    private List<PromptAction> _actions=[];
+    private string _error="", _toast="", _tab="内容";
+    private bool _busy;
+    private bool CanWrite => Host.CanWrite && _detail is not null && BugDisplay.CanWrite(_detail.Bug,Host.WorkerId);
+    private string? Worker => _detail is not null && BugDisplay.HasLock(_detail.Bug) ? Host.WorkerId : null;
+    protected override async Task OnInitializedAsync() { Host.Changed+=Changed; await Reload(); }
+    private void Changed() => _=InvokeAsync(async()=> {await Reload();StateHasChanged();});
+    private async Task Reload() { try { _detail=await Api.DetailAsync(View.Id!); _actions=await Api.ActionsAsync(_detail.Bug.Status); _error=""; } catch(Exception ex) { _detail=null; _actions=[]; _error=AppView.SafeError(ex); } }
+    private async Task Execute(Func<Task> action) { _busy=true; try { await action(); Host.PublishChange(); await Reload(); } catch(Exception ex) { _error=AppView.SafeError(ex); } finally { _busy=false; } }
+    private Task Claim() => Execute(async()=>await Api.ClaimAsync(View.Id!,Host.WorkerId));
+    private Task Release() => Execute(async()=>await Api.ReleaseAsync(View.Id!,Host.WorkerId));
+    private async Task Copy(string value) { await Host.CopyAsync(value); _toast="已复制"; }
+    private async Task Prompt(PromptAction action) {
+        try {
+            var bug=_detail!.Bug; var p=Workspace.Projects.FirstOrDefault(p=>p.Id==bug.ProjectId);
+            await Copy(await Api.PromptAsync(action.Key,new(){["bugId"]=bug.Id,["bugTitle"]=bug.Title,["projectId"]=bug.ProjectId,["projectName"]=p?.Name,["projectCode"]=p?.Code,["mcpEndpoint"]=Options.Value.ApiBaseUrl.TrimEnd('/')+"/api/mcp"}));
+        } catch(Exception ex) { _error=AppView.SafeError(ex); }
+    }
+    private Task Upload() => Execute(async()=> { foreach(var f in await Host.PickFilesAsync()) await Api.UploadAsync(View.Id!,f.FileName,f.ContentType,f.Bytes,Worker); });
+    private async Task DeleteAttachment(BugAttachment file) { if(await Host.ConfirmAsync("确认删除附件？",file.FileName)) await Execute(async()=>await Api.DeleteAttachmentAsync(View.Id!,file.Id,Worker)); }
+    private async Task Download(BugAttachment file) { try { var downloaded=await Api.DownloadAsync(View.Id!,file.Id); await Host.SaveAsync(downloaded.FileName,Convert.FromBase64String(downloaded.Base64Content)); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
+    private static bool IsSafeImage(string type) => type is "image/png" or "image/jpeg" or "image/gif" or "image/webp";
+    private async Task Preview(BugAttachment file) { try { var downloaded=await Api.DownloadAsync(View.Id!,file.Id); ImagePreviewStore.Put(downloaded); await Host.OpenAsync(new(DesktopViewKind.Image,file.Id), View); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
+    public void Dispose() { Host.Changed-=Changed; }
+}

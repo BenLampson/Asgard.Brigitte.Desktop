@@ -1,0 +1,8 @@
+@using System.Globalization
+<span class="user-avatar" aria-hidden="true">@Initial</span>
+@code {
+    /// <summary>现有账号显示名生成本地头像，不请求额外的用户资料或远程图片。</summary>
+    [Parameter] public string Name { get; set; } = "";
+    /// <summary>按完整文本元素截取，兼容中文、组合字符和表情用户名。</summary>
+    private string Initial => string.IsNullOrWhiteSpace(Name) ? "?" : StringInfo.GetNextTextElement(Name.Trim()).ToUpperInvariant();
+}

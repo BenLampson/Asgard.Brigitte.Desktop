@@ -1,0 +1,92 @@
+@implements IDisposable
+@inject BrigitteApi Api
+@inject IClientHost Host
+@inject SessionService Session
+@inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
+<main class="management">
+<header class="window-heading"><Brand /><h1>@(Joining ? "通过邀请加入项目" : "邀请项目成员")</h1></header>
+<div class="management-body">
+@if (_error != "") { <div class="notice error" role="alert">@_error</div> }
+@if (_success != "") { <div class="notice" role="status">@_success</div> }
+@if (Joining) {
+    <div class="form">
+    <p class="muted">你将使用 @Session.DisplayName 加入项目。</p>
+    <label>邀请链接<textarea rows="3" maxlength="2048" @bind="_link" @bind:after="ResetPreview" placeholder="粘贴负责人分享的完整邀请链接"></textarea></label>
+    <button disabled="@_busy" @onclick="Inspect">查看邀请</button>
+    @if (_preview is not null) {
+        <section class="invite-preview"><h2>@_preview.ProjectName</h2><p class="muted">到期时间：@_preview.ExpiresAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+        @if (_preview.RequiresPassword && !_preview.AlreadyMember) { <label>邀请密码<input type="password" autocomplete="off" maxlength="64" @bind="_password" /></label> }
+        <div class="actions"><button class="primary" disabled="@(_busy || !Host.CanWrite || _preview.RequiresPassword && !_preview.AlreadyMember && _password.Length == 0)" @onclick="Accept">@(_preview.AlreadyMember ? "打开项目" : "确认加入项目")</button></div></section>
+    }
+    </div>
+} else {
+    <p class="muted">对方注册或登录后即可加入本项目。邀请不授予项目管理权限。</p>
+    <div class="form">
+        <label>邀请密码（选填）<input type="password" autocomplete="new-password" maxlength="64" @bind="_password" placeholder="不填则凭链接加入" /></label>
+        <label>链接有效期<select @bind="_days"><option value="1">1 天</option><option value="7">7 天</option><option value="30">30 天</option></select></label>
+        <button class="primary" disabled="@(_busy || !Host.CanWrite)" @onclick="Create">生成邀请链接</button>
+        @if (_createdUrl != "") { <section class="invite-preview"><p class="notice">链接仅本次展示，请立即复制；密码请单独告知对方。</p><textarea readonly rows="3" value="@_createdUrl"></textarea><button @onclick="() => Host.CopyAsync(_createdUrl)">复制邀请链接</button></section> }
+    </div>
+    <h2>最近的邀请</h2>
+    @if (_invitations.Count == 0) { <p class="muted">尚未创建邀请</p> }
+    @foreach (var item in _invitations) {
+        var expired = item.ExpiresAt <= DateTime.UtcNow;
+        <div class="invite-history"><div><strong>@(item.RequiresPassword ? "需要密码" : "凭链接加入") · @(item.Revoked ? "已撤销" : expired ? "已过期" : "有效")</strong><p class="muted">到期：@item.ExpiresAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p></div><button class="danger" disabled="@(_busy || item.Revoked || expired || !Host.CanWrite)" @onclick="() => Revoke(item.Id)">撤销</button></div>
+    }
+}
+</div></main>
+@code {
+    /// <summary>原生窗口导航不包含邀请令牌或口令。</summary>
+    [Parameter] public DesktopView View { get; set; } = new(DesktopViewKind.JoinProject);
+    private bool Joining => View.Kind == DesktopViewKind.JoinProject;
+    private string ProjectId => Uri.EscapeDataString(View.ProjectId ?? View.Id ?? "");
+    private List<ProjectInvitation> _invitations = [];
+    private ProjectInvitationPreview? _preview;
+    private string _link = "", _token = "", _password = "", _createdUrl = "", _createdId = "", _error = "", _success = "";
+    private int _days = 7;
+    private bool _busy;
+    /// <summary>元数据单独在线加载，不写 SQLite。</summary>
+    protected override async Task OnInitializedAsync() { if (!Joining) await Run(Load); }
+    private async Task Load() => _invitations = await Api.InvitationRequestAsync<List<ProjectInvitation>>("projects/" + ProjectId + "/invitations");
+    private async Task Run(Func<Task> action)
+    {
+        _busy = true; _error = "";
+        try { await action(); } catch (Exception exception) { _error = AppView.SafeError(exception); }
+        finally { _busy = false; }
+    }
+    /// <summary>重新输入链接后必须重新确认项目，不能沿用旧预览。</summary>
+    private void ResetPreview() { _preview = null; _token = ""; _password = ""; _success = ""; }
+    private Task Inspect() => Run(async () =>
+    {
+        var value = _link.Trim();
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri)) value = uri.Fragment.TrimStart('#');
+        if (value.Length != 43 || value.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_'))
+            throw new InvalidOperationException("请粘贴有效的完整邀请链接。");
+        _token = value;
+        _preview = await Api.InvitationRequestAsync<ProjectInvitationPreview>("invitations/inspect", new { token = value });
+    });
+    private Task Accept() => Run(async () =>
+    {
+        if (_preview is null) return;
+        var id = _preview.AlreadyMember ? _preview.ProjectId : await Api.WriteAsync<string>("invitations/accept", new { token = _token, password = _password });
+        _password = ""; _token = ""; _link = "";
+        Host.PublishChange(); await Host.OpenAsync(new(DesktopViewKind.Main, ProjectId: id), View); Host.Close(View);
+    });
+    private Task Create() => Run(async () =>
+    {
+        try {
+            var created = await Api.WriteAsync<ProjectInvitation>("projects/" + ProjectId + "/invitations", new { password = string.IsNullOrEmpty(_password) ? null : _password, validDays = _days });
+            _createdId = created.Id;
+            _createdUrl = new Uri(new Uri(Options.Value.ApiBaseUrl), "join").AbsoluteUri + "#" + created.Token;
+            _success = "邀请链接已生成。"; await Load();
+        } finally { _password = ""; }
+    });
+    private Task Revoke(string id) => Run(async () =>
+    {
+        await Api.WriteAsync<object>("projects/" + ProjectId + "/invitations/" + Uri.EscapeDataString(id), null, "DELETE");
+        if (_createdId == id) _createdUrl = "";
+        _success = "邀请已撤销。"; await Load();
+    });
+    /// <summary>关闭时销毁本次链接及输入口令。</summary>
+    public void Dispose() { _password = ""; _token = ""; _createdUrl = ""; _link = ""; }
+}

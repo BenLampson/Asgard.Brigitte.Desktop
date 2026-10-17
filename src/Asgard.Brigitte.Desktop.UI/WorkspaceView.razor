@@ -1,0 +1,76 @@
+@implements IDisposable
+@inject BrigitteApi Api
+@inject WorkspaceStore Workspace
+@inject SessionService Session
+@inject IClientHost Host
+<div class="workspace">
+<aside class="sidebar" id="project-sidebar">
+<div class="product"><Brand /><strong>Brigitte</strong></div>
+<button class="sidebar-heading" title="打开项目管理" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Projects), View)">我的项目</button>
+<input placeholder="搜索项目" aria-label="搜索项目" @bind="_projectSearch" @bind:event="oninput" />
+<nav>@foreach(var p in Workspace.Projects.Where(p => p.Name.Contains(_projectSearch, StringComparison.OrdinalIgnoreCase))) {
+<button class="project-row @(p.Id == _selected ? "selected" : "")" title="@p.Name" @onclick="() => SelectProject(p.Id)">
+<span class="project-letter">@p.Name.FirstOrDefault()</span><span class="ellipsis">@p.Name</span><span>@Workspace.Stats(p.Id)?.Total</span>
+</button> }</nav>
+<div class="sidebar-bottom"><DesktopUtilities /><div class="theme-options">@foreach(var theme in new[]{"light","dark","system"}) { <button class="@(Host.ThemePreference == theme ? "selected" : "")" @onclick="() => Host.SetTheme(theme)">@(theme == "light" ? "白天" : theme == "dark" ? "晚间" : "系统")</button> }</div>
+<details class="account"><summary title="@Session.DisplayName" aria-label="@($"账号菜单：{Session.DisplayName}")"><UserAvatar Name="@Session.DisplayName" /><span class="ellipsis">@Session.DisplayName</span></summary><div class="menu">
+<button @onclick="() => Host.OpenAsync(new(DesktopViewKind.Keys), View)">MCP Key</button>
+<button @onclick="OpenAccount">个人信息与账号安全 ↗</button>
+@if (Workspace.Access.IsTenantAdmin) { <button @onclick="() => Host.OpenAsync(new(DesktopViewKind.Users), View)">用户管理</button> }
+<button @onclick="Logout">退出登录</button></div></details></div>
+</aside>
+<SidebarResizer />
+<main class="board-main">
+@if (Workspace.Projects.Count == 0) {
+<header><div class="heading"><h1>我的工作区</h1><div class="spacer"></div><button @onclick="Reload" disabled="@_busy">↻ 刷新</button></div></header>
+} else {
+<header><div class="breadcrumb">项目 <span>›</span> <button @onclick="() => OpenProject()">@Project?.Name</button><button title="复制完整项目 ID" aria-label="复制项目 ID" @onclick="() => Copy(_selected)">⧉</button></div>
+<div class="heading"><h1>BUG 看板</h1><div class="segmented"><button class="@(!_list ? "selected" : "")" @onclick="() => _list = false">▥ 看板</button><button class="@(_list ? "selected" : "")" @onclick="() => _list = true">☷ 列表</button></div><div class="spacer"></div>
+<button disabled="@(Project is null || _busy)" @onclick="BatchPrompt">⧉ 复制批量修复提示词</button><button class="primary" disabled="@(Project is null || !Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Create, ProjectId: _selected), View)">＋ 提交 BUG</button></div>
+<div class="filters"><input placeholder="搜索标题、描述、内容或来源" aria-label="搜索 BUG" @bind="_keyword" @bind:event="oninput" @bind:after="ResetPage" />
+<select aria-label="状态" @bind="_status" @bind:after="ResetPage"><option value="">全部状态</option>@foreach(var s in BugDisplay.Statuses) { <option value="@s.Key">@s.Value</option> }</select>
+<select aria-label="优先级" @bind="_priority" @bind:after="ResetPage"><option value="">全部优先级</option>@foreach(var p in BugDisplay.Priorities) { <option value="@p.Key">@p.Value</option> }</select>
+<select aria-label="负责人" @bind="_assignee" @bind:after="ResetPage"><option value="">全部负责人</option>@foreach(var u in Workspace.Users) { <option value="@u.Id">@Workspace.Assignee(u.Id)</option> }</select>
+<select aria-label="来源" @bind="_source" @bind:after="ResetPage"><option value="">全部来源</option>@foreach(var source in _bugs.Select(b=>b.Source).Distinct()) { <option>@source</option> }</select>
+<button @onclick="Reload" disabled="@_busy">↻ 刷新</button></div></header>
+}
+@if (_error != "") { <div class="notice error" role="alert">@_error</div> }
+@if (Workspace.DirectoryError != "") { <div class="notice">@Workspace.DirectoryError</div> }
+@if (_toast != "") { <div class="toast" role="status">@_toast</div> }
+@if (_busy && _bugs.Count == 0) { <div class="center">正在加载…</div> }
+else if (Workspace.Projects.Count == 0 && _error != "") { <div class="center">项目加载失败，请点击“刷新”重试。</div> }
+else if (Workspace.Projects.Count == 0) {
+<section class="workspace-empty" aria-labelledby="workspace-empty-title">
+<div class="workspace-empty-content"><Brand /><h2 id="workspace-empty-title">从你的第一个项目开始</h2><p>创建自己的项目，开始记录和处理 BUG。<br />已有团队？通过邀请链接加入他们。</p><div class="actions"><button class="primary" disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.ProjectCreate), View)">创建项目</button><button disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.JoinProject), View)">通过邀请加入</button></div></div>
+</section>
+}
+else if (!_list) {
+<div class="lanes" id="board-scroll" @key="_selected">
+@foreach(var status in (_status=="" ? BugDisplay.BoardStatuses : new[]{_status})) {
+var bugs = Filtered.Where(b=>b.Status==status).ToList();
+<section class="lane" @key="status"><h2><span class="status-dot @status"></span>@BugDisplay.Statuses[status]<small>@bugs.Count</small></h2>
+<div class="lane-scroll" data-scroll="@status">
+@foreach(var bug in bugs) {
+<article class="bug-card" tabindex="0" role="button" @key="bug.Id" @onclick="() => OpenBug(bug)" @onkeydown="e => OnCardKey(e, bug)">
+<div class="card-meta"><span title="@bug.Id">@BugDisplay.ShortId(bug.Id)</span><button class="icon-button" title="复制完整 BUG ID" aria-label="复制 BUG ID" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true" @onclick="() => Copy(bug.Id)">⧉</button><div class="spacer"></div>
+@if(_actions.TryGetValue(bug.Status, out var actions) && actions.Count>0) {
+<PromptButtons Actions="actions" OnCopy="a=>CopyPrompt(a,bug)" /> }</div>
+<strong class="bug-title" title="@bug.Title">@bug.Title</strong>
+@if (BugDisplay.HasLock(bug)) { <div class="claim ellipsis" tabindex="0" title="@ClaimTitle(bug)">♙ 领取者：@BugDisplay.Claimant(bug)</div> }
+<div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">负责人</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></div>
+</article> }
+@if(bugs.Count==0) { <p class="empty-column">暂无 BUG</p> }
+</div></section> }
+</div>
+} else {
+<div class="table-scroll" @key="_selected"><table><thead><tr><th>BUG</th><th>状态</th><th>优先级</th><th>负责人</th><th>涉及服务</th><th>领取者 / 锁</th><th>来源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>
+@foreach(var bug in Filtered.Skip((_page-1)*_size).Take(_size)) { <tr @key="bug.Id">
+<td class="bug-cell"><button title="复制完整 BUG ID" @onclick="() => Copy(bug.Id)">@BugDisplay.ShortId(bug.Id) ⧉</button><button title="@bug.Title" class="ellipsis" @onclick="() => OpenBug(bug)">@bug.Title</button></td>
+<td>@BugDisplay.Statuses.GetValueOrDefault(bug.Status)</td><td><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority)</span></td><td><span class="table-identity ellipsis" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></td>
+<td><span class="table-identity ellipsis" title="@string.Join("、",bug.AffectedServices)">@string.Join("、",bug.AffectedServices)</span></td><td><span class="table-identity ellipsis" title="@ClaimTitle(bug)">@BugDisplay.Claimant(bug)</span></td><td>@bug.Source</td><td>@bug.CreateTime.ToLocalTime().ToString("MM-dd HH:mm")</td>
+<td class="bug-actions-cell"><div class="row-actions"><button @onclick="() => OpenBug(bug)">详情</button>@if (_actions.TryGetValue(bug.Status,out var aa) && aa.Count>0) { <PromptButtons Actions="aa" OnCopy="a=>CopyPrompt(a,bug)" /> }<button class="danger" title="有处理锁时请先释放锁再删除" disabled="@(BugDisplay.HasLock(bug) || !Host.CanWrite)" @onclick="() => DeleteBug(bug)">删除</button></div></td></tr> }
+</tbody></table></div>
+<div class="pagination"><span>共 @Filtered.Count 条</span><select aria-label="每页条数" @bind="_size" @bind:after="ResetPage">@foreach(var size in new[]{10,20,50,100}) { <option value="@size">每页 @size 条</option> }</select><div class="spacer"></div><button disabled="@(_page<=1)" @onclick="() => _page--">‹</button><span>@_page / @Math.Max(1,(int)Math.Ceiling((double)Filtered.Count/_size))</span><button disabled="@(_page*_size>=Filtered.Count)" @onclick="() => _page++">›</button></div>
+}
+<footer class="statusbar"><span>@_bugs.Count 条 BUG · 11 个状态</span><span>实时：@Host.RealtimeStatus · 最后刷新 @_lastRefresh</span><span>@(Host.CloseBehavior switch { "tray" => "关闭主窗口后继续在托盘运行", "exit" => "关闭主窗口时退出程序", _ => "关闭主窗口时询问退出或托盘" })</span></footer>
+</main></div>

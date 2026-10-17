@@ -1,0 +1,79 @@
+@implements IDisposable
+@inject SessionService Session
+@inject IClientHost Host
+@inject WorkspaceStore Workspace
+@inject BrigitteApi Api
+@inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
+<CascadingValue Value="View" Name="OwnerView">
+<div class="client @Host.Theme @(View.Kind == DesktopViewKind.Tray ? "tray-client" : null)">
+@if (View.Kind == DesktopViewKind.Settings) { <SettingsView /> }
+else if (View.Kind == DesktopViewKind.About) { <AboutView /> }
+else if (View.Kind == DesktopViewKind.Privacy) { <PrivacyView /> }
+else if (!_ready) { <WelcomeView Verifying="true" /> }
+else if (View.Kind==DesktopViewKind.Tray && !Session.IsAuthenticated) { <TrayView /> }
+else if (!Session.IsAuthenticated) {
+    <WelcomeView Busy="_busy" Restoring="_restoring" RestorePending="Session.RestorePending" Error="@_error" Login="Login" Restore="Restore" />
+} else if (!Host.SyncReady) {
+    <SyncStartupView />
+} else {
+    @if (Host.PendingCommands>0) { <div class="sync-status" role="status">线上已保存，等待同步… 完成后会自动更新，请勿重复提交。</div> }
+    else if (!Host.CanWrite) { <div class="sync-status" role="status">连接已中断，正在重连。当前内容只读。</div> }
+    @if(Session.PersistenceWarning!="") { <div class="notice warning" role="alert">@Session.PersistenceWarning</div> }
+    @if (!string.IsNullOrEmpty(_error)) { <div class="notice error" role="alert">@_error</div> }
+    @switch (View.Kind) {
+        case DesktopViewKind.Main: <WorkspaceView View="View" /> break;
+        case DesktopViewKind.Tray: <TrayView /> break;
+        case DesktopViewKind.Detail: <BugDetailView View="View" /> break;
+        case DesktopViewKind.Create:
+        case DesktopViewKind.Edit: <BugEditorView View="View" /> break;
+        case DesktopViewKind.Status:
+        case DesktopViewKind.Comment: <BugActionView View="View" /> break;
+        case DesktopViewKind.ProjectInvitations:
+        case DesktopViewKind.JoinProject: <ProjectInvitationView View="View" /> break;
+        default: <ManagementView View="View" /> break;
+    }
+    @if (Host.ShowNotification(View)) {
+        <aside class="sync-toast" role="status" aria-live="polite"><span class="sync-toast-icon">✓</span><div><strong>工作区动态</strong><p>@Host.NotificationText</p></div><button aria-label="关闭提示" @onclick="Host.DismissNotification">×</button></aside>
+    }
+}
+</div>
+</CascadingValue>
+@code {
+    /// <summary>每个原生窗口独立提供的导航上下文。</summary>
+    [Parameter] public DesktopView View { get; set; } = new(DesktopViewKind.Main);
+    private bool _ready, _busy, _restoring;
+    private string _error = "";
+    /// <summary>只在主窗口恢复安全存储，不由子窗口重复登录。</summary>
+    protected override async Task OnInitializedAsync()
+    {
+        Session.Changed += Changed; Host.Changed += Changed; Host.StatusChanged += Changed;
+        if (View.Kind == DesktopViewKind.Main) {
+            try { await Session.InitializeAsync(); } catch (Exception ex) { _error = SafeError(ex); }
+        }
+        _ready = true;
+    }
+    private async Task Login()
+    {
+        _busy = true; _error = "";
+        try { await Session.LoginAsync(); }
+        catch (OperationCanceledException) { _error = "登录已取消或超时，可重新登录。"; }
+        catch (Exception ex) { _error = SafeError(ex); }
+        finally { _busy = false; }
+    }
+    /// <summary>手动恢复已保存的会话，不触发新的浏览器登录。</summary>
+    private async Task Restore()
+    {
+        _busy = true; _restoring = true; _error = "";
+        try { await Session.InitializeAsync(); }
+        catch (Exception ex) { _error = SafeError(ex); }
+        finally { _busy = false; _restoring = false; }
+    }
+    private void Changed()
+    {
+        if (!Session.IsAuthenticated) Workspace.Clear();
+        _ = InvokeAsync(() => { if (Session.IsAuthenticated) _error = ""; StateHasChanged(); });
+    }
+    /// <summary>协议异常只显示安全分类，不输出回调或令牌。</summary>
+    public static string SafeError(Exception ex) => ex is Asgard.Heimdall.Client.HeimdallClientException sdk ? "登录服务返回：" + sdk.Category : ex.Message;
+    public void Dispose() { Session.Changed -= Changed; Host.Changed -= Changed; Host.StatusChanged -= Changed; }
+}

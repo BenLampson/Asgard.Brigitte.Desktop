@@ -1,0 +1,55 @@
+@inject IClientHost Host
+@inject Microsoft.Extensions.Options.IOptions<ClientOptions> ClientOptions
+<section class="brand-entry" aria-busy="@(Verifying || Busy)">
+    <aside class="brand-story">
+        <div class="brand-signature"><Brand /><span>Brigitte<small>ASGARD WORKSPACE</small></span></div>
+        <div class="brand-story-copy"><p class="brand-eyebrow">KEEP THE FIRE. FIX THE BUG.</p><h2>让灵感向前，<br />让问题止步。</h2><p>一簇圣火，守护每一次创造。</p></div>
+        <BrigidScene Forging="@(Verifying || Busy)" />
+    </aside>
+    <main class="brand-entry-main">
+        <div class="brand-entry-content">
+            <p class="brand-eyebrow">WELCOME TO BRIGITTE</p>
+            <h1>@(Verifying ? "正在唤醒工作区" : "欢迎回来")</h1>
+            <p class="brand-entry-intro">@(Verifying ? "圣火已点亮，正在恢复你的登录状态。" : "和 Brigid 一起，让每一个 BUG 都有归处。")</p>
+            @if (Verifying)
+            {
+                <div class="brand-wait" role="status"><span class="brand-spinner" aria-hidden="true"></span>正在验证登录…</div>
+            }
+            else
+            {
+                @if (RestorePending)
+                {
+                    <p class="brand-restore" role="status">已保存登录信息，暂时无法连接登录服务。恢复连接后即可继续。</p>
+                    <button class="brand-login" disabled="@Busy" @onclick="Restore">@(Restoring ? "正在恢复登录…" : "重试恢复登录")</button>
+                }
+                <button class="brand-login @(RestorePending ? "brand-login-secondary" : "")" disabled="@Busy" @onclick="Login">
+                    @if (Busy && !Restoring) { <span class="brand-spinner" aria-hidden="true"></span> }
+                    <span>@(Busy && !Restoring ? "等待浏览器完成登录…" : RestorePending ? "重新登录" : "使用 Heimdall 登录")</span><span aria-hidden="true">↗</span>
+                </button>
+                <p class="brand-login-help">将在浏览器中安全登录，完成后自动返回。登录后可创建项目或通过邀请加入。</p>
+                <button class="brand-register" disabled="@Busy" @onclick="Register">没有账号？注册新账号 ↗</button>
+                @if (!string.IsNullOrEmpty(Error)) { <p class="brand-entry-error" role="alert">@Error</p> }
+                <div class="brand-entry-note"><span aria-hidden="true">✦</span><p>专注创造，安心交付。<small>从发现到修复，让团队的每一步都清晰可见。</small></p></div>
+            }
+        </div>
+        <footer class="brand-entry-footer"><span>BRIGITTE <span>·</span> BUG MANAGEMENT</span><DesktopUtilities /></footer>
+    </main>
+</section>
+@code {
+    /// <summary>注册页面由服务端提供，客户端只打开可信的现有 API 站点。</summary>
+    private Task Register() => Host.OpenExternalAsync(new Uri(new Uri(ClientOptions.Value.ApiBaseUrl), "register").AbsoluteUri);
+    /// <summary>恢复会话时隐藏操作，避免重复启动认证流程。</summary>
+    [Parameter] public bool Verifying { get; set; }
+    /// <summary>登录操作执行期间禁用按钮。</summary>
+    [Parameter] public bool Busy { get; set; }
+    /// <summary>已有凭据暂时无法联网时提供独立恢复入口。</summary>
+    [Parameter] public bool RestorePending { get; set; }
+    /// <summary>区分凭据恢复与浏览器登录的等待提示。</summary>
+    [Parameter] public bool Restoring { get; set; }
+    /// <summary>由认证服务转换后的安全错误信息。</summary>
+    [Parameter] public string Error { get; set; } = "";
+    /// <summary>继续使用现有认证服务打开浏览器。</summary>
+    [Parameter] public EventCallback Login { get; set; }
+    /// <summary>继续使用现有凭据恢复流程。</summary>
+    [Parameter] public EventCallback Restore { get; set; }
+}

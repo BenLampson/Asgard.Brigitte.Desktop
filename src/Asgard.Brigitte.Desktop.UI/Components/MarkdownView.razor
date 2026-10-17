@@ -1,0 +1,5 @@
+<div class="markdown">@((MarkupString)SafeMarkdown.Render(Value))</div>
+@code {
+    /// <summary>原始 Markdown，禁止解释原始 HTML。</summary>
+    [Parameter] public string? Value { get; set; }
+}

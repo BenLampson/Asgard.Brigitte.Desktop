@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Asgard.Brigitte.Sync/Asgard.Brigitte.Sync.csproj" />
+    <Project Path="src/Asgard.Brigitte.Desktop.Core/Asgard.Brigitte.Desktop.Core.csproj" />
+    <Project Path="src/Asgard.Brigitte.Desktop.UI/Asgard.Brigitte.Desktop.UI.csproj" />
+    <Project Path="src/Asgard.Brigitte.Desktop/Asgard.Brigitte.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Asgard.Brigitte.Desktop.Tests/Asgard.Brigitte.Desktop.Tests.csproj" />
+  </Folder>
+</Solution>

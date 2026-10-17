@@ -1,0 +1,30 @@
+@inject BrigitteApi Api
+@inject IClientHost Host
+@inject SessionService Session
+<div class="form-window"><h1>@(View.Kind==DesktopViewKind.Status ? "更新状态" : "新增回复 / 处理记录")</h1>
+@if(_error!="") { <div class="notice error" role="alert">@_error</div> }
+@if(View.Kind==DesktopViewKind.Status) {
+<label>状态<select @bind="_status">@foreach(var s in BugDisplay.Statuses) { <option value="@s.Key">@s.Value</option> }</select></label><label>原因<MarkdownEditor @bind-Value="_content" Rows="6" Label="状态变更原因" /></label>
+} else {
+<div class="form-row"><label>记录类型<select @bind="_type"><option value="comment">回复</option><option value="process">处理记录</option></select></label><div><label>回复人</label><p>@Session.DisplayName（当前用户）</p></div></div>
+<label>内容 *<MarkdownEditor @bind-Value="_content" Rows="12" Label="回复内容" /></label>
+}
+<footer class="window-footer"><div class="spacer"></div><button @onclick="() => Host.Close(View)">取消</button><button class="primary" disabled="@(_busy || !Host.CanWrite)" @onclick="Save">保存</button></footer></div>
+@code {
+    /// <summary>状态与回复是独立的辅助窗口。</summary>
+    [Parameter] public DesktopView View {get;set;}=null!;
+    private string _status="waiting",_content="",_type="comment",_error="";
+    private bool _busy;
+    protected override async Task OnInitializedAsync() { try { _status=(await Api.DetailAsync(View.Id!)).Bug.Status; } catch(Exception ex) { _error=AppView.SafeError(ex); } }
+    private async Task Save() {
+        _busy=true;
+        try {
+            var bug=(await Api.DetailAsync(View.Id!)).Bug;
+            if(!BugDisplay.CanWrite(bug,Host.WorkerId)) throw new InvalidOperationException("其他 Worker 持锁期间无法修改。");
+            var worker=BugDisplay.HasLock(bug) ? Host.WorkerId : null;
+            if(View.Kind==DesktopViewKind.Status) await Api.StatusAsync(bug.Id,_status,_content,worker);
+            else { if(string.IsNullOrWhiteSpace(_content)) throw new InvalidOperationException("请填写内容。"); await Api.CommentAsync(bug.Id,_content,_type,"human",worker); }
+            Host.PublishChange(); Host.Close(View);
+        } catch(Exception ex) { _error=AppView.SafeError(ex); } finally { _busy=false; }
+    }
+}

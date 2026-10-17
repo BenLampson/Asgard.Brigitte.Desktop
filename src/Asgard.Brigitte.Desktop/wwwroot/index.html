@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://0.0.0.1; object-src 'none'; base-uri 'self'; frame-src 'none'"
+    />
+    <base href="/" />
+    <link
+      rel="stylesheet"
+      href="_content/Asgard.Brigitte.Desktop.UI/styles.css"
+    />
+    <link rel="icon" href="_content/Asgard.Brigitte.Desktop.UI/brand.svg" />
+    <link rel="stylesheet" href="_content/Asgard.Brigitte.Desktop.UI/branding.css" />
+    <link rel="stylesheet" href="_content/Asgard.Brigitte.Desktop.UI/brigid-motion.css" />
+    <link rel="stylesheet" href="_content/Asgard.Brigitte.Desktop.UI/preferences.css" />
+    <title>Brigitte</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="brand-boot" role="status">
+        <div class="brand-boot-logo"><img src="_content/Asgard.Brigitte.Desktop.UI/brand.svg" alt="" />Brigitte</div>
+        <img class="brand-boot-art" src="_content/Asgard.Brigitte.Desktop.UI/brigid.svg" alt="圣火女神 Brigid" />
+        <p><span class="brand-spinner" aria-hidden="true"></span>正在点亮圣火…</p>
+        <small>正在启动 Brigitte</small>
+      </div>
+    </div>
+    <script src="_content/Asgard.Brigitte.Desktop.UI/ui.js"></script>
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+  </body>
+</html>
