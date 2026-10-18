@@ -2,7 +2,7 @@
 
 English · [简体中文](PRIVACY.zh-CN.md)
 
-Effective date: October 17, 2026
+Effective date: October 18, 2026
 
 Operator: **benlampson**
 
@@ -11,6 +11,8 @@ Privacy contact: **[cn.benlampson@gmail.com](mailto:cn.benlampson@gmail.com)**
 This policy describes how Asgard Brigitte's desktop application and its default Brigitte service handle information. The desktop client is open source at [Asgard.Brigitte.Desktop](https://github.com/BenLampson/Asgard.Brigitte.Desktop). The default services use `brigitte.mudou.tech`, `idp.mudou.tech`, and `heimdall.mudou.tech` for collaboration, authentication, and account management. If you use a separately operated or modified deployment, ask that deployment's operator about its handling of server data. External websites, Microsoft Store, GitHub, and AI tools have their own policies.
 
 ## Information used
+
+**Local mode:** every launch offers **Use on this computer** without registration or sign-in. Projects, bugs, replies, work logs, history, and attachment bodies stay in a separate local SQLite database. Local mode does not read online credentials, upload or merge records with online workspaces, or open a network service port. Returning to welcome keeps local data. Protect access to your device and backups; the local database is not encrypted. User-supplied external images and links can still contact their destinations when displayed or opened, as described below. Account, collaboration sharing, online cache, invitation, and MCP key descriptions in this policy apply to online mode.
 
 - **Account and access information.** Account ID, username, display name, email when supplied, tenant, roles, permissions, and authentication tokens are used to sign you in, determine access, and identify actions. Sign-in takes place through Heimdall in your system browser using an authorization flow; the desktop application does not ask you to enter your account password into the desktop interface. If registration is available, the registration website sends the username, email, display name, and password you provide through Brigitte to Heimdall to create an account. Brigitte does not store the registration password. Registration alone does not verify your email address.
 - **Collaboration content.** Projects, project membership, bug titles and descriptions, issue details, priorities, statuses, services, source references, replies, work logs, status history, timestamps, and attachments that you submit or are authorized to access. Actions can be associated with your account or an authorized MCP worker. You control the information you put in these fields; avoid including passwords or unnecessary personal information.
