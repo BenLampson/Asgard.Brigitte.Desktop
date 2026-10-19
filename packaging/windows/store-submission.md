@@ -1,8 +1,8 @@
 # Microsoft Store submission for Asgard Brigitte
 
-## October 19, 2026 update
+## October 19, 2026 — 1.0.2 update submitted
 
-Partner Center confirms the existing product is available in Microsoft Store. Submission 2 (`1152921505702171873`) is being prepared for version `1.0.2.0`, with full board status visibility and verified claimant identities. Existing listing screenshots, age ratings and private reviewer credentials are retained. This section records preparation only; final certification status is updated after submission.
+Partner Center confirms the existing product is available in Microsoft Store. Version `1.0.2.0` was uploaded, validated and formally submitted as Submission 2 (`1152921505702171873`) on October 19, 2026. At 23:20 Asia/Shanghai, the update is **In certification / pre-processing**: submission complete, pre-processing in progress, certification and publication not started. The UI confirms publication begins immediately after certification. This does not mean 1.0.2 is already available to customers. English and Simplified Chinese release notes describe the complete 15-status board and verified claimant identities. Existing screenshots, age ratings, runFullTrust justification and private reviewer credentials were retained; older packages were retained rather than deleted.
 
 English listing: [store-listing.en.md](store-listing.en.md) · 简体中文商品页：[store-listing.zh-CN.md](store-listing.zh-CN.md)
 
