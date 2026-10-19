@@ -1,7 +1,12 @@
 namespace Asgard.Brigitte.Desktop.Core;
 /// <summary>业务读取来自 SQLite；命令与附件下载走线上，拒绝重定向、过期响应和写请求重放。</summary>
-public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession session, LocalWorkspaceReader local, IWorkspaceSync sync)
+public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession session, LocalWorkspaceReader local, IWorkspaceSync sync, StandaloneWorkspace? standalone = null)
 {
+    /// <summary>供界面隐藏仅适用于远程协作的能力。</summary>
+    public bool IsLocal => session.IsLocal;
+    private StandaloneWorkspace Standalone => standalone ?? throw new InvalidOperationException(ClientText.T("本机工作区尚未打开。"));
+    /// <summary>打开本机事实库，不读取登录信息或建立同步连接。</summary>
+    public void OpenLocalWorkspace() => Standalone.Open();
     private static readonly JsonSerializerOptions Json = CreateJson();
     /// <summary>项目和记录标识只作为编码后的路径段。</summary>
     private static string E(string value) => Uri.EscapeDataString(value);
@@ -19,6 +24,7 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     /// <summary>保留统一响应的业务失败语义。</summary>
     private async Task<T> RequestAsync<T>(HttpMethod method, string path, object? body = null, CancellationToken cancellationToken = default)
     {
+        if (IsLocal) throw new InvalidOperationException(ClientText.T("此功能仅在在线模式可用。"));
         var lease = await session.GetLeaseAsync(cancellationToken);
         using var request = new HttpRequestMessage(method, "api/brigitte/" + path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", lease.AccessToken);
@@ -53,6 +59,7 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     /// <summary>执行已有写接口，绝不自动重试。</summary>
     public async Task<T> WriteAsync<T>(string path, object? body, string method = "POST", CancellationToken cancellationToken = default)
     {
+        if (IsLocal) return Standalone.Write<T>(path, body, method, cancellationToken);
         if (!sync.CanWrite) throw new InvalidOperationException(ClientText.T("当前工作区只读，连接并完成同步后才能提交。"));
         if (method is not ("POST" or "PUT" or "DELETE" or "PATCH")) throw new ArgumentException(ClientText.T("命令只允许写方法。"));
         var identity = session.IdentityVersion;
@@ -72,10 +79,10 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     /// <summary>按服务器当前状态返回提示词动作。</summary>
     public Task<List<PromptAction>> ActionsAsync(string status) => Task.FromResult(local.Actions(status));
     /// <summary>只渲染文本，不执行提示词或改变状态。</summary>
-    public Task<string> PromptAsync(string key, Dictionary<string, string?> variables) => Task.FromResult(local.Prompt(key, variables));
+    public Task<string> PromptAsync(string key, Dictionary<string, string?> variables) => Task.FromResult(IsLocal ? Standalone.RenderPrompt(key, variables) : local.Prompt(key, variables));
     /// <summary>仅用户预览或下载时取单个附件正文；不写入业务投影。</summary>
     public async Task<BugAttachment> DownloadAsync(string bugId, string id)
-        => (await RequestAsync<ApiResponse<BugAttachment>>(HttpMethod.Get, "bugs/" + E(bugId) + "/attachments/" + E(id))).Data;
+        => IsLocal ? Standalone.Download(bugId, id) : (await RequestAsync<ApiResponse<BugAttachment>>(HttpMethod.Get, "bugs/" + E(bugId) + "/attachments/" + E(id))).Data;
     /// <summary>新增 BUG。</summary>
     public Task<Bug> CreateBugAsync(BugInput input) => WriteAsync<Bug>("bugs", input);
     /// <summary>更新已有 BUG，服务器负责授权和处理锁检查。</summary>

@@ -18,7 +18,7 @@ From the desktop repository root:
 pwsh -NoProfile -File packaging/windows/publish-store.ps1 -SettingsPath packaging/windows/store-settings.public.json
 ```
 
-The unsigned MSIX is generated under `publish/store/1.0.0.0/packages/`. It declares the registered name and publisher, `en-US` and `zh-CN`, and the native desktop `runFullTrust` capability. .NET and Windows App SDK are included. The policy and GitHub support links are embedded in the app and accessible before sign-in.
+The unsigned MSIX is generated under `publish/store/1.0.1.0/packages/`. It declares the registered name and publisher, `en-US` and `zh-CN`, and the native desktop `runFullTrust` capability. .NET and Windows App SDK are included. The policy and GitHub support links are embedded in the app and accessible before sign-in.
 
 Upload the `.msix` to this product in Partner Center. Microsoft signs accepted Store packages, so a purchased certificate is not required merely for Store submission. The unsigned upload file is not an ordinary sideload installer; direct MSIX installation requires an appropriate signing and trust setup.
 
@@ -36,4 +36,4 @@ Preview output is under `publish/store-preview/1.0.0.0/`, using `Asgard.Brigitte
 
 Use an isolated test device or account to check installation, upgrade and uninstall; browser sign-in and restoration; single-instance activation; tray, notifications and independent windows; attachment operations; both app languages and system-language fallback; and privacy/support links. Check WebView2 absence, display scaling, and keyboard access. Run the Windows App Certification Kit and resolve Partner Center warnings before submitting.
 
-Store descriptions must disclose the account, network, and compatible-service requirements. A reviewer needs working private test credentials and a synthetic project. See the [English listing](store-listing.en.md), [Chinese listing](store-listing.zh-CN.md), and [submission guide](store-submission.md).
+Local use needs no account, network, or server. Store descriptions must distinguish it from optional online collaboration, which requires compatible services, connectivity, and an account. Review the local-first [reviewer notes](reviewer-notes.en.txt); provide dedicated credentials privately for the optional online checks. See the [English listing](store-listing.en.md), [Chinese listing](store-listing.zh-CN.md), and [submission guide](store-submission.md).

@@ -42,6 +42,9 @@ public sealed partial class LocalWorkspaceDatabase
                 Text(user, "username") is { Length: > 0 } username ? username : id, 48);
         }
         string Actor(string id) => Person(id) is { Length: > 0 } name ? name + " " : "";
+        // 领取摘要只使用服务端绑定的用户，旧 Worker 自报名称不能冒充真人。
+        string Claimant(JsonObject? bug) => Person(Text(bug, "lockOwnerUserId")) is { Length: > 0 } name
+            ? name : ClientText.T("领取用户未知");
         string ProjectLabel(JsonObject? bug)
         {
             var id = Text(bug, "projectId");
@@ -69,18 +72,18 @@ public sealed partial class LocalWorkspaceDatabase
                     Add(key, Actor(Text(after, "createdBy")) + ClientText.T("提交了 BUG"));
                     if (Text(after, "status") is { Length: > 0 } status && status != "waiting")
                         Add(key, ClientText.T("当前状态：") + BugDisplay.Statuses.GetValueOrDefault(status, status));
-                    if (Text(after, "lockOwnerId") is { Length: > 0 } owner)
-                        Add(key, ClientText.T("由 {0} 领取", NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)));
+                    if (Text(after, "lockOwnerId").Length > 0)
+                        Add(key, ClientText.T("由 {0} 领取", Claimant(after)));
                     continue;
                 }
                 var actor = Actor(Text(after, "updatedBy"));
                 if (Changed(before, after, "status") && !histories.Any(x => Text(x, "bugId") == key[4..]))
                     Add(key, StatusNotice(actor, Text(before, "status"), Text(after, "status")));
-                if (Changed(before, after, "lockOwnerId"))
+                if (Changed(before, after, "lockOwnerId", "lockOwnerUserId"))
                 {
                     var owner = Text(after, "lockOwnerId");
-                    Add(key, owner.Length > 0 ? ClientText.T("由 {0} 领取", NoticeLabel(Text(after, "lockOwnerName") is { Length: > 0 } name ? name : owner, 48)) :
-                        ClientText.T("{0} 的领取已释放", NoticeLabel(Text(before, "lockOwnerName") is { Length: > 0 } oldName ? oldName : Text(before, "lockOwnerId"), 48)));
+                    Add(key, owner.Length > 0 ? ClientText.T("由 {0} 领取", Claimant(after)) :
+                        ClientText.T("{0} 的领取已释放", Claimant(before)));
                 }
                 if (Changed(before, after, "title")) Add(key, actor + ClientText.T("修改了标题"));
                 if (Changed(before, after, "description", "content")) Add(key, actor + ClientText.T("修改了内容"));

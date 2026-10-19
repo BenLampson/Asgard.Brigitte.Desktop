@@ -41,7 +41,7 @@ $manifestPath = Join-Path $outputRoot 'Package.appxmanifest'
 [IO.File]::WriteAllText($manifestPath, $manifest, [Text.UTF8Encoding]::new($false))
 $project = Join-Path $repoRoot 'src/Asgard.Brigitte.Desktop/Asgard.Brigitte.Desktop.csproj'
 # 直接生成 Partner Center 接受的 MSIX；不依赖上传包装器及可选的符号压缩任务。
-$publishArguments = @('publish', $project, '-c', 'Release', '-f', 'net10.0-windows10.0.19041.0',
+$publishArguments = @('publish', $project, '-c', 'Release', '-m:1', '-nr:false', '-f', 'net10.0-windows10.0.19041.0',
     '-p:RuntimeIdentifier=win-x64', '-p:WindowsPackageType=MSIX', '-p:GenerateAppxPackageOnBuild=true',
     '-p:AppxPackageSigningEnabled=false', '-p:AppxBundle=Never', '-p:UapAppxPackageBuildMode=SideloadOnly', '-p:AppxSymbolPackageEnabled=false',
     '-p:WindowsAppSDKSelfContained=true', '-p:SelfContained=true', '-p:PublishTrimmed=false',

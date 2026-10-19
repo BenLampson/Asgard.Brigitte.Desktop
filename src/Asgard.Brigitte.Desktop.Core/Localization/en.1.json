@@ -33,7 +33,7 @@
   "macOS 文件保存扩展未加载。": "The macOS file-saving extension is unavailable.",
   "{0} · {1} 未解决": "{0} · {1} unresolved",
   "{0} 到期": "Expires {0}",
-  "{0} 条 BUG · 11 个状态": "{0} bugs · 11 statuses",
+  "{0} 条 BUG · {1} 个状态": "{0} bugs · {1} statuses",
   "{0} 的领取已释放": "The claim held by {0} was released",
   "{0}（当前用户）": "{0} (current user)",
   "{0}，未解决 {1}，其中高优先级 {2}": "{0}, {1} unresolved, including {2} with high priority",

@@ -15,17 +15,18 @@ public sealed partial class DesktopHost : IClientHost
     private bool _quitting;
     private int _realtimePending;
     private readonly DesktopRealtime _realtime;
+    private readonly StandaloneWorkspace _standalone;
     private readonly ThemePreferenceStore _theme;
     private readonly ClosePreferenceStore _closePreference;
     private readonly LanguagePreferenceStore _language;
     /// <summary>同一连接状态供所有窗口显示。</summary>
-    public string RealtimeStatus => _realtime.Status;
-    public bool SyncReady => _realtime.Ready;
-    public bool CanWrite => _realtime.CanWrite;
+    public string RealtimeStatus => _session.IsLocal ? ClientText.T("本机使用") : _realtime.Status;
+    public bool SyncReady => _session.IsLocal ? _standalone.Ready : _realtime.Ready;
+    public bool CanWrite => _session.IsLocal ? _standalone.Ready : _realtime.CanWrite;
     public bool SyncHasManifest => _realtime.HasManifest;
     public int SyncReceived => _realtime.Received;
     public int SyncTotal => _realtime.Total;
-    public int PendingCommands => _realtime.PendingCommands;
+    public int PendingCommands => _session.IsLocal ? 0 : _realtime.PendingCommands;
     /// <summary>更新事件不携带敏感信息。</summary>
     public event Action? Changed;
     /// <summary>连接状态的轻量 UI 通知。</summary>
@@ -39,11 +40,13 @@ public sealed partial class DesktopHost : IClientHost
     /// <summary>供 CSS 使用的有效日夜模式。</summary>
     public string Theme => ThemePreference == "system" ? Application.Current?.RequestedTheme == AppTheme.Dark ? "dark" : "light" : ThemePreference;
     /// <summary>原生服务注入，不由组件持有平台句柄。</summary>
-    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference, LanguagePreferenceStore language)
+    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference, LanguagePreferenceStore language, StandaloneWorkspace standalone)
     {
         _services = services; _session = session; _workspace = workspace; _realtime = realtime; _theme = theme;
         _closePreference = closePreference;
         _language = language;
+        _standalone = standalone;
+        standalone.Changed += RealtimeChanged;
         ClientText.SetLanguage(language.Language);
         realtime.Changed += RealtimeChanged;
         realtime.Notification += NotifyCommitted;
@@ -113,7 +116,8 @@ public sealed partial class DesktopHost : IClientHost
             if (_main is not null) Show(_main, true);
             Changed?.Invoke(); HidePopup(); return;
         }
-        if (!_session.IsAuthenticated && view.Kind is not (DesktopViewKind.Tray or DesktopViewKind.Settings or DesktopViewKind.About or DesktopViewKind.Privacy)) return;
+        if (!_session.HasWorkspace && view.Kind is not (DesktopViewKind.Tray or DesktopViewKind.Settings or DesktopViewKind.About or DesktopViewKind.Privacy)) return;
+        if (_session.IsLocal && view.Kind is DesktopViewKind.Keys or DesktopViewKind.KeyCreate or DesktopViewKind.KeyResult or DesktopViewKind.Users or DesktopViewKind.ProjectInvitations or DesktopViewKind.JoinProject) return;
         if (_windows.TryGetValue(view, out var existing)) { Show(existing, true); return; }
         Application.Current!.OpenWindow(Create(view, ResolveOwner(owner)));
     });
@@ -157,14 +161,14 @@ public sealed partial class DesktopHost : IClientHost
     public async Task OpenExternalAsync(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http") await Launcher.Default.OpenAsync(uri); }
     private void SessionChanged() => MainThread.BeginInvokeOnMainThread(() =>
     {
-        if (!_session.IsAuthenticated)
+        if (!_session.HasWorkspace)
         {
             ClearNotifications();
             _workspace.Clear(); ImagePreviewStore.Clear(); KeyResultStore.Clear(); RequestedProjectId = null;
             foreach (var pair in _windows.Where(p => p.Key.Kind is not (DesktopViewKind.Main or DesktopViewKind.Settings or DesktopViewKind.About or DesktopViewKind.Privacy)).ToArray()) Application.Current!.CloseWindow(pair.Value);
             if (_main is not null) Show(_main, true);
         }
-        if (_session.IsAuthenticated && _popup is not null) ApplyTraySize(_popup);
+        if (_session.HasWorkspace && _popup is not null) ApplyTraySize(_popup);
         Changed?.Invoke(); _tray?.Refresh();
     });
     /// <summary>用户点击托盘后展示现有项目及数量。</summary>
@@ -175,7 +179,7 @@ public sealed partial class DesktopHost : IClientHost
             _popupAnchorX = x; _popupAnchorY = y;
             if (_popup is null) { var view = new DesktopView(DesktopViewKind.Tray); _popup = Create(view); Application.Current!.OpenWindow(_popup); }
             ApplyTraySize(_popup); Show(_popup, true); PositionPopup(_popup, x, y);
-            if (_session.IsAuthenticated) { await _workspace.LoadAsync(); Changed?.Invoke(); }
+            if (_session.HasWorkspace) { await _workspace.LoadAsync(); Changed?.Invoke(); }
         }
         catch { /* 同步服务自动重试，托盘消息回调不抛出。 */ }
     }
@@ -184,17 +188,17 @@ public sealed partial class DesktopHost : IClientHost
     {
         window.MinimumWidth = 320;
         window.MinimumHeight = 220;
-        window.Width = _session.IsAuthenticated ? 400 : 360;
+        window.Width = _session.HasWorkspace ? 400 : 360;
         var noticesHeight = RecentChanges.Count == 0 ? 0 : 258;
-        window.Height = _session.IsAuthenticated ? Math.Min(540, 172 + Math.Max(2, Projects.Count) * 44 + noticesHeight) : 220;
+        window.Height = _session.HasWorkspace ? Math.Min(540, 172 + Math.Max(2, Projects.Count) * 44 + noticesHeight) : 220;
     }
     internal void HidePopup() { if (_popup is not null) Show(_popup, false); }
     /// <summary>仅供平台适配检查浮层原生边界。</summary>
     internal Window? PopupWindow => _popup;
-    internal IReadOnlyList<Asgard.Brigitte.Desktop.Core.Models.Project> Projects => _session.IsAuthenticated ? _workspace.Projects : [];
+    internal IReadOnlyList<Asgard.Brigitte.Desktop.Core.Models.Project> Projects => _session.HasWorkspace ? _workspace.Projects : [];
     internal long ProjectCount(string id) => _workspace.Stats(id)?.Unresolved ?? 0;
-    internal bool IsAuthenticated => _session.IsAuthenticated;
-    internal void RefreshTrayData() => MainThread.BeginInvokeOnMainThread(async () => { try { if (_session.IsAuthenticated) await _workspace.LoadAsync(); PublishChange(); } catch {/* 下次显式刷新可重试。 */} });
+    internal bool IsAuthenticated => _session.HasWorkspace;
+    internal void RefreshTrayData() => MainThread.BeginInvokeOnMainThread(async () => { try { if (_session.HasWorkspace) await _workspace.LoadAsync(); PublishChange(); } catch {/* 下次显式刷新可重试。 */} });
     private void Show(Window window, bool visible) { if (_tray is not null) _tray.Show(window, visible); else if (visible) Application.Current!.ActivateWindow(window); }
     /// <summary>显式退出才终止程序并移除系统图标。</summary>
     public void Quit() { _quitting = true; _tray?.Dispose(); Application.Current!.Quit(); }

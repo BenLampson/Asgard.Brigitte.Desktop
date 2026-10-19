@@ -35,6 +35,7 @@ public sealed class LanguageRenderTests
         Assert.DoesNotContain("全部优先级", html);
         if (kind is DesktopViewKind.Main or DesktopViewKind.Detail)
             Assert.Contains("刷新列表后筛选条件被重置", html);
+        if (kind == DesktopViewKind.Main) Assert.Contains("18 bugs · 15 statuses", html);
         await WindowRenderTests.ExportPreview("english-" + kind.ToString().ToLowerInvariant(), raw);
     }
     [Fact]

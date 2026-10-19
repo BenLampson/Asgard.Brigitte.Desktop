@@ -1,0 +1,19 @@
+Asgard Brigitte 1.0.2.0 — board status and verified claimant fixes
+
+This update displays all 15 bug statuses on the default board. In optional online collaboration, claimant labels resolve verified account IDs; worker-supplied names are not treated as user identities. Ownership requires both account and worker. Older records without verified claimant data are marked unknown. Local use remains complete and requires no credentials or internet connection. Existing private online reviewer credentials remain unchanged.
+
+The prior review could not reach the credential form because Heimdall discovery returned discovery_unavailable. The new package makes the primary bug-tracking workflow fully available without signing in, without internet access, and without deploying a server. This change does not assert that the prior review machine's network issue has been repaired.
+
+Primary workflow (no account required):
+1. Launch and select the primary “Use on this computer” button. In Chinese this is “本机使用”. “Sign in with Heimdall” is the secondary, optional online action.
+2. Create a project. Report a bug with a title and Markdown details. Check Board/List, search, status/priority filters, editing, replies/work logs and status history.
+3. Add a harmless sample attachment. Preview an image or download the attachment. Claim/release a processing lock and copy a repair prompt if desired. Copying only writes text to the clipboard; no AI model is invoked.
+4. Quit the application completely, then relaunch. The welcome/sign-in page is shown on every process start. Select local use again and verify that projects, bugs, history and attachment bodies are retained.
+5. Use Settings > General > Language to switch between English and Simplified Chinese. Local mode displays no online account-management, project-invitation or MCP-key controls.
+
+Local data remains on the computer in a separate SQLite database and is not automatically uploaded or merged with online workspaces. No LAN sharing or local HTTP server is included. WebView2 Runtime is required; .NET and Windows App SDK are included in the package.
+
+Optional online collaboration:
+Use “Back to welcome” from the Local user menu, then choose “Sign in with Heimdall”. This mode requires the configured online Brigitte/Heimdall services and internet connectivity. The dedicated online reviewer account is supplied separately in the private credentials/testing fields. Do not interpret those credentials as a requirement for local use. If discovery cannot be reached, report that separate online failure; the complete local workflow remains available.
+
+Compact status/reply windows now keep Cancel and Save visible. The runFullTrust capability supports the native MAUI/WinUI desktop process, independent windows, tray, file selection/save and secure credential storage. Closing the main window may minimize to the tray according to saved preferences; choose Quit to stop the process. Privacy and support are accessible before signing in.

@@ -2,9 +2,15 @@
 
 English · [简体中文](usage.md)
 
-## Sign in and start a project
+## Use locally by default
 
-Select **Sign in with Heimdall**. Your system browser handles sign-in and returns to the app through a local callback. If the service offers registration, **Create an account** opens its registration page. You need network access and an account on the configured service; the client does not include a standalone server.
+Every launch shows the welcome page with **Use on this computer** as its primary action and online sign-in below. Local mode needs no account or network. Create and edit projects and bugs, search and filter, change status, add replies and work logs, claim locks, add and preview or download attachments, delete bugs, and copy repair prompts. Records and attachment bodies persist in local SQLite.
+
+Choose **Back to welcome** from the **Local user** menu to return to the sign-in entry without deleting local data. Local and online workspaces stay separate; nothing is automatically uploaded or merged. Invitations, online account management, remote MCP keys, and LAN sharing are unavailable locally. Local prompts contain issue snapshots without directing tools to an online MCP service.
+
+## Online sign-in and projects
+
+Select **Sign in with Heimdall** to restore saved online credentials or sign in through your system browser and return through a local callback. If the service offers registration, **Create an account** opens its registration page. Online mode needs network access and an account on the configured service.
 
 After sign-in, wait for workspace sync to finish. Create a project from the empty workspace or project management window, or use **Join with invitation** and paste the full link shared by its owner. Enter an invitation password if requested. Joining a project gives collaboration access according to server permissions; it does not make you an administrator.
 
@@ -18,7 +24,7 @@ Claiming a bug takes a temporary work lock. Another worker's active lock prevent
 
 ## Sync, updates, and the tray
 
-Workspace views read synchronized local data. The first sync must complete before opening the workspace. During a network interruption, synchronized content is read-only. The app does not queue offline edits or automatically repeat successful write requests.
+In online mode, workspace views read synchronized local data. The first sync must complete before opening the online workspace. During a network interruption, synchronized content is read-only. The online client does not queue offline edits or automatically repeat successful write requests. Local mode reads and writes its own database directly and does not wait for synchronization.
 
 Unread updates remain in the tray view until marked as read. System notifications display update counts; detailed summaries appear inside the app. When you close the main window, choose whether to quit or continue in the tray. You can remember the choice and change it later in **Settings → General**. Quitting stops background synchronization and notifications.
 

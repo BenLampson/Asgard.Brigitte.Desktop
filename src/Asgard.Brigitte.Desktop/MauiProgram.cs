@@ -22,6 +22,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SessionMaintenance>();
         builder.Services.AddSingleton<DesktopRealtime>();
         builder.Services.AddSingleton(_ => new LocalWorkspaceDatabase(Path.Combine(FileSystem.AppDataDirectory, "workspace")));
+        builder.Services.AddSingleton(_ => new StandaloneWorkspace(Path.Combine(FileSystem.AppDataDirectory, "local-workspace")));
         builder.Services.AddSingleton<LocalWorkspaceReader>();
         builder.Services.AddSingleton<IWorkspaceSync>(sp => sp.GetRequiredService<DesktopRealtime>());
         builder.Services.AddSingleton<IClientSession>(sp => sp.GetRequiredService<SessionService>());

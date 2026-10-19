@@ -9,4 +9,4 @@ This MAUI host is part of the independent [Asgard.Brigitte.Desktop](https://gith
 - [Windows MSIX packaging (Chinese)](../../packaging/windows/README.md)
 - [Privacy and local data (Chinese)](../../docs/data.md)
 
-Open `Asgard.Brigitte.Desktop.slnx` from the repository root. A compatible Brigitte service and Heimdall identity service are required. Backend source and production configuration are maintained separately.
+Open `Asgard.Brigitte.Desktop.slnx` from the repository root. Local mode runs without sign-in or a service deployment. Only online mode requires compatible Brigitte and Heimdall services. Backend source and production configuration are maintained separately.

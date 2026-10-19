@@ -34,13 +34,13 @@ case "附件":
 <dt>@ClientText.T("项目")</dt><dd class="ellipsis" title="@bug.ProjectId">@Workspace.Projects.FirstOrDefault(p=>p.Id==bug.ProjectId)?.Name</dd>
 <dt>@ClientText.T("状态")</dt><dd><button class="link" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Status,bug.Id,bug.ProjectId), View)">@BugDisplay.Statuses.GetValueOrDefault(bug.Status)</button></dd>
 <dt>@ClientText.T("负责人")</dt><dd class="ellipsis" tabindex="0" title="@(ClientText.T("负责人：")+Workspace.Assignee(bug.AssigneeId)+ClientText.T("\n标识：")+bug.AssigneeId)">@Workspace.Assignee(bug.AssigneeId)</dd>
-<dt>@ClientText.T("处理锁")</dt><dd>@(BugDisplay.HasLock(bug) ? bug.LockOwnerId==Host.WorkerId ? ClientText.T("我已领取") : ClientText.T("他人持有") : ClientText.T("未锁定"))</dd>
-<dt>@ClientText.T("领取者")</dt><dd class="ellipsis" tabindex="0" title="@(ClientText.T("领取者：")+BugDisplay.Claimant(bug)+"\nWorker ID："+bug.LockOwnerId)">@BugDisplay.Claimant(bug)</dd>
+<dt>@ClientText.T("处理锁")</dt><dd>@(BugDisplay.HasLock(bug) ? BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId) ? ClientText.T("我已领取") : ClientText.T("他人持有") : ClientText.T("未锁定"))</dd>
+<dt>@ClientText.T("领取者")</dt><dd class="ellipsis" tabindex="0" title="@(ClientText.T("领取者：")+BugDisplay.Claimant(bug, Workspace.Users)+"\nWorker ID："+bug.LockOwnerId)">@BugDisplay.Claimant(bug, Workspace.Users)</dd>
 </dl>
 @if (BugDisplay.HasLock(bug)) { <small>@ClientText.T("{0} 到期", bug.LockExpireTime?.ToLocalTime().ToString("g", ClientText.Culture))</small> }
 <div class="row-actions">
 @if(!BugDisplay.HasLock(bug)) { <button disabled="@(_busy || !Host.CanWrite)" @onclick="Claim">@ClientText.T("领取（1 小时）")</button> }
-else if(bug.LockOwnerId==Host.WorkerId) { <button disabled="@(_busy || !Host.CanWrite)" @onclick="Release">@ClientText.T("释放锁")</button> }
+else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <button disabled="@(_busy || !Host.CanWrite)" @onclick="Release">@ClientText.T("释放锁")</button> }
 <button disabled="@_busy" @onclick="Reload">@ClientText.T("↻ 刷新")</button></div>
 @if(!CanWrite) { <small class="warning">@ClientText.T("他人持锁期间可阅读、下载和复制，暂时无法修改。")</small> }
 <dl><dt>@ClientText.T("优先级")</dt><dd><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority)</span></dd><dt>@ClientText.T("来源")</dt><dd class="ellipsis" title="@bug.Source">@bug.Source</dd><dt>@ClientText.T("创建时间")</dt><dd>@bug.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</dd><dt>@ClientText.T("更新时间")</dt><dd>@bug.UpdateTime?.ToLocalTime().ToString("g", ClientText.Culture)</dd></dl>
@@ -56,7 +56,7 @@ else if(bug.LockOwnerId==Host.WorkerId) { <button disabled="@(_busy || !Host.Can
     private List<PromptAction> _actions=[];
     private string _error="", _toast="", _tab="内容";
     private bool _busy;
-    private bool CanWrite => Host.CanWrite && _detail is not null && BugDisplay.CanWrite(_detail.Bug,Host.WorkerId);
+    private bool CanWrite => Host.CanWrite && _detail is not null && BugDisplay.CanWrite(_detail.Bug,Host.WorkerId,Workspace.Access.UserId);
     private string? Worker => _detail is not null && BugDisplay.HasLock(_detail.Bug) ? Host.WorkerId : null;
     protected override async Task OnInitializedAsync() { Host.Changed+=Changed; await Reload(); }
     private void Changed() => _=InvokeAsync(async()=> {await Reload();StateHasChanged();});

@@ -1321,6 +1321,52 @@ body:has(.tray-client.dark) {
   margin-top: auto;
   padding: 12px 0;
 }
+/* 状态和回复窗口固定标题与操作栏，缩小时只滚动表单，避免保存按钮被挤出视口。 */
+.bug-action-window {
+  overflow: hidden;
+}
+.bug-action-window > h1,
+.bug-action-window > .window-footer {
+  flex-shrink: 0;
+}
+.bug-action-window > .window-footer {
+  margin-top: 0;
+}
+.action-form-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+  overflow-y: auto;
+}
+.action-form-body > label,
+.action-form-body > .form-row {
+  flex-shrink: 0;
+}
+.action-form-body > .action-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 150px;
+}
+.action-content .markdown-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.action-content .md-tabs {
+  flex-shrink: 0;
+}
+.action-content .markdown-editor textarea,
+.action-content .markdown-editor > .markdown {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  overflow: auto;
+  resize: none;
+}
 .form-row {
   display: flex;
   gap: 18px;

@@ -30,7 +30,8 @@ public sealed class WelcomeRenderTests
         Assert.Contains("重新登录", html);
         Assert.Contains("role=\"alert\">连接暂时不可用", html);
         Assert.Contains("注册新账号", html);
-        Assert.Equal(busy ? 3 : 0, html.Split(" disabled").Length - 1);
+        Assert.Contains("本机使用", html);
+        Assert.Equal(busy ? 4 : 0, html.Split(" disabled").Length - 1);
         await WindowRenderTests.ExportPreview("restore-" + busy, "<div class='client light'>" + html + "</div>");
     }
     private static async Task<string> Render(Dictionary<string, object?> parameters)

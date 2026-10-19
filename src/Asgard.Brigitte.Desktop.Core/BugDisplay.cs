@@ -21,8 +21,8 @@ public static class BugDisplay
         ["duplicate"] = "重复 BUG",
         ["cannot_reproduce"] = "无法复现"
     };
-    /// <summary>网页端既有的 11 个泳道，不增加拖拽流转。</summary>
-    public static readonly string[] BoardStatuses = ["waiting", "confirmed", "reproducing", "triaged", "assigned", "processing", "blocked", "need_info", "fixed", "regressed", "reopened"];
+    /// <summary>默认看板展示全部状态，结束状态也必须保留可见的泳道。</summary>
+    public static readonly string[] BoardStatuses = StatusKeys.Keys.ToArray();
     /// <summary>仍需要处理的状态；已处理、已回归及其他结束状态不计入未解决。</summary>
     public static bool IsUnresolved(string status) => status is "waiting" or "confirmed" or "reproducing" or "triaged" or "assigned" or "processing" or "blocked" or "need_info" or "reopened";
     /// <summary>紧急度使用文字标签。</summary>
@@ -42,12 +42,16 @@ public static class BugDisplay
         var name = string.IsNullOrEmpty(user.DisplayName) ? user.Username : user.DisplayName;
         return !string.IsNullOrEmpty(user.Username) && user.Username != name ? $"{name}（{user.Username}）" : name;
     }
-    /// <summary>领取者与负责人独立，不要求用户账号。</summary>
-    public static string Claimant(Bug bug) => HasLock(bug) ? string.IsNullOrWhiteSpace(bug.LockOwnerName) ? bug.LockOwnerId! : bug.LockOwnerName : ClientText.T("未领取");
+    /// <summary>领取人仅取已验证的用户并匹配目录；Worker 名称不能作为用户身份。</summary>
+    public static string Claimant(Bug bug, IEnumerable<IdentityUser>? users = null) => !HasLock(bug) ? ClientText.T("未领取")
+        : string.IsNullOrWhiteSpace(bug.LockOwnerUserId) ? ClientText.T("领取用户未知") : Assignee(bug.LockOwnerUserId, users ?? []);
     /// <summary>已过期的持锁标识不作为活跃领取者。</summary>
     public static bool HasLock(Bug bug) => !string.IsNullOrWhiteSpace(bug.LockOwnerId) && bug.LockExpireTime > DateTimeOffset.UtcNow;
     /// <summary>无锁或本客户端持锁时允许写入，服务器仍有最终决定权。</summary>
-    public static bool CanWrite(Bug bug, string workerId) => !HasLock(bug) || bug.LockOwnerId == workerId;
+    public static bool CanWrite(Bug bug, string workerId, string? userId = null) => !HasLock(bug) || OwnsLock(bug, workerId, userId);
+    /// <summary>共享设备切换账号后，相同 Worker 也不代表同一个领取人。</summary>
+    public static bool OwnsLock(Bug bug, string workerId, string? userId) => !string.IsNullOrWhiteSpace(userId)
+        && bug.LockOwnerId == workerId && bug.LockOwnerUserId == userId;
     /// <summary>短 ID 只用于显示，复制动作使用原值。</summary>
     public static string ShortId(string value) => value.Length > 8 ? value[..8] : value;
     /// <summary>本地过滤与刷新独立，不覆盖界面选择。</summary>

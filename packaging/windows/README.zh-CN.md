@@ -45,4 +45,4 @@ pwsh -NoProfile -File packaging/windows/publish-store.ps1 -SettingsPath packagin
 
 构建成功后，在隔离设备或测试账号下检查安装、升级、卸载，浏览器登录与会话恢复，单实例聚焦，托盘、通知与窗口行为，附件操作，隐私和支持链接。也需检查 WebView2 缺失提示、不同显示缩放与键盘操作。
 
-公众服务的注册、邀请和项目权限由实际服务策略决定。商品页应准确说明账号、联网与服务依赖，需登录的审核流程应提供可用的私密测试账号。正式[中文隐私政策](../../PRIVACY.zh-CN.md)及 [English](../../PRIVACY.md)、双语商品介绍和审核步骤均已公开，详见[提交指南](store-submission.md)。
+默认本机使用无需账号、联网或部署服务。商品页应将它与可选在线协作区分，在线注册、邀请和项目权限仍由服务策略决定。核心本机审核流程见[审核步骤](reviewer-notes.en.txt)，可选在线检查继续提供专用私密测试账号。正式[中文隐私政策](../../PRIVACY.zh-CN.md)及 [English](../../PRIVACY.md)、双语商品介绍和审核步骤见[提交指南](store-submission.md)。

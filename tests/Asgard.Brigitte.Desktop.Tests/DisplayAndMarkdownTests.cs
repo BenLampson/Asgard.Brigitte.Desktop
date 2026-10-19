@@ -8,8 +8,16 @@ public sealed class DisplayAndMarkdownTests
     [Fact]
     public void Assignee_and_worker_are_distinct_and_expired_lock_does_not_block()
     {
-        var bug = new Bug { AssigneeId = "raw-agent-long-id", LockOwnerId = "worker-7", LockOwnerName = "AI-Worker-7", LockExpireTime = DateTimeOffset.UtcNow.AddMinutes(5) };
-        Assert.Equal("raw-agent-long-id", BugDisplay.Assignee(bug.AssigneeId, [])); Assert.Equal("AI-Worker-7", BugDisplay.Claimant(bug)); Assert.False(BugDisplay.CanWrite(bug, "other")); Assert.True(BugDisplay.CanWrite(bug, "worker-7"));
+        var bug = new Bug { AssigneeId = "raw-agent-long-id", LockOwnerId = "worker-7", LockOwnerName = "AI-Worker-7", LockOwnerUserId = "user-a", LockExpireTime = DateTimeOffset.UtcNow.AddMinutes(5) };
+        Assert.Equal("raw-agent-long-id", BugDisplay.Assignee(bug.AssigneeId, []));
+        Assert.Equal("真实用户", BugDisplay.Claimant(bug, [new IdentityUser { Id = "user-a", DisplayName = "真实用户" }]));
+        Assert.Equal("user-a", BugDisplay.Claimant(bug));
+        Assert.False(BugDisplay.CanWrite(bug, "other", "user-a"));
+        Assert.False(BugDisplay.CanWrite(bug, "worker-7", "user-b"));
+        Assert.True(BugDisplay.CanWrite(bug, "worker-7", "user-a"));
+        bug.LockOwnerUserId = null;
+        Assert.Equal("领取用户未知", BugDisplay.Claimant(bug));
+        Assert.False(BugDisplay.CanWrite(bug, "worker-7", "user-a"));
         bug.LockExpireTime = DateTimeOffset.UtcNow.AddSeconds(-1); Assert.True(BugDisplay.CanWrite(bug, "other")); Assert.Equal("未指派", BugDisplay.Assignee(null, []));
     }
     [Theory]

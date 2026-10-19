@@ -12,9 +12,9 @@
 
 <p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
-Brigitte connects issue discovery, assignment, fixes, and verification in a shared project workspace. The desktop client combines native windows, a system tray, notifications, and a local SQLite projection updated over authenticated WebSockets.
+Brigitte connects issue discovery, assignment, fixes, and verification in a project workspace. The current source defaults to local use: every launch offers **Use on this computer** first, without an account or network. Projects, bugs, replies, history, and attachment bodies stay in a separate local SQLite database. Online collaboration retains the existing sign-in and authenticated WebSocket synchronization.
 
-This repository publishes the desktop client, shared synchronization contracts, bundled application resources, and tests under Apache-2.0. The Brigitte backend, web administration application, and production deployment are maintained separately in a private repository. A compatible Brigitte API and Heimdall identity service are required; the client does not include a local standalone server.
+This repository publishes the desktop client, shared synchronization contracts, bundled application resources, and tests under Apache-2.0. The Brigitte backend, web administration application, and production deployment are maintained separately in a private repository. Only online mode requires compatible Brigitte and Heimdall services. Local mode runs inside the desktop process, opens no service port, and does not upload or merge records with online workspaces. LAN sharing is not supported.
 
 ## Features
 
@@ -29,17 +29,17 @@ This repository publishes the desktop client, shared synchronization contracts, 
 
 ## Platform status
 
-Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` has been submitted to Microsoft Store for certification as a free app; certification is pending. macOS signing and notarization remain separate release work.
+Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` failed Store certification because online discovery blocked access to the workspace. Version `1.0.1` is available in Microsoft Store. Version `1.0.2` adds complete board status visibility and verified claimant display. macOS signing and notarization remain separate release work.
 
 ## Help, privacy, and language
 
-Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime and an online service account are required. See the [1.0.0 release notes](docs/releases/v1.0.0.md) for platform and Store status.
+Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime is required. The published `1.0.0` online client requires a service account; local mode requires a build containing the local-workspace changes. See the [1.0.2 release notes](docs/releases/v1.0.2.md) for current changes and Store status.
 
 Use [GitHub Issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose) for bugs and feature requests; English and Chinese are welcome. See the [support guide](SUPPORT.md), [privacy policy](PRIVACY.md) ([简体中文](PRIVACY.zh-CN.md)), and [usage guide](docs/usage.en.md). Issues are public: remove private content and credentials. Privacy and account-deletion requests go to the email in the policy.
 
 Open **Settings → General → Language** to choose **Follow system**, **简体中文**, or **English**. Chinese system languages use Simplified Chinese; other languages use English. The preference is saved on the device and applies to open windows. User content and server-provided templates remain in their original language.
 
-Microsoft Store descriptions, public package identity, links, and submission status are in the [Store submission guide](packaging/windows/store-submission.md). The app was submitted for certification on October 17, 2026, with free pricing and automatic publication after approval. It is not yet available for download from the Store.
+Microsoft Store descriptions, public package identity, links, and submission status are in the [Store submission guide](packaging/windows/store-submission.md). The first submission failed certification on October 17, 2026; the local-first replacement is not yet certified or published. Free pricing and automatic publication after approval remain selected.
 
 ![Asgard Brigitte list view with fictional sample data](docs/screenshots/en-US/02-list.png)
 

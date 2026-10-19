@@ -39,7 +39,7 @@
             if(View.Kind==DesktopViewKind.Edit) {
                 var b=(await Api.DetailAsync(View.Id!)).Bug;
                 _input=new(){ProjectId=b.ProjectId,Title=b.Title,Description=b.Description,Content=b.Content,Priority=b.Priority,AssigneeId=b.AssigneeId,AffectedServices=b.AffectedServices,DeploymentNotes=b.DeploymentNotes,Source=b.Source};
-                _services=string.Join(", ",b.AffectedServices); _canWrite=BugDisplay.CanWrite(b,Host.WorkerId);
+                _services=string.Join(", ",b.AffectedServices); _canWrite=BugDisplay.CanWrite(b,Host.WorkerId,Workspace.Access.UserId);
                 _input.WorkerId=BugDisplay.HasLock(b) ? Host.WorkerId : null;
             }
         } catch(Exception ex) { _error=AppView.SafeError(ex); _canWrite=false; } finally { _loading=false; }
@@ -53,7 +53,7 @@
             _input.AffectedServices=_services.Split([',','，','\n'],StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
             if(View.Kind==DesktopViewKind.Edit || _createdId is not null) {
                 var current=(await Api.DetailAsync(_createdId??View.Id!)).Bug;
-                if(!BugDisplay.CanWrite(current,Host.WorkerId)) throw new InvalidOperationException(ClientText.T("其他 Worker 已领取此 BUG，刷新详情后再操作。"));
+                if(!BugDisplay.CanWrite(current,Host.WorkerId,Workspace.Access.UserId)) throw new InvalidOperationException(ClientText.T("其他 Worker 已领取此 BUG，刷新详情后再操作。"));
                 _input.WorkerId=BugDisplay.HasLock(current)?Host.WorkerId:null;
             }
             if(_createdId is null) {

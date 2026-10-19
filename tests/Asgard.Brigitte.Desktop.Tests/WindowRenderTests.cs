@@ -76,8 +76,12 @@ public sealed class WindowRenderTests
         var html = await Render(theme, DesktopViewKind.Main, list: list);
         Assert.Contains("client " + theme, html);
         if (list) Assert.Equal(18, html.Split("class=\"bug-cell\"").Length - 1);
-        else Assert.Equal(11, html.Split("class=\"lane\"").Length - 1);
-        Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
+        else Assert.Equal(15, html.Split("class=\"lane\"").Length - 1);
+        // 已处理、已回归和最终结束状态的卡片在默认看板与列表中都不能丢失。
+        var decoded = System.Net.WebUtility.HtmlDecode(html);
+        for (var i = 1; i < 18; i++) Assert.Contains("状态更新后卡片及时显示 · " + i + "\"", decoded);
+        Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 15), decoded);
+        Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }
     [Theory]
@@ -149,7 +153,10 @@ public sealed class WindowRenderTests
     {
         object data; var paged = false; var total = 1; var path = uri.AbsolutePath;
         var project = new Project { Id = "project", Name = "Brigitte", Code = "brigitte", Status = "active", OwnerId = "owner", MemberUserIds = ["owner"] };
-        var bugs = Enumerable.Range(0, 18).Select(i => new Bug { Id = i == 0 ? "bug" : "bug-" + i, ProjectId = "project", Title = i == 0 ? "刷新列表后筛选条件被重置" : "状态更新后卡片及时显示 · " + i, Description = "问题描述", Content = "## 复现步骤\n1. 打开看板\n2. 点击刷新", Status = "processing", Priority = "high", AssigneeId = "raw-owner-id-very-long", LockOwnerId = i == 0 ? "worker-7" : null, LockOwnerName = i == 0 ? "AI-Worker-7" : null, LockExpireTime = DateTimeOffset.UtcNow.AddHours(1), CreateTime = DateTimeOffset.UtcNow }).ToList();
+        var bugs = Enumerable.Range(0, 18).Select(i => new Bug { Id = i == 0 ? "bug" : "bug-" + i, ProjectId = "project", Title = i == 0 ? "刷新列表后筛选条件被重置" : "状态更新后卡片及时显示 · " + i, Description = "问题描述", Content = "## 复现步骤\n1. 打开看板\n2. 点击刷新", Status = "processing", Priority = "high", AssigneeId = "raw-owner-id-very-long", LockOwnerId = i == 0 ? "worker-7" : null, LockOwnerName = i == 0 ? "AI-Worker-7" : null, LockOwnerUserId = i == 0 ? "owner" : null, LockExpireTime = DateTimeOffset.UtcNow.AddHours(1), CreateTime = DateTimeOffset.UtcNow }).ToList();
+        // 六条完成记录必须与处理中记录一起显示，覆盖之前缺失的四个最终状态。
+        var completed = new[] { "fixed", "regressed", "closed", "wont_fix", "duplicate", "cannot_reproduce" };
+        for (var i = 0; i < completed.Length; i++) bugs[12 + i].Status = completed[i];
         if (path.EndsWith("/projects")) { data = new[] { project }; paged = true; }
         else if (path.EndsWith("/projects/project")) data = project;
         else if (path.EndsWith("/bugs/statistics")) data = new[] { new ProjectStatistics { ProjectId = "project", Total = 18, HighPriority = 18 } };

@@ -10,7 +10,7 @@ public sealed partial class DesktopHost
     private bool _notificationScheduled;
     private SyncNotice[] _visibleNotices = [];
     public string NotificationText => string.Join("\n\n", _visibleNotices.Select(x => x.DisplayMessage));
-    public IReadOnlyList<SyncNotice> RecentChanges => _realtime.Notices;
+    public IReadOnlyList<SyncNotice> RecentChanges => _session.IsLocal ? [] : _realtime.Notices;
     public int UnreadChanges => RecentChanges.Count;
     public void MarkChangesRead() { _realtime.MarkNoticesRead(); DismissNotification(); RefreshNotices(); }
     public void MarkChangeRead(string id) { _realtime.MarkNoticeRead(id); RefreshNotices(); }

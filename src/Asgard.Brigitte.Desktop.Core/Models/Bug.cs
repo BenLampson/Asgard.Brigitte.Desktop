@@ -29,6 +29,8 @@ public sealed class Bug
     public string? SourceRef { get; set; }
     /// <summary>接口字段 LockOwnerId。</summary>
     public string? LockOwnerId { get; set; }
+    /// <summary>服务端验证的领取用户；旧记录缺少该字段时不能根据 Worker 猜测用户。</summary>
+    public string? LockOwnerUserId { get; set; }
     /// <summary>接口字段 LockOwnerName。</summary>
     public string? LockOwnerName { get; set; }
     /// <summary>接口字段 LockTime。</summary>

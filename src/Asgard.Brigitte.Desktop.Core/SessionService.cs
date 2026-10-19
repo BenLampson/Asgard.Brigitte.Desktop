@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 namespace Asgard.Brigitte.Desktop.Core;
 /// <summary>共享原生用户会话；不自动重新进入 SSO，不重放业务写请求。</summary>
-public sealed class SessionService(
+public sealed partial class SessionService(
     IOptions<ClientOptions> options, IHttpClientFactory factory,
     ICredentialStore store, ILoginBrowser browser, TimeProvider? timeProvider = null) : IClientSession, IDisposable
 {
@@ -29,7 +29,7 @@ public sealed class SessionService(
     private string _persistenceWarning = "";
     public string PersistenceWarning => ClientText.T(_persistenceWarning);
     /// <summary>当前账号显示资料。</summary>
-    public string DisplayName => _current?.DisplayName ?? "";
+    public string DisplayName => IsLocal ? ClientText.T("本机用户") : _current?.DisplayName ?? "";
     /// <summary>已验证的用户标识，仅用于分隔本地数据库，不包含凭据。</summary>
     public string SubjectId => _current?.SubjectId ?? "";
     /// <summary>启动时只从安全存储恢复；每次重新验证轮换后的会话。</summary>
@@ -38,7 +38,7 @@ public sealed class SessionService(
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            if (_current is not null) return;
+            if (IsLocal || _current is not null) return;
             _restorePending = true;
             var raw = await store.ReadAsync();
             if (raw is null) { _restorePending = false; return; }
@@ -57,6 +57,7 @@ public sealed class SessionService(
     /// <summary>登录事务只在当前操作内存中存在且只消费一次。</summary>
     public async Task LoginAsync(CancellationToken cancellationToken = default)
     {
+        if (IsLocal) throw new InvalidOperationException(ClientText.T("请先返回启动页再登录在线服务。"));
         if (string.IsNullOrWhiteSpace(options.Value.ClientId) || string.IsNullOrWhiteSpace(options.Value.ApplicationId))
             throw new InvalidOperationException(ClientText.T("尚未配置 Heimdall 原生客户端 ClientId / ApplicationId，请按客户端 README 登记回调。"));
         await _loginGate.WaitAsync(cancellationToken);
@@ -116,6 +117,7 @@ public sealed class SessionService(
     /// <summary>由桌面生命周期驱动，托盘空闲时也提前续期；从不自动发起浏览器登录。</summary>
     public async Task MaintainAsync(CancellationToken cancellationToken = default)
     {
+        if (IsLocal) return;
         if (_restorePending && !IsAuthenticated) await InitializeAsync(cancellationToken);
         else if (IsAuthenticated) await GetLeaseAsync(cancellationToken);
     }
@@ -145,6 +147,7 @@ public sealed class SessionService(
     /// <summary>普通退出仅撤销当前应用授权，不结束其它软件的 SSO。</summary>
     public async Task LogoutAsync()
     {
+        if (IsLocal) { await LeaveLocalAsync(); return; }
         _loginCancellation?.Cancel();
         await _gate.WaitAsync();
         StoredSession? old;

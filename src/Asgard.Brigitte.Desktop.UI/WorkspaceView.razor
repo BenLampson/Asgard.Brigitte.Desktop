@@ -14,13 +14,16 @@
 </button> }</nav>
 <div class="sidebar-bottom"><DesktopUtilities /><div class="theme-options">@foreach(var theme in new[]{"light","dark","system"}) { <button class="@(Host.ThemePreference == theme ? "selected" : "")" @onclick="() => Host.SetTheme(theme)">@(theme == "light" ? ClientText.T("白天") : theme == "dark" ? ClientText.T("晚间") : ClientText.T("系统"))</button> }</div>
 <details class="account"><summary title="@Session.DisplayName" aria-label="@ClientText.T("账号菜单：{0}", Session.DisplayName)"><UserAvatar Name="@Session.DisplayName" /><span class="ellipsis">@Session.DisplayName</span></summary><div class="menu">
+@if (!Session.IsLocal) {
 <button @onclick="() => Host.OpenAsync(new(DesktopViewKind.Keys), View)">MCP Key</button>
 <button @onclick="OpenAccount">@ClientText.T("个人信息与账号安全 ↗")</button>
 @if (Workspace.Access.IsTenantAdmin) { <button @onclick="() => Host.OpenAsync(new(DesktopViewKind.Users), View)">@ClientText.T("用户管理")</button> }
-<button @onclick="Logout">@ClientText.T("退出登录")</button></div></details></div>
+}
+<button @onclick="Logout">@(Session.IsLocal ? ClientText.T("返回启动页") : ClientText.T("退出登录"))</button></div></details></div>
 </aside>
 <SidebarResizer />
 <main class="board-main">
+@if (Session.IsLocal) { <div class="notice" role="status">@ClientText.T("本机工作区 · 数据仅保存在这台电脑")</div> }
 @if (Workspace.Projects.Count == 0) {
 <header><div class="heading"><h1>@ClientText.T("我的工作区")</h1><div class="spacer"></div><button @onclick="Reload" disabled="@_busy">@ClientText.T("↻ 刷新")</button></div></header>
 } else {
@@ -41,7 +44,7 @@
 else if (Workspace.Projects.Count == 0 && _error != "") { <div class="center">@ClientText.T("项目加载失败，请点击“刷新”重试。")</div> }
 else if (Workspace.Projects.Count == 0) {
 <section class="workspace-empty" aria-labelledby="workspace-empty-title">
-<div class="workspace-empty-content"><Brand /><h2 id="workspace-empty-title">@ClientText.T("从你的第一个项目开始")</h2><p>@ClientText.T("创建自己的项目，开始记录和处理 BUG。")<br />@ClientText.T("已有团队？通过邀请链接加入他们。")</p><div class="actions"><button class="primary" disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.ProjectCreate), View)">@ClientText.T("创建项目")</button><button disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.JoinProject), View)">@ClientText.T("通过邀请加入")</button></div></div>
+<div class="workspace-empty-content"><Brand /><h2 id="workspace-empty-title">@ClientText.T("从你的第一个项目开始")</h2><p>@ClientText.T("创建自己的项目，开始记录和处理 BUG。")@if (!Session.IsLocal) { <br />@ClientText.T("已有团队？通过邀请链接加入他们。") }</p><div class="actions"><button class="primary" disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.ProjectCreate), View)">@ClientText.T("创建项目")</button>@if (!Session.IsLocal) { <button disabled="@(!Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.JoinProject), View)">@ClientText.T("通过邀请加入")</button> }</div></div>
 </section>
 }
 else if (!_list) {
@@ -56,7 +59,7 @@ var bugs = Filtered.Where(b=>b.Status==status).ToList();
 @if(_actions.TryGetValue(bug.Status, out var actions) && actions.Count>0) {
 <PromptButtons Actions="actions" OnCopy="a=>CopyPrompt(a,bug)" /> }</div>
 <strong class="bug-title" title="@bug.Title">@bug.Title</strong>
-@if (BugDisplay.HasLock(bug)) { <div class="claim ellipsis" tabindex="0" title="@ClaimTitle(bug)">♙ @ClientText.T("领取者：{0}", BugDisplay.Claimant(bug))</div> }
+@if (BugDisplay.HasLock(bug)) { <div class="claim ellipsis" tabindex="0" title="@ClaimTitle(bug)">♙ @ClientText.T("领取者：{0}", BugDisplay.Claimant(bug, Workspace.Users))</div> }
 <div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">@ClientText.T("负责人")</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></div>
 </article> }
 @if(bugs.Count==0) { <p class="empty-column">@ClientText.T("暂无 BUG")</p> }
@@ -67,10 +70,10 @@ var bugs = Filtered.Where(b=>b.Status==status).ToList();
 @foreach(var bug in Filtered.Skip((_page-1)*_size).Take(_size)) { <tr @key="bug.Id">
 <td class="bug-cell"><button title="@ClientText.T("复制完整 BUG ID")" @onclick="() => Copy(bug.Id)">@BugDisplay.ShortId(bug.Id) ⧉</button><button title="@bug.Title" class="ellipsis" @onclick="() => OpenBug(bug)">@bug.Title</button></td>
 <td>@BugDisplay.Statuses.GetValueOrDefault(bug.Status)</td><td><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority)</span></td><td><span class="table-identity ellipsis" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></td>
-<td><span class="table-identity ellipsis" title="@string.Join("、",bug.AffectedServices)">@string.Join("、",bug.AffectedServices)</span></td><td><span class="table-identity ellipsis" title="@ClaimTitle(bug)">@BugDisplay.Claimant(bug)</span></td><td>@bug.Source</td><td>@bug.CreateTime.ToLocalTime().ToString("MM-dd HH:mm")</td>
+<td><span class="table-identity ellipsis" title="@string.Join("、",bug.AffectedServices)">@string.Join("、",bug.AffectedServices)</span></td><td><span class="table-identity ellipsis" title="@ClaimTitle(bug)">@BugDisplay.Claimant(bug, Workspace.Users)</span></td><td>@bug.Source</td><td>@bug.CreateTime.ToLocalTime().ToString("MM-dd HH:mm")</td>
 <td class="bug-actions-cell"><div class="row-actions"><button @onclick="() => OpenBug(bug)">@ClientText.T("详情")</button>@if (_actions.TryGetValue(bug.Status,out var aa) && aa.Count>0) { <PromptButtons Actions="aa" OnCopy="a=>CopyPrompt(a,bug)" /> }<button class="danger" title="@ClientText.T("有处理锁时请先释放锁再删除")" disabled="@(BugDisplay.HasLock(bug) || !Host.CanWrite)" @onclick="() => DeleteBug(bug)">@ClientText.T("删除")</button></div></td></tr> }
 </tbody></table></div>
 <div class="pagination"><span>@ClientText.T("共 {0} 条", Filtered.Count)</span><select aria-label="@ClientText.T("每页条数")" @bind="_size" @bind:after="ResetPage">@foreach(var size in new[]{10,20,50,100}) { <option value="@size">@ClientText.T("每页 {0} 条", size)</option> }</select><div class="spacer"></div><button disabled="@(_page<=1)" @onclick="() => _page--">‹</button><span>@_page / @Math.Max(1,(int)Math.Ceiling((double)Filtered.Count/_size))</span><button disabled="@(_page*_size>=Filtered.Count)" @onclick="() => _page++">›</button></div>
 }
-<footer class="statusbar"><span>@ClientText.T("{0} 条 BUG · 11 个状态", _bugs.Count)</span><span>@ClientText.T("实时：{0} · 最后刷新 {1}", Host.RealtimeStatus, _lastRefresh)</span><span>@(Host.CloseBehavior switch { "tray" => ClientText.T("关闭主窗口后继续在托盘运行"), "exit" => ClientText.T("关闭主窗口时退出程序"), _ => ClientText.T("关闭主窗口时询问退出或托盘") })</span></footer>
+<footer class="statusbar"><span>@ClientText.T("{0} 条 BUG · {1} 个状态", _bugs.Count, BugDisplay.Statuses.Count)</span><span>@ClientText.T("实时：{0} · 最后刷新 {1}", Host.RealtimeStatus, _lastRefresh)</span><span>@(Host.CloseBehavior switch { "tray" => ClientText.T("关闭主窗口后继续在托盘运行"), "exit" => ClientText.T("关闭主窗口时退出程序"), _ => ClientText.T("关闭主窗口时询问退出或托盘") })</span></footer>
 </main></div>

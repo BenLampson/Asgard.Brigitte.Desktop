@@ -11,10 +11,10 @@
 else if (View.Kind == DesktopViewKind.About) { <AboutView /> }
 else if (View.Kind == DesktopViewKind.Privacy) { <PrivacyView /> }
 else if (!_ready) { <WelcomeView Verifying="true" /> }
-else if (View.Kind==DesktopViewKind.Tray && !Session.IsAuthenticated) { <TrayView /> }
-else if (!Session.IsAuthenticated) {
-    <WelcomeView Busy="_busy" Restoring="_restoring" RestorePending="Session.RestorePending" Error="@_error" Login="Login" Restore="Restore" />
-} else if (!Host.SyncReady) {
+else if (View.Kind==DesktopViewKind.Tray && !Session.HasWorkspace) { <TrayView /> }
+else if (!Session.HasWorkspace) {
+    <WelcomeView Busy="_busy" Restoring="_restoring" RestorePending="Session.RestorePending" Error="@_error" Login="Login" Restore="Restore" Local="UseLocal" />
+} else if (!Session.IsLocal && !Host.SyncReady) {
     <SyncStartupView />
 } else {
     @if (Host.PendingCommands>0) { <div class="sync-status" role="status">@ClientText.T("线上已保存，等待同步… 完成后会自动更新，请勿重复提交。")</div> }
@@ -45,19 +45,27 @@ else if (!Session.IsAuthenticated) {
     [Parameter] public DesktopView View { get; set; } = new(DesktopViewKind.Main);
     private bool _ready, _busy, _restoring;
     private string _error = "";
-    /// <summary>只在主窗口恢复安全存储，不由子窗口重复登录。</summary>
-    protected override async Task OnInitializedAsync()
+    /// <summary>每次启动显示使用入口；选择在线服务后才恢复凭据，离线启动不等待网络。</summary>
+    protected override void OnInitialized()
     {
         Session.Changed += Changed; Host.Changed += Changed; Host.StatusChanged += Changed;
-        if (View.Kind == DesktopViewKind.Main) {
-            try { await Session.InitializeAsync(); } catch (Exception ex) { _error = SafeError(ex); }
-        }
         _ready = true;
+    }
+    /// <summary>数据库打开失败留在欢迎页，不清空本机记录。</summary>
+    private async Task UseLocal()
+    {
+        _busy = true; _error = "";
+        try { Api.OpenLocalWorkspace(); await Session.UseLocalAsync(); }
+        catch (Exception ex) { _error = SafeError(ex); }
+        finally { _busy = false; }
     }
     private async Task Login()
     {
         _busy = true; _error = "";
-        try { await Session.LoginAsync(); }
+        try {
+            await Session.InitializeAsync();
+            if (!Session.IsAuthenticated && !Session.RestorePending) await Session.LoginAsync();
+        }
         catch (OperationCanceledException) { _error = ClientText.T("登录已取消或超时，可重新登录。"); }
         catch (Exception ex) { _error = SafeError(ex); }
         finally { _busy = false; }
@@ -72,8 +80,8 @@ else if (!Session.IsAuthenticated) {
     }
     private void Changed()
     {
-        if (!Session.IsAuthenticated) Workspace.Clear();
-        _ = InvokeAsync(() => { if (Session.IsAuthenticated) _error = ""; StateHasChanged(); });
+        if (!Session.HasWorkspace) Workspace.Clear();
+        _ = InvokeAsync(() => { if (Session.HasWorkspace) _error = ""; StateHasChanged(); });
     }
     /// <summary>协议异常只显示安全分类，不输出回调或令牌。</summary>
     public static string SafeError(Exception ex) => ex is Asgard.Heimdall.Client.HeimdallClientException sdk ? ClientText.T("登录服务返回：") + sdk.Category : ex.Message;

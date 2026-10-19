@@ -1,14 +1,17 @@
 @inject BrigitteApi Api
 @inject IClientHost Host
 @inject SessionService Session
-<div class="form-window"><h1>@(View.Kind==DesktopViewKind.Status ? ClientText.T("更新状态") : ClientText.T("新增回复 / 处理记录"))</h1>
+@inject WorkspaceStore Workspace
+<div class="form-window bug-action-window"><h1>@(View.Kind==DesktopViewKind.Status ? ClientText.T("更新状态") : ClientText.T("新增回复 / 处理记录"))</h1>
+<div class="action-form-body">
 @if(_error!="") { <div class="notice error" role="alert">@_error</div> }
 @if(View.Kind==DesktopViewKind.Status) {
-<label>@ClientText.T("状态")<select @bind="_status">@foreach(var s in BugDisplay.Statuses) { <option value="@s.Key">@s.Value</option> }</select></label><label>@ClientText.T("原因")<MarkdownEditor @bind-Value="_content" Rows="6" Label="@ClientText.T("状态变更原因")" /></label>
+<label>@ClientText.T("状态")<select @bind="_status">@foreach(var s in BugDisplay.Statuses) { <option value="@s.Key">@s.Value</option> }</select></label><label class="action-content">@ClientText.T("原因")<MarkdownEditor @bind-Value="_content" Rows="6" Label="@ClientText.T("状态变更原因")" /></label>
 } else {
 <div class="form-row"><label>@ClientText.T("记录类型")<select @bind="_type"><option value="comment">@ClientText.T("回复")</option><option value="process">@ClientText.T("处理记录")</option></select></label><div><label>@ClientText.T("回复人")</label><p>@ClientText.T("{0}（当前用户）", Session.DisplayName)</p></div></div>
-<label>@ClientText.T("内容 *")<MarkdownEditor @bind-Value="_content" Rows="12" Label="@ClientText.T("回复内容")" /></label>
+<label class="action-content">@ClientText.T("内容 *")<MarkdownEditor @bind-Value="_content" Rows="12" Label="@ClientText.T("回复内容")" /></label>
 }
+</div>
 <footer class="window-footer"><div class="spacer"></div><button @onclick="() => Host.Close(View)">@ClientText.T("取消")</button><button class="primary" disabled="@(_busy || !Host.CanWrite)" @onclick="Save">@ClientText.T("保存")</button></footer></div>
 @code {
     /// <summary>状态与回复是独立的辅助窗口。</summary>
@@ -20,7 +23,7 @@
         _busy=true;
         try {
             var bug=(await Api.DetailAsync(View.Id!)).Bug;
-            if(!BugDisplay.CanWrite(bug,Host.WorkerId)) throw new InvalidOperationException(ClientText.T("其他 Worker 持锁期间无法修改。"));
+            if(!BugDisplay.CanWrite(bug,Host.WorkerId,Workspace.Access.UserId)) throw new InvalidOperationException(ClientText.T("其他 Worker 持锁期间无法修改。"));
             var worker=BugDisplay.HasLock(bug) ? Host.WorkerId : null;
             if(View.Kind==DesktopViewKind.Status) await Api.StatusAsync(bug.Id,_status,_content,worker);
             else { if(string.IsNullOrWhiteSpace(_content)) throw new InvalidOperationException(ClientText.T("请填写内容。")); await Api.CommentAsync(bug.Id,_content,_type,"human",worker); }

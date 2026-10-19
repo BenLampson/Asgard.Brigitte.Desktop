@@ -11,6 +11,8 @@
 
 ## 构建与测试
 
+本机模式由 `StandaloneWorkspace` 在进程内执行项目、BUG、状态、回复、锁与附件命令，使用独立的 `local-workspace/workspace.sqlite`。`SessionService.IsLocal` 只表示本机选择，不使 `IsAuthenticated` 成为真；原有在线令牌、HTTP 写入与 WebSocket 投影保持独立。每次启动由欢迎页选择入口，只有选择在线服务才恢复凭据。本机读取共用现有界面查询逻辑，不引用私有服务端，也不启动 HTTP 服务。
+
 Windows：
 
 ```powershell
