@@ -39,7 +39,7 @@ public sealed partial class LocalWorkspaceDatabase
             if (id.StartsWith("mcp:", StringComparison.Ordinal)) return ClientText.T("MCP 操作者");
             var user = Record("user/" + id);
             return NoticeLabel(Text(user, "displayName") is { Length: > 0 } name ? name :
-                Text(user, "username") is { Length: > 0 } username ? username : id, 48);
+                Text(user, "username") is { Length: > 0 } username ? username : id);
         }
         string Actor(string id) => Person(id) is { Length: > 0 } name ? name + " " : "";
         // 领取摘要只使用服务端绑定的用户，旧 Worker 自报名称不能冒充真人。
@@ -52,7 +52,7 @@ public sealed partial class LocalWorkspaceDatabase
             // 优先同批次的项目资料；删除 BUG 或项目时仍可使用提交前的归属。
             var project = Record("project/" + id);
             return NoticeLabel(Text(project, "name") is { Length: > 0 } name ? name :
-                Text(project, "code") is { Length: > 0 } code ? code : ClientText.T("项目 #") + BugDisplay.ShortId(id), 40);
+                Text(project, "code") is { Length: > 0 } code ? code : ClientText.T("项目 #") + BugDisplay.ShortId(id));
         }
         var summaries = new Dictionary<string, List<string>>();
         void Add(string key, string message)
@@ -125,7 +125,7 @@ public sealed partial class LocalWorkspaceDatabase
         {
             var isBug = x.Key.StartsWith("bug/");
             var record = Record(x.Key);
-            var label = NoticeLabel(Text(record, isBug ? "title" : "name"), 60);
+            var label = NoticeLabel(Text(record, isBug ? "title" : "name"));
             var subject = isBug ? $"【{ProjectLabel(record)}】BUG #{BugDisplay.ShortId(x.Key[4..])}" + (label.Length > 0 ? " · " + label : "") : ClientText.T("项目 {0}", label);
             return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value), now, false);
         }).ToArray();
@@ -142,12 +142,11 @@ public sealed partial class LocalWorkspaceDatabase
         fields.Any(field => !JsonNode.DeepEquals(before[field], after[field]));
     /// <summary>同步字段缺失时使用空值，兼容尚未升级的服务端。</summary>
     private static string Text(JsonObject? record, string field) => record?[field]?.ToString() ?? "";
-    /// <summary>系统通知中的标题与人名压成单行，并按完整 Unicode 字符截断。</summary>
-    private static string NoticeLabel(string value, int length)
+    /// <summary>通知中的标题与人名压成单行，保留完整内容。</summary>
+    private static string NoticeLabel(string value)
     {
         var text = string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        var characters = text.EnumerateRunes().ToArray();
-        return characters.Length <= length ? text : string.Concat(characters.Take(length).Select(x => x.ToString())) + "…";
+        return text;
     }
     /// <summary>状态显示中文名称，操作人缺失时不猜测当前领取者就是操作者。</summary>
     private static string StatusNotice(string actor, string from, string to) => actor +

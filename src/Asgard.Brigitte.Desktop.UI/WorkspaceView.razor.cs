@@ -17,7 +17,22 @@ public partial class WorkspaceView
     private bool _busy, _list;
     private int _page = 1, _size = 20, _loadVersion;
     private Project? Project => Workspace.Projects.FirstOrDefault(p => p.Id == _selected);
-    private List<Bug> Filtered => _bugs.Where(b => BugDisplay.Matches(b, _keyword, _status, _priority, _assignee, _source)).ToList();
+    private DateTime? _dateFrom, _dateTo;
+    private LocalDateRange _dateRange = new(null, null);
+    private string _dateError = "";
+    private IEnumerable<Bug> MatchingOtherFilters => _dateError.Length > 0 ? [] : _bugs.Where(b => _dateRange.Contains(b.CreateTime) && BugDisplay.Matches(b, _keyword, "", _priority, _assignee, _source));
+    private List<Bug> Filtered => MatchingOtherFilters.Where(b => _status.Length == 0 || b.Status == _status).ToList();
+    private IReadOnlyDictionary<string, int> StatusCounts => MatchingOtherFilters.GroupBy(b => b.Status).ToDictionary(g => g.Key, g => g.Count());
+    /// <summary>标签切换同步作用于看板和列表，其他筛选及项目不变。</summary>
+    private void SelectStatus(string status) { _status = status; ResetPage(); }
+    /// <summary>用户选择本地日期，转 UTC 后与同步数据比较，保留其他筛选。</summary>
+    private void ApplyDates()
+    {
+        try { _dateRange = LocalDateRange.Create(_dateFrom, _dateTo); _dateError = ""; }
+        catch (ArgumentException ex) { _dateError = ex.Message; }
+        ResetPage();
+    }
+    private void ClearDates() { _dateFrom = null; _dateTo = null; ApplyDates(); }
     /// <summary>打开一次完整项目集合。</summary>
     protected override async Task OnInitializedAsync() { Host.Changed += OnChanged; await Reload(); }
     private void OnChanged() => _ = InvokeAsync(Reload);

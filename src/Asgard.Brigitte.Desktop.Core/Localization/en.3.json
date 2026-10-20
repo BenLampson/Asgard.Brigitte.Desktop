@@ -76,7 +76,7 @@
   "附件": "Attachments",
   "附件 · {0}": "Attachments · {0}",
   "附件、通知与 AI": "Attachments, notifications, and AI",
-  "附件由你主动选择、粘贴或拖入后上传。系统通知只显示动态数量，项目、BUG 标题和操作摘要在应用内显示，可通过操作系统设置管理通知。选择最小化到托盘后会继续同步，退出程序才会停止。": "Attachments are uploaded after you choose, paste, or drag them into the app. System notifications show only the number of workspace updates; details stay in the app. Manage notifications in your operating system settings. Sync continues while minimized to the tray and stops when you quit.",
+  "附件由你主动选择、粘贴或拖入后上传。系统通知包含项目、BUG 标题和操作摘要，后台也显示具体内容，可通过操作系统设置管理通知。选择最小化到托盘后会继续同步，退出程序才会停止。": "Attachments are uploaded after you choose, paste, or drag them into the app. System notifications include project names, bug titles, and action summaries, including in the background. Manage notifications in your operating system settings. Sync continues while minimized to the tray and stops when you quit.",
   "附件预览": "Attachment preview",
   "隐私与数据": "Privacy and data",
   "隐私政策 ↗": "Privacy policy ↗",

@@ -1,0 +1,30 @@
+<nav class="status-filters" aria-label="@ClientText.T("按状态筛选")">
+    <button class="status-tag @(_selectedAll ? "is-selected" : null)" aria-pressed="@(_selectedAll ? "true" : "false")" @onclick="Clear">
+        <span>@ClientText.T("全部状态")</span><span class="status-tag-count">@Counts.Values.Sum()</span>
+    </button>
+    @foreach (var status in BugDisplay.Statuses)
+    {
+        var selected = Selected == status.Key;
+        <button @key="status.Key" class="status-tag tone-@Tone(status.Key) @(selected ? "is-selected" : null)" aria-pressed="@(selected ? "true" : "false")" @onclick="() => Select(status.Key)">
+            <span class="status-tag-dot" aria-hidden="true"></span><span>@status.Value</span><span class="status-tag-count">@Counts.GetValueOrDefault(status.Key)</span>
+        </button>
+    }
+</nav>
+@code {
+    /// <summary>计数已应用搜索、日期等条件，但不受当前状态影响，便于切换比较。</summary>
+    [Parameter] public IReadOnlyDictionary<string, int> Counts { get; set; } = new Dictionary<string, int>();
+    [Parameter] public string Selected { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+    private Task Clear() => SelectedChanged.InvokeAsync("");
+    private Task Select(string status) => SelectedChanged.InvokeAsync(Selected == status ? "" : status);
+    private bool _selectedAll => Selected.Length == 0;
+    /// <summary>阶段共用语义色，文字与数量始终可见，选择态不单靠颜色区分。</summary>
+    private static string Tone(string status) => status switch
+    {
+        "blocked" or "reopened" => "danger",
+        "need_info" or "waiting" => "warning",
+        "fixed" or "regressed" or "closed" => "success",
+        "wont_fix" or "duplicate" or "cannot_reproduce" => "neutral",
+        _ => "active"
+    };
+}

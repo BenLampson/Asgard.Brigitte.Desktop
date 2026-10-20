@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
 namespace Asgard.Brigitte.Desktop;
 /// <summary>Shell_NotifyIcon 托盘，仅点击展开，包含 Explorer 重启恢复。</summary>
 internal sealed class WindowsTray : IPlatformTray
@@ -10,6 +12,7 @@ internal sealed class WindowsTray : IPlatformTray
     private nint _window, _icon;
     private NativeTray.NotifyIconData _data;
     private readonly uint _taskbarCreated;
+    private bool _notificationsRegistered;
     /// <summary>系统图标添加成功后才启用隐藏主窗口。</summary>
     public bool IsAvailable { get; private set; }
     internal WindowsTray(DesktopHost host)
@@ -22,6 +25,13 @@ internal sealed class WindowsTray : IPlatformTray
         _icon = TrayGlyph.Create(UseLightGlyph());
         _data = new() { Size = (uint)Marshal.SizeOf<NativeTray.NotifyIconData>(), Window = _window, Id = 1, Flags = 7, Callback = 0x8001, Icon = _icon, Tip = ClientText.T("Brigitte · BUG 管理器"), Info = "", InfoTitle = "" };
         IsAvailable = NativeTray.Shell_NotifyIcon(0, ref _data);
+        try
+        {
+            AppNotificationManager.Default.NotificationInvoked += NotificationInvoked;
+            AppNotificationManager.Default.Register();
+            _notificationsRegistered = true;
+        }
+        catch (Exception) { AppNotificationManager.Default.NotificationInvoked -= NotificationInvoked; }
     }
     /// <summary>项目数量进入提示，主题变更更新单色徽记。</summary>
     public void Refresh()
@@ -49,14 +59,22 @@ internal sealed class WindowsTray : IPlatformTray
         }
         return NativeTray.DefWindowProc(window, message, wParam, lParam);
     }
-    /// <summary>使用系统托盘通知，系统的免打扰偏好继续生效。</summary>
+    /// <summary>应用通知发送完整正文，绕过旧托盘气泡的 255 字符缓冲区；系统控制横幅排版。</summary>
     public void Notify(string title, string message)
     {
-        if (!IsAvailable) return;
-        _data.Flags = 16; _data.InfoTitle = title; _data.Info = message; _data.InfoFlags = 1;
-        NativeTray.Shell_NotifyIcon(1, ref _data);
-        _data.Flags = 7; _data.InfoTitle = ""; _data.Info = "";
+        if (!_notificationsRegistered) return;
+        try
+        {
+            var parts = NotificationParts.Split(message);
+            for (var i = 0; i < parts.Count; i++)
+                AppNotificationManager.Default.Show(new AppNotificationBuilder()
+                    .AddText(parts.Count == 1 ? title : $"{title} ({i + 1}/{parts.Count})").AddText(parts[i]).BuildNotification());
+        }
+        catch (Exception) { /* 通知失败不影响同步；完整正文仍保留在未读动态中。 */ }
     }
+    /// <summary>点击系统通知打开未读动态，完整内容不受横幅行数限制。</summary>
+    private void NotificationInvoked(AppNotificationManager sender, AppNotificationActivatedEventArgs args)
+        => MainThread.BeginInvokeOnMainThread(() => { NativeTray.GetCursorPos(out var point); _host.ShowPopup(point.X, point.Y); });
     /// <summary>托盘按系统任务栏外观选择单色，独立于用户选择的内容主题。</summary>
     private bool UseLightGlyph()
     {
@@ -79,5 +97,5 @@ internal sealed class WindowsTray : IPlatformTray
         else app.Hide();
     }
     /// <summary>移除图标和隐藏消息窗口，不留下幽灵托盘项。</summary>
-    public void Dispose() { if (_window == 0) return; NativeTray.Shell_NotifyIcon(2, ref _data); if (_icon != 0) NativeTray.DestroyIcon(_icon); NativeTray.DestroyWindow(_window); NativeTray.UnregisterClass(_className, NativeTray.GetModuleHandle(null)); _window = 0; IsAvailable = false; GC.KeepAlive(_procedure); }
+    public void Dispose() { if (_notificationsRegistered) { AppNotificationManager.Default.NotificationInvoked -= NotificationInvoked; AppNotificationManager.Default.Unregister(); _notificationsRegistered = false; } if (_window == 0) return; NativeTray.Shell_NotifyIcon(2, ref _data); if (_icon != 0) NativeTray.DestroyIcon(_icon); NativeTray.DestroyWindow(_window); NativeTray.UnregisterClass(_className, NativeTray.GetModuleHandle(null)); _window = 0; IsAvailable = false; GC.KeepAlive(_procedure); }
 }

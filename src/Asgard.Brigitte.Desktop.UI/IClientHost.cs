@@ -15,6 +15,15 @@ public interface IClientHost
     void SetCloseBehavior(string behavior) { }
     /// <summary>由原生应用元数据提供的版本。</summary>
     string AppVersion => "";
+    /// <summary>更新检查与安装独立于登录；非商店渠道明确提示不支持。</summary>
+    bool SupportsStoreUpdates => false;
+    bool UpdateBusy => false;
+    bool UpdateAvailable => false;
+    bool ShowUpdateReminder => false;
+    string UpdateMessage => "";
+    Task CheckForUpdatesAsync() => Task.CompletedTask;
+    Task InstallUpdateAsync() => Task.CompletedTask;
+    void SnoozeUpdate() { }
     /// <summary>商店登记后提供的公开政策与支持页面，未配置时不展示无效链接。</summary>
     string PrivacyPolicyUrl => "";
     string SupportUrl => "";

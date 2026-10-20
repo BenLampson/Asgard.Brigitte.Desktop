@@ -2,7 +2,7 @@
 
 English · [简体中文](PRIVACY.zh-CN.md)
 
-Effective date: October 18, 2026
+Effective date: October 20, 2026
 
 Operator: **benlampson**
 
@@ -42,7 +42,7 @@ We use access controls, authenticated connections, and platform credential prote
 
 The app accesses attachments when you select, drag, or paste them into the app, preview them, or choose to save them. It does not continuously monitor the clipboard. Check attachments before uploading them; other authorized project members may access them.
 
-System notification banners display the number of workspace updates. Detailed project names, bug titles, and action summaries appear inside the app. Notifications can be controlled in your operating system settings. If you choose to minimize to the system tray or menu bar, the application continues background session maintenance and synchronization until you quit it.
+System notifications include project names, bug titles, and action summaries, including while the app is in the background. Long Windows notifications are split into parts; the operating system may still collapse banner text. Full summaries remain available inside the app. Notifications can be controlled in your operating system settings. If you choose to minimize to the system tray or menu bar, the application continues background session maintenance and synchronization until you quit it.
 
 Markdown content may contain external HTTP(S) image links. Displaying such an image can contact its host, which receives normal network request information. Opening an external link launches your browser and subjects that visit to the destination's policy. Avatar initials are generated locally rather than fetched from an avatar service.
 

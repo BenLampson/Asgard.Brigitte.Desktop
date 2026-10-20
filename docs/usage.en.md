@@ -26,7 +26,7 @@ Claiming a bug takes a temporary work lock. Another worker's active lock prevent
 
 In online mode, workspace views read synchronized local data. The first sync must complete before opening the online workspace. During a network interruption, synchronized content is read-only. The online client does not queue offline edits or automatically repeat successful write requests. Local mode reads and writes its own database directly and does not wait for synchronization.
 
-Unread updates remain in the tray view until marked as read. System notifications display update counts; detailed summaries appear inside the app. When you close the main window, choose whether to quit or continue in the tray. You can remember the choice and change it later in **Settings → General**. Quitting stops background synchronization and notifications.
+Unread updates remain in the tray view until marked as read. System notifications include project names, bug titles, actors, and change summaries even in the background. Long Windows notifications are split into parts without dropping text. The OS may collapse banner text; full summaries remain in the tray. When you close the main window, choose whether to quit or continue in the tray. You can remember the choice and change it later in **Settings → General**. Quitting stops background synchronization and notifications.
 
 ## Language and appearance
 
@@ -45,3 +45,9 @@ The MCP key window creates scoped access for external clients. Save a new key im
 **Privacy and data** is available before sign-in. Read the [privacy policy](../PRIVACY.md) for accounts, local cache, attachments, and integrations. Signing out removes current saved credentials but does not delete every cache file, saved attachment, or server record.
 
 For problems and suggestions, [open a GitHub Issue](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose). Issues are public, so remove credentials and private content. Use the [support guide](../SUPPORT.md) for privacy and security reporting channels.
+
+## Creation dates and app updates
+
+Board and list views filter by inclusive creation dates in the device's local time zone. Stored UTC timestamps are compared with converted local boundaries without contacting the server.
+
+Store installations check at startup and daily while running. Settings also offers a manual check. Install an available update or snooze the reminder for one day; save drafts in every window before installing. Portable and other non-Store installations use their original download channel.

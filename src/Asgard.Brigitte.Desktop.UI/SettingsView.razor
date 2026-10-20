@@ -20,6 +20,14 @@
             <select @key="_resetVersion" id="theme-preference" value="@Host.ThemePreference" @onchange="ChangeTheme"><option value="system">@ClientText.T("跟随系统")</option><option value="light">@ClientText.T("白天")</option><option value="dark">@ClientText.T("晚间")</option></select>
         </div>
     </section>
+    <section class="preferences-section">
+        <h2>@ClientText.T("应用更新") · @Host.AppVersion</h2>
+        <p role="status">@Host.UpdateMessage</p>
+        @if (Host.SupportsStoreUpdates) {
+            <button disabled="@Host.UpdateBusy" @onclick="Host.CheckForUpdatesAsync">@ClientText.T("检查更新")</button>
+            @if (Host.UpdateAvailable) { <button disabled="@Host.UpdateBusy" @onclick="Host.InstallUpdateAsync">@ClientText.T("立即更新")</button> }
+        } else { <p>@ClientText.T("此安装版本不支持商店内更新，请从原下载渠道获取新版。")</p> }
+    </section>
     <div class="preferences-feedback" aria-live="polite">@if (_error.Length > 0) { <p class="error" role="alert">@ClientText.T(_error)</p> } else { <p class="muted">@ClientText.T(_message)</p> }</div>
     <footer class="preferences-footer"><span class="muted">@ClientText.T("偏好保存在此设备，重新启动后继续生效。")</span><button @onclick="() => Host.Close(new(DesktopViewKind.Settings))">@ClientText.T("完成")</button></footer>
 </main>

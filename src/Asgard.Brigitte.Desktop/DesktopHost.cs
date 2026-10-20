@@ -60,7 +60,7 @@ public sealed partial class DesktopHost : IClientHost
     public Window CreateMainWindow()
     {
         _main = Create(new(DesktopViewKind.Main));
-        _main.Created += (_, _) => { _tray = CreateTray(); _tray.Refresh(); };
+        _main.Created += (_, _) => { _tray = CreateTray(); _tray.Refresh(); StartUpdateChecks(); };
         return _main;
     }
     private Window Create(DesktopView view, Window? owner = null)

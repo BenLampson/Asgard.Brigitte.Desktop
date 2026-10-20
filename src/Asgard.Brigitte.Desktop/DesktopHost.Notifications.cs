@@ -53,8 +53,8 @@ public sealed partial class DesktopHost
             if (version == _notificationVersion) DismissNotification();
         });
     }
-    /// <summary>系统横幅只显示动态数量，项目、人名和 BUG 标题留在应用内，避免锁屏泄露协作信息。</summary>
-    private static string NativeNoticeText(SyncNotice[] notices) => ClientText.T("有 {0} 条工作区动态，请打开 Asgard Brigitte 查看。", notices.Length);
+    /// <summary>后台通知与前台使用相同的完整变更内容，不替换为数量提示。</summary>
+    private static string NativeNoticeText(SyncNotice[] notices) => string.Join("\n\n", notices.Select(x => x.DisplayMessage));
     private void ClearNotifications()
     {
         _notificationVersion++; _notificationScheduled = false; _pendingNotices.Clear();

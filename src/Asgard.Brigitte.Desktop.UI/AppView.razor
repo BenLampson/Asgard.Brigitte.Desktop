@@ -7,6 +7,9 @@
 <CascadingValue Value="View" Name="OwnerView">
 <CascadingValue Value="Host.Language" Name="DesktopLanguage">
 <div lang="@(Host.Language == "zh-CN" ? "zh-CN" : "en")" class="client @Host.Theme @(View.Kind == DesktopViewKind.Tray ? "tray-client" : null)">
+@if (View.Kind == DesktopViewKind.Main && Host.ShowUpdateReminder) {
+    <aside class="update-reminder" role="status"><span>@ClientText.T("商店有可用更新") · @Host.UpdateMessage</span><button disabled="@Host.UpdateBusy" @onclick="Host.InstallUpdateAsync">@ClientText.T("立即更新")</button><button disabled="@Host.UpdateBusy" @onclick="Host.SnoozeUpdate">@ClientText.T("稍后提醒")</button></aside>
+}
 @if (View.Kind == DesktopViewKind.Settings) { <SettingsView /> }
 else if (View.Kind == DesktopViewKind.About) { <AboutView /> }
 else if (View.Kind == DesktopViewKind.Privacy) { <PrivacyView /> }
