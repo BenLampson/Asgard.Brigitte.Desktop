@@ -30,18 +30,25 @@
 <header><div class="breadcrumb">@ClientText.T("项目") <span>›</span> <button @onclick="() => OpenProject()">@Project?.Name</button><button title="@ClientText.T("复制完整项目 ID")" aria-label="@ClientText.T("复制项目 ID")" @onclick="() => Copy(_selected)">⧉</button></div>
 <div class="heading"><h1>@ClientText.T("BUG 看板")</h1><div class="segmented"><button class="@(!_list ? "selected" : "")" @onclick="() => _list = false">@ClientText.T("▥ 看板")</button><button class="@(_list ? "selected" : "")" @onclick="() => _list = true">@ClientText.T("☷ 列表")</button></div><div class="spacer"></div>
 <button disabled="@(Project is null || _busy)" @onclick="BatchPrompt">@ClientText.T("⧉ 复制批量修复提示词")</button><button class="primary" disabled="@(Project is null || !Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Create, ProjectId: _selected), View)">@ClientText.T("＋ 提交 BUG")</button></div>
-<div class="filters"><input placeholder="@ClientText.T("搜索标题、描述、内容或来源")" aria-label="@ClientText.T("搜索 BUG")" @bind="_keyword" @bind:event="oninput" @bind:after="ResetPage" />
+<div class="search-toolbar">
+<input class="bug-search" placeholder="@ClientText.T("搜索 BUG")" title="@ClientText.T("搜索标题、描述、内容或来源")" aria-label="@ClientText.T("搜索 BUG")" @bind="_keyword" @bind:event="oninput" @bind:after="ResetPage" />
+<StatusFilters Counts="StatusCounts" Selected="@_status" SelectedChanged="SelectStatus" />
+<div class="advanced-disclosure">
+<button type="button" class="advanced-toggle" aria-expanded="@(_moreFilters ? "true" : "false")" @onclick="() => _moreFilters = !_moreFilters"><span aria-hidden="true">@(_moreFilters ? "▾" : "▸")</span>@ClientText.T("更多筛选") @if (ActiveFilterCount > 0) { <span class="filter-count">@ActiveFilterCount</span> }</button>
+<div class="advanced-filter-panel" hidden="@(!_moreFilters)"><div class="filters">
 <select aria-label="@ClientText.T("优先级")" @bind="_priority" @bind:after="ResetPage"><option value="">@ClientText.T("全部优先级")</option>@foreach(var p in BugDisplay.Priorities) { <option value="@p.Key">@p.Value</option> }</select>
 <select aria-label="@ClientText.T("负责人")" @bind="_assignee" @bind:after="ResetPage"><option value="">@ClientText.T("全部负责人")</option>@foreach(var u in Workspace.Users) { <option value="@u.Id">@Workspace.Assignee(u.Id)</option> }</select>
 <select aria-label="@ClientText.T("来源")" @bind="_source" @bind:after="ResetPage"><option value="">@ClientText.T("全部来源")</option>@foreach(var source in _bugs.Select(b=>b.Source).Distinct()) { <option>@source</option> }</select>
-<button @onclick="Reload" disabled="@_busy">@ClientText.T("↻ 刷新")</button></div>
+</div>
 <div class="filters date-filters">
 <label>@ClientText.T("创建日期从") <input type="date" @bind="_dateFrom" @bind:after="ApplyDates" /></label>
 <label>@ClientText.T("至（含当天）") <input type="date" @bind="_dateTo" @bind:after="ApplyDates" /></label>
 <button @onclick="ClearDates">@ClientText.T("清除日期")</button><small>@ClientText.T("按本机时区筛选")</small>
 </div>
 @if (_dateError.Length > 0) { <div class="notice error" role="alert">@ClientText.T(_dateError)</div> }
-<StatusFilters Counts="StatusCounts" Selected="_status" SelectedChanged="SelectStatus" />
+</div></div>
+<button class="search-refresh" @onclick="Reload" disabled="@_busy">@ClientText.T("↻ 刷新")</button>
+</div>
 </header>
 }
 @if (_error != "") { <div class="notice error" role="alert">@_error</div> }

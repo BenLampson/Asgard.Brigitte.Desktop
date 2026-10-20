@@ -1510,11 +1510,40 @@ body:has(.tray-client.dark) {
 
 /* 日期筛选始终显示本地语义，较窄窗口允许换行。 */
 .date-filters { flex-wrap:wrap; align-items:center; margin-top:8px; }
-.date-filters label { display:flex; align-items:center; gap:8px; font-size:12px; }
-.date-filters input { flex:none; width:160px; }
+.date-filters label { display:flex; align-items:center; gap:8px; font-size:12px; margin:0; }
+.date-filters input { flex:none; width:160px; margin:0; height:32px; }
+.date-filters button { height:32px; }
+.date-filters small { line-height:32px; color:var(--muted); }
 .update-reminder { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:10px 24px; background:var(--selected); flex:none; }
 .update-reminder span { flex:1; }
-/* 所有状态完整展示，窄窗换行；深浅主题分别提供足够的文字对比度。 */
+/* 折叠按钮保留在首行，筛选内容跨满后续行并自然推开看板。 */
+.search-toolbar { display:grid; grid-template-columns:minmax(180px,1fr) auto auto auto; align-items:center; gap:8px; }
+.search-toolbar .bug-search { grid-column:1; grid-row:1; min-width:0; width:100%; height:32px; font-size:12px; }
+.status-disclosure, .advanced-disclosure { display:contents; user-select:none; }
+.status-toggle, .advanced-toggle { display:flex; align-items:center; gap:8px; min-height:32px; font-size:12px; white-space:nowrap; }
+.status-toggle { grid-column:2; grid-row:1; }
+.advanced-toggle { grid-column:3; grid-row:1; }
+.status-summary-value { color:var(--muted); }
+.search-refresh { grid-column:4; grid-row:1; font-size:12px; height:32px; }
+.search-toolbar .status-filters, .advanced-filter-panel { grid-column:1 / -1; margin:0; min-width:0; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+.search-toolbar .status-filters { grid-row:2; }
+.advanced-filter-panel { grid-row:3; display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; }
+.status-filters[hidden], .advanced-filter-panel[hidden] { display:none; }
+.advanced-filter-panel .filters { flex-wrap:wrap; align-items:center; }
+.advanced-filter-panel .date-filters { margin-top:0; }
+.advanced-filter-panel select { width:auto; min-width:130px; }
+.advanced-filter-panel input { user-select:text; }
+.filter-count { padding:0 5px; border-radius:8px; color:var(--accent); background:var(--selected); }
+@media(max-width:640px) {
+ .search-toolbar { grid-template-columns:1fr auto auto; }
+ .search-toolbar .bug-search { grid-column:1 / -1; }
+ .status-toggle { grid-column:1; grid-row:2; }
+ .advanced-toggle { grid-column:2; grid-row:2; }
+ .search-refresh { grid-column:3; grid-row:2; }
+ .search-toolbar .status-filters { grid-row:3; }
+ .advanced-filter-panel { grid-row:4; }
+}
+/* 展开后完整展示所有状态，窄窗换行。 */
 .status-filters { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .status-tag { --tag-color:#526477; display:inline-flex; align-items:center; gap:6px; min-height:28px; padding:3px 8px; border-radius:14px; font-size:12px; line-height:20px; white-space:nowrap; color:var(--text); background:var(--surface); }
 .status-tag.tone-active { --tag-color:#245fc4; }

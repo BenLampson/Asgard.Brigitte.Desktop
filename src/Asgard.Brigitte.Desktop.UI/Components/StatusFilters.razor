@@ -1,4 +1,6 @@
-<nav class="status-filters" aria-label="@ClientText.T("按状态筛选")">
+<div class="status-disclosure">
+<button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span><span>@ClientText.T("按状态筛选")</span><span class="status-summary-value">@(_selectedAll ? ClientText.T("全部状态") : BugDisplay.Statuses.GetValueOrDefault(Selected, Selected))</span><span class="status-tag-count">@(_selectedAll ? Counts.Values.Sum() : Counts.GetValueOrDefault(Selected))</span></button>
+<nav hidden="@(!_expanded)" class="status-filters" aria-label="@ClientText.T("按状态筛选")">
     <button class="status-tag @(_selectedAll ? "is-selected" : null)" aria-pressed="@(_selectedAll ? "true" : "false")" @onclick="Clear">
         <span>@ClientText.T("全部状态")</span><span class="status-tag-count">@Counts.Values.Sum()</span>
     </button>
@@ -10,15 +12,18 @@
         </button>
     }
 </nav>
+</div>
 @code {
-    /// <summary>计数已应用搜索、日期等条件，但不受当前状态影响，便于切换比较。</summary>
+    // 展开面板参与父工具栏布局，不覆盖看板。
+    private bool _expanded;
+    /// <button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span>计数已应用搜索、日期等条件，但不受当前状态影响，便于切换比较。</button>
     [Parameter] public IReadOnlyDictionary<string, int> Counts { get; set; } = new Dictionary<string, int>();
     [Parameter] public string Selected { get; set; } = "";
     [Parameter] public EventCallback<string> SelectedChanged { get; set; }
     private Task Clear() => SelectedChanged.InvokeAsync("");
     private Task Select(string status) => SelectedChanged.InvokeAsync(Selected == status ? "" : status);
     private bool _selectedAll => Selected.Length == 0;
-    /// <summary>阶段共用语义色，文字与数量始终可见，选择态不单靠颜色区分。</summary>
+    /// <button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span>阶段共用语义色，文字与数量始终可见，选择态不单靠颜色区分。</button>
     private static string Tone(string status) => status switch
     {
         "blocked" or "reopened" => "danger",

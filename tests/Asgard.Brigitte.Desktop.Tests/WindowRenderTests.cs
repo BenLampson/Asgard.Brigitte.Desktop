@@ -14,6 +14,16 @@ namespace Asgard.Brigitte.Desktop.Tests;
 /// <summary>用实际 Razor 组件检查日夜模式和全部独立业务窗口。</summary>
 public sealed class WindowRenderTests
 {
+    /// <summary>通过实际父页面验证字符串参数绑定，避免组件单测掩盖字面量传参错误。</summary>
+    [Fact]
+    public async Task Workspace_passes_current_status_to_collapsed_filters()
+    {
+        var html = System.Net.WebUtility.HtmlDecode(await Render("dark", DesktopViewKind.Main));
+        Assert.Contains("status-summary-value\">全部状态</span>", html);
+        Assert.DoesNotContain(">_status<", html);
+        Assert.Contains("advanced-disclosure", html);
+        Assert.DoesNotContain("class=\"advanced-disclosure\" open", html);
+    }
     /// <summary>更换欢迎页后，未登录用户仍不能进入已缓存的业务工作区。</summary>
     [Theory]
     [InlineData("light")]

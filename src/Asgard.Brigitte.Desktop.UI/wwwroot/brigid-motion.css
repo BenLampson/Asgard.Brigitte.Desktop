@@ -1,23 +1,26 @@
 /* 7.2 秒动作循环：待机 → 蓄力 → 落锤 → 回弹 → 火花消散 → 收势。 */
 .brigid-art svg { overflow:visible; }
-.brigid-upper-arm { transform-origin:177px 133px; }
-.brigid-forearm { transform-origin:124px 155px; }
+.brigid-scene > .brigid-play, .brigid-scene > .brigid-play:hover:not(:disabled), .brigid-scene > .brigid-play:active { position:absolute; inset:0; z-index:2; border:0; padding:0; background:transparent; border-radius:16px; cursor:pointer; }
+.brigid-play:focus-visible { outline:2px solid #e7b879; outline-offset:2px; }
+.brigid-upper-arm { transform-origin:177px 133px; transform:rotate(-110deg); }
+.brigid-forearm { transform-origin:124px 155px; transform:rotate(35deg); }
 .brigid-hammer { transform-origin:126px 114px; }
-.brigid-head { transform-origin:208px 116px; }
+.brigid-head, .brigid-hair { transform-origin:208px 116px; }
 .brigid-eyes { transform-origin:233px 83px; animation:brigid-blink 6.3s linear infinite; }
-.brigid-hair { transform-origin:205px 70px; animation:brigid-hair-sway 5.4s ease-in-out infinite; }
+/* 后发与脸部使用相同颈部轴和时间线，保持发根连接。 */
 .brigid-halo { transform-origin:214px 42px; animation:brigid-halo-float 4.8s ease-in-out infinite; }
 .brigid-free-hand { transform-origin:257px 203px; }
-.brigid-metal { transform-origin:268px 253px; }
+/* 砧上亮斑仅随撞击火星出现，待机和蓄力时隐藏。 */
+.brigid-metal { transform-origin:268px 253px; opacity:0; }
 .brigid-impact-sparks { opacity:0; }
-.brigid-scene:not(.is-forging) .brigid-head { animation:brigid-attention 7.2s ease-in-out infinite; }
+.brigid-scene:not(.is-forging) .brigid-head, .brigid-scene:not(.is-forging) .brigid-hair { animation:brigid-attention 7.2s ease-in-out infinite; }
 .brigid-scene:not(.is-forging) .brigid-upper-arm { animation:brigid-rest-arm 7.2s ease-in-out infinite; }
 .brigid-scene:not(.is-forging) .brigid-forearm { animation:brigid-rest-elbow 7.2s ease-in-out infinite; }
 .is-forging .brigid-figure { animation:brigid-forge-weight 7.2s ease-in-out infinite; }
 .is-forging .brigid-upper-arm { animation:brigid-arm-swing 7.2s ease-in-out infinite; }
 .is-forging .brigid-forearm { animation:brigid-elbow-swing 7.2s ease-in-out infinite; }
 .is-forging .brigid-hammer { animation:brigid-wrist-swing 7.2s ease-in-out infinite; }
-.is-forging .brigid-head { animation:brigid-forge-focus 7.2s ease-in-out infinite; }
+.is-forging .brigid-head, .is-forging .brigid-hair { animation:brigid-forge-focus 7.2s ease-in-out infinite; }
 .is-forging .brigid-free-hand { animation:brigid-clear-anvil 7.2s ease-in-out infinite; }
 .is-forging .brigid-anvil { animation:brigid-impact 7.2s linear infinite; }
 .is-forging .brigid-metal { animation:brigid-hot-metal 7.2s ease-out infinite; }
@@ -34,18 +37,19 @@
 .spark-7 { --sx:36px; --sy:15px; --sr:50deg; }
 .brigid-motion:hover:not(:disabled) { background:#142b40; }
 @keyframes brigid-blink { 0%,30%,34%,72%,76%,100% { transform:scaleY(1); } 32%,74% { transform:scaleY(.08); } }
-@keyframes brigid-hair-sway { 0%,100% { transform:rotate(-.8deg); } 50% { transform:rotate(1.2deg); } }
 @keyframes brigid-halo-float { 0%,100% { transform:translateY(0) rotate(-3deg); opacity:.8; } 50% { transform:translateY(-5px) rotate(4deg); opacity:1; } }
 @keyframes brigid-attention { 0%,15%,100% { transform:rotate(0); } 40%,60% { transform:rotate(3deg); } 80% { transform:rotate(-1deg); } }
-@keyframes brigid-rest-arm { 0%,100% { transform:rotate(0); } 45% { transform:rotate(-5deg); } }
-@keyframes brigid-rest-elbow { 0%,100% { transform:rotate(0); } 45% { transform:rotate(8deg); } }
-@keyframes brigid-arm-swing { 0%,12%,85%,100% { transform:rotate(0); } 29% { transform:rotate(13deg); } 40% { transform:rotate(-110deg); } 45% { transform:rotate(-98deg); } 52% { transform:rotate(-104deg); } 60% { transform:rotate(-100deg); } }
-@keyframes brigid-elbow-swing { 0%,12%,85%,100% { transform:rotate(0); } 29% { transform:rotate(18deg); } 40% { transform:rotate(-119deg); } 45% { transform:rotate(-110deg); } 52%,60% { transform:rotate(-116deg); } }
-@keyframes brigid-wrist-swing { 0%,12%,85%,100% { transform:rotate(0); } 29% { transform:rotate(-15deg); } 40% { transform:rotate(-8deg); } 45% { transform:rotate(2deg); } 52%,60% { transform:rotate(-8deg); } }
+@keyframes brigid-rest-arm { 0%,100% { transform:rotate(-110deg); } 45% { transform:rotate(-113deg); } }
+@keyframes brigid-rest-elbow { 0%,100% { transform:rotate(35deg); } 45% { transform:rotate(39deg); } }
+/* 前臂素材在肘部内反射，使肘朝下、手持锤朝上；肘部最大伸展 83°，仍保留约 32° 弯曲。
+   肩部仅摆动约 36°，避免大幅绕肩穿过面部；40% 时锤面接触金属上表面。 */
+@keyframes brigid-arm-swing { 0%,12%,85%,100% { transform:rotate(-110deg); } 29% { transform:rotate(-118deg); } 40% { transform:rotate(-82.5deg); } 45% { transform:rotate(-87deg); } 52%,60% { transform:rotate(-90deg); } }
+@keyframes brigid-elbow-swing { 0%,12%,85%,100% { transform:rotate(35deg); } 29% { transform:rotate(35deg); } 40% { transform:rotate(83deg); } 45% { transform:rotate(70deg); } 52%,60% { transform:rotate(65deg); } }
+@keyframes brigid-wrist-swing { 0%,12%,85%,100% { transform:rotate(0); } 29% { transform:rotate(8deg); } 40% { transform:rotate(-21deg); } 45% { transform:rotate(-14deg); } 52%,60% { transform:rotate(-10deg); } }
 @keyframes brigid-forge-focus { 0%,12%,85%,100% { transform:rotate(0); } 29% { transform:rotate(-3deg); } 40%,55% { transform:rotate(5deg); } }
 @keyframes brigid-clear-anvil { 0%,18%,85%,100% { transform:rotate(0); } 32%,62% { transform:rotate(-30deg); } }
 @keyframes brigid-forge-weight { 0%,12%,85%,100% { transform:translate(0,0); } 29% { transform:translate(-1px,-2px); } 40% { transform:translate(2px,2px); } 45%,60% { transform:translate(1px,1px); } }
 @keyframes brigid-impact { 0%,39.8%,45%,100% { transform:translate(0,0); } 40.5% { transform:translate(0,1.4px); } 42% { transform:translate(0,-.7px); } 43.5% { transform:translate(0,.3px); } }
-@keyframes brigid-hot-metal { 0%,39%,85%,100% { filter:brightness(1); } 40%,44% { filter:brightness(1.7) drop-shadow(0 0 7px #ffd475); } 60% { filter:brightness(1.25) drop-shadow(0 0 3px #e7a354); } }
+@keyframes brigid-hot-metal { 0%,39.7%,65%,100% { opacity:0; filter:brightness(1); } 40.5% { opacity:1; filter:brightness(1.7) drop-shadow(0 0 7px #ffd475); } 45% { opacity:.9; filter:brightness(1.7) drop-shadow(0 0 7px #ffd475); } 62% { opacity:0; filter:brightness(1); } }
 @keyframes brigid-strike-spark { 0%,39.7%,65%,100% { opacity:0; transform:translate(0,0) scale(.5); } 40.5% { opacity:1; transform:translate(0,0) scale(.8); } 45% { opacity:.9; } 62% { opacity:0; transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(.3); } }
 @media(prefers-reduced-motion:reduce) { .brigid-scene * { animation:none !important; transition:none !important; } .brigid-impact-sparks { opacity:0; } }

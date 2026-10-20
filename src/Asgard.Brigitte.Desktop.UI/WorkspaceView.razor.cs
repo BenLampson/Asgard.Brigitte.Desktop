@@ -17,6 +17,9 @@ public partial class WorkspaceView
     private bool _busy, _list;
     private int _page = 1, _size = 20, _loadVersion;
     private Project? Project => Workspace.Projects.FirstOrDefault(p => p.Id == _selected);
+    /// <summary>收起更多筛选后仍提示已启用的条件数量，日期区间按一项计算。</summary>
+    private bool _moreFilters;
+    private int ActiveFilterCount => (string.IsNullOrEmpty(_priority) ? 0 : 1) + (string.IsNullOrEmpty(_assignee) ? 0 : 1) + (string.IsNullOrEmpty(_source) ? 0 : 1) + (_dateFrom.HasValue || _dateTo.HasValue ? 1 : 0);
     private DateTime? _dateFrom, _dateTo;
     private LocalDateRange _dateRange = new(null, null);
     private string _dateError = "";

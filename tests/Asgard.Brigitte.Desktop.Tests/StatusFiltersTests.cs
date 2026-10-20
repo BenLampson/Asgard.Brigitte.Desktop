@@ -38,7 +38,7 @@ public sealed class StatusFiltersTests
         {
             var events = await renderer.MountAsync(new StatusFilters(), ParameterView.FromDictionary(new Dictionary<string, object?>
             { ["Selected"] = current, ["SelectedChanged"] = EventCallback.Factory.Create<string>(this, value => selected = value) }));
-            await renderer.ClickAsync(events[1 + Array.IndexOf(BugDisplay.BoardStatuses, "fixed")]);
+            await renderer.ClickAsync(events[2 + Array.IndexOf(BugDisplay.BoardStatuses, "fixed")]);
         });
         Assert.Equal(expected, selected);
     }
