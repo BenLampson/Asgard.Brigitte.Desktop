@@ -35,7 +35,7 @@ The desktop client is open source under Apache-2.0. Documentation, privacy infor
 - Markdown descriptions, work logs, status history, and attachments
 - Optional online project invitations with passwords and expiration
 - Online synchronization and read-only cached online content during interruptions
-- System tray, plus unread activity and notification counts in online mode
+- System tray, unread activity, and per-project notifications with change-type and destination-status filters
 - Local repair prompts and online-only scoped MCP keys for external tools
 - English and Simplified Chinese with automatic system-language selection
 - Light, dark, and system themes with saved device preferences
@@ -50,9 +50,9 @@ The desktop client is open source under Apache-2.0. Documentation, privacy infor
 - MCP
 - Brigitte
 
-## What's new in 1.0.2
+## What's new in 1.0.4
 
-The board now shows all 15 bug statuses, including closed, won't fix, duplicate, and cannot reproduce. Online claimants are displayed using the verified account associated with the MCP key instead of a self-reported worker name. Lock ownership checks now distinguish both the account and worker. Older claims without verified account data are clearly marked as unknown. Local use without an account or internet access remains available.
+1.0.4: Adds Settings > Notifications with default rules and per-project overrides. Search projects, mute noisy projects, or enable only the projects you follow. Choose new bugs, status changes, claims and assignees, replies, attachments, and other changes. Status changes can be filtered by destination, such as Fixed or Closed. Preferences save on this device for each account. Muting preserves sync and unread activity. Existing users keep the previous notification behavior until they change their settings. No service update or data migration is needed. Save drafts before installing an update.
 
 ## Additional license terms
 

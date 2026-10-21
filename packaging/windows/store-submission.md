@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 21, 2026 — 1.0.4 submitted
+
+Version `1.0.3.0` is available in Microsoft Store, confirmed by Partner Center and the installed Store-signed package. Version `1.0.4.0` adds device-local per-project notification rules. At approximately 17:03 Asia/Shanghai, Submission 4 (`1152921505702190079`) was formally submitted and shows **In certification / pre-processing**. The new x64 package is Validated and ranked first. Publication starts immediately after certification; 1.0.4 is not yet available through the Store.
+
+English and Simplified Chinese release notes and the notification feature descriptions were saved. The runFullTrust explanation was refreshed within the 500-character limit. Existing screenshots, other listing content, price/availability, age ratings, and private reviewer access were retained. All older packages, including 1.0.3, were kept. No production service or database changes were made.
+
+The portable ZIP, unsigned Store upload MSIX, checksums, and source manifest are published in [GitHub Release 1.0.4](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.4). Source commit: `eb0c8ab04c549b2f2e30021bd06644441e767079`. MSIX SHA-256: `7190f6ac22f2734d7811d695390994ad992f0be9337f7b326e1fa466fe4dda10`. See [release and upgrade notes](../../docs/releases/v1.0.4.md) for verification and remaining installation/WACK limits.
+
 ## October 19, 2026 — 1.0.2 update submitted
 
 Partner Center confirms the existing product is available in Microsoft Store. Version `1.0.2.0` was uploaded, validated and formally submitted as Submission 2 (`1152921505702171873`) on October 19, 2026. At 23:20 Asia/Shanghai, the update is **In certification / pre-processing**: submission complete, pre-processing in progress, certification and publication not started. The UI confirms publication begins immediately after certification. This does not mean 1.0.2 is already available to customers. English and Simplified Chinese release notes describe the complete 15-status board and verified claimant identities. Existing screenshots, age ratings, runFullTrust justification and private reviewer credentials were retained; older packages were retained rather than deleted.
