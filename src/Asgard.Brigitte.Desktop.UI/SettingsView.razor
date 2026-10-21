@@ -20,6 +20,7 @@
             <select @key="_resetVersion" id="theme-preference" value="@Host.ThemePreference" @onchange="ChangeTheme"><option value="system">@ClientText.T("跟随系统")</option><option value="light">@ClientText.T("白天")</option><option value="dark">@ClientText.T("晚间")</option></select>
         </div>
     </section>
+    <NotificationPreferences />
     <section class="preferences-section">
         <h2>@ClientText.T("应用更新") · @Host.AppVersion</h2>
         <p role="status">@Host.UpdateMessage</p>

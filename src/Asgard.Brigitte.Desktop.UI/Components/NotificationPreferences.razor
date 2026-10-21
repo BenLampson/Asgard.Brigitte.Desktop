@@ -1,0 +1,120 @@
+@inject IClientHost Host
+@inject WorkspaceStore Workspace
+@inject SessionService Session
+@implements IDisposable
+<section @key="_resetVersion" class="preferences-section notification-preferences" aria-labelledby="notification-title">
+    <h2 id="notification-title">@ClientText.T("提醒设置")</h2>
+    <p class="muted notification-help">@ClientText.T("仅影响这台设备上当前账号的弹窗和系统通知，项目同步、未读动态和其他成员不受影响。")</p>
+    @if (!Session.IsAuthenticated) {
+        <p class="muted">@ClientText.T("登录在线工作区后，可以按项目配置提醒。本机工作区不会产生在线提醒。")</p>
+    } else if (!Host.SyncReady) {
+        <p role="status">@ClientText.T("工作区同步完成后可配置项目提醒。")</p>
+    } else {
+        <div class="notification-scope">
+            <label for="notification-search">@ClientText.T("查找项目")</label>
+            <input id="notification-search" type="search" @bind="_search" @bind:event="oninput" placeholder="@ClientText.T("搜索项目名称或代号")" />
+            <label for="notification-project">@ClientText.T("配置范围")</label>
+            <select id="notification-project" value="@_projectId" @onchange="ChangeProject">
+                <option value="">@ClientText.T("默认规则（未单独配置的项目）")</option>
+                @foreach (var project in FilteredProjects) {
+                    <option value="@project.Id">@project.Name · @ClientText.T(Host.GetNotificationRule(project.Id).Enabled ? "提醒已开启" : "提醒已关闭") · @ClientText.T(Host.HasNotificationOverride(project.Id) ? "单独配置" : "跟随默认")</option>
+                }
+            </select>
+        </div>
+        <p class="notification-help muted">@ClientText.T("可以先关闭默认提醒，再为关注的项目单独开启。新项目自动使用默认规则。")</p>
+        @if (_projectId.Length > 0) {
+            <label class="notification-choice"><input id="notification-inherit" type="checkbox" checked="@Inherited" @onchange="UseDefault" />@ClientText.T("使用默认规则")</label>
+        }
+        <fieldset class="notification-rule" disabled="@Inherited">
+            <legend>@ClientText.T(_projectId.Length == 0 ? "默认提醒规则" : "项目提醒规则")</legend>
+            <label class="notification-choice"><input id="notification-enabled" type="checkbox" checked="@Rule.Enabled" @onchange="e => Save(Rule with { Enabled = e.Value is true })" />@ClientText.T("启用提醒")</label>
+            <fieldset class="notification-rule" disabled="@(!Rule.Enabled)">
+                <legend>@ClientText.T("提醒哪些变更")</legend>
+                <div class="notification-options">
+                    @foreach (var (type, label) in ChangeOptions) {
+                        <label class="notification-choice"><input id="notification-type-@type" type="checkbox" checked="@Rule.Changes.HasFlag(type)" @onchange="e => ChangeType(type, e.Value is true)" />@ClientText.T(label)</label>
+                    }
+                </div>
+                <fieldset class="notification-rule" disabled="@(!Rule.Changes.HasFlag(NotificationChange.Status))">
+                    <legend>@ClientText.T("变更到以下状态时提醒")</legend>
+                    <label class="notification-choice"><input id="notification-all-statuses" type="checkbox" checked="@(Rule.Statuses is null)" @onchange="e => Save(Rule with { Statuses = e.Value is true ? null : [] })" />@ClientText.T("全部目标状态")</label>
+                    <div class="notification-options">
+                        @foreach (var (status, label) in BugDisplay.Statuses) {
+                            <label class="notification-choice"><input id="notification-status-@status" type="checkbox" checked="@(Rule.Statuses is null || Rule.Statuses.Contains(status))" @onchange="e => ChangeStatus(status, e.Value is true)" />@label</label>
+                        }
+                    </div>
+                </fieldset>
+            </fieldset>
+        </fieldset>
+        <p class="notification-help muted">@ClientText.T("状态筛选只作用于状态变化；同一批次命中任一已选变更类型就会提醒。只关心状态时，可取消其他变更类型。")</p>
+    }
+    @if (_loadError) { <p class="error" role="alert">@ClientText.T("项目列表暂时无法读取，请等待同步后重试。")</p> }
+    <p class="notification-feedback" aria-live="polite">@if (_error.Length > 0) { <span class="error" role="alert">@ClientText.T(_error)</span> } else { <span class="muted">@ClientText.T(_message)</span> }</p>
+</section>
+@code {
+    private string _projectId = "", _search = "", _error = "", _message = "修改后自动保存。";
+    private int _resetVersion;
+    private long _identity;
+    private bool _loading, _projectsReady, _loadError;
+    private string? ProjectId => _projectId.Length == 0 ? null : _projectId;
+    private NotificationRule Rule => Host.GetNotificationRule(ProjectId);
+    private bool Inherited => ProjectId is not null && !Host.HasNotificationOverride(ProjectId);
+    private IEnumerable<Project> FilteredProjects => Workspace.Projects
+        .Where(x => x.Id == _projectId || $"{x.Name} {x.Code}".Contains(_search, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Name);
+    /// <summary>类型标签与 Core 的筛选枚举一一对应，状态标签复用现有全状态目录。</summary>
+    private static readonly (NotificationChange Type, string Label)[] ChangeOptions = [
+        (NotificationChange.Created, "新建 BUG"), (NotificationChange.Status, "状态变化"),
+        (NotificationChange.Assignment, "领取、释放与负责人变化"), (NotificationChange.Details, "BUG 资料变化"),
+        (NotificationChange.Comments, "回复与处理记录"), (NotificationChange.Attachments, "附件变化"),
+        (NotificationChange.Project, "项目资料与可见性变化"), (NotificationChange.Removed, "BUG 移出工作区")];
+
+    /// <summary>设置独立加载本地项目目录，不依赖主看板是否处于打开状态。</summary>
+    protected override async Task OnInitializedAsync()
+    {
+        _identity = Session.IdentityVersion;
+        Host.Changed += Reload; Host.StatusChanged += Refresh;
+        await LoadProjects();
+    }
+    private async Task LoadProjects()
+    {
+        if (_loading || !Session.IsAuthenticated || !Host.SyncReady) return;
+        _loading = true;
+        try { await Workspace.LoadAsync(); _projectsReady = true; _loadError = false; }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or OperationCanceledException)
+        { _loadError = true; }
+        finally { _loading = false; }
+    }
+    /// <summary>账号变化后回到默认规则；权限失去或项目删除后不继续编辑旧项目。</summary>
+    private void Reload() => _ = InvokeAsync(async () =>
+    {
+        if (_identity != Session.IdentityVersion)
+        {
+            _identity = Session.IdentityVersion; _projectId = ""; _search = ""; _projectsReady = false;
+            _error = ""; _message = "修改后自动保存。";
+        }
+        await LoadProjects();
+        if (_projectId.Length > 0 && !Workspace.Projects.Any(x => x.Id == _projectId)) _projectId = "";
+        StateHasChanged();
+    });
+    private void Refresh() { if (!_projectsReady) Reload(); else _ = InvokeAsync(StateHasChanged); }
+    private void ChangeProject(ChangeEventArgs e) { _projectId = e.Value?.ToString() ?? ""; _error = ""; _message = "修改后自动保存。"; }
+    private void UseDefault(ChangeEventArgs e) => Save(e.Value is true ? null : Rule);
+    private void ChangeType(NotificationChange type, bool selected) => Save(Rule with { Changes = selected ? Rule.Changes | type : Rule.Changes & ~type });
+    /// <summary>从全部状态取消一个时转成明确选择；选空仍然保存为空，不能误恢复全部。</summary>
+    private void ChangeStatus(string status, bool selected)
+    {
+        var statuses = (Rule.Statuses ?? BugDisplay.BoardStatuses).ToHashSet(StringComparer.Ordinal);
+        if (selected) statuses.Add(status); else statuses.Remove(status);
+        Save(Rule with { Statuses = statuses.ToArray() });
+    }
+    /// <summary>失败时恢复实际持久化值，并保留错误供用户重试。</summary>
+    private void Save(NotificationRule? rule)
+    {
+        // 会话变化先刷新项目上下文，不能把旧窗口排队的事件写入另一个账号。
+        if (_identity != Session.IdentityVersion || !Session.IsAuthenticated || !Host.SyncReady) { Reload(); return; }
+        try { Host.SetNotificationRule(ProjectId, rule); _error = ""; _message = "已保存。"; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        { _resetVersion++; _error = "设置暂时无法保存，请检查设备的存储空间和文件权限后重试。"; }
+    }
+    public void Dispose() { Host.Changed -= Reload; Host.StatusChanged -= Refresh; }
+}

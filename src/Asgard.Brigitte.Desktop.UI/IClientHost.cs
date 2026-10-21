@@ -13,6 +13,10 @@ public interface IClientHost
     /// <summary>主窗口关闭时继续询问、最小化托盘或退出程序。</summary>
     string CloseBehavior => "ask";
     void SetCloseBehavior(string behavior) { }
+    /// <summary>提醒偏好只保存在本机，项目未覆盖时继承当前账号的默认规则。</summary>
+    NotificationRule GetNotificationRule(string? projectId = null) => new();
+    bool HasNotificationOverride(string projectId) => false;
+    void SetNotificationRule(string? projectId, NotificationRule? rule) { }
     /// <summary>由原生应用元数据提供的版本。</summary>
     string AppVersion => "";
     /// <summary>更新检查与安装独立于登录；非商店渠道明确提示不支持。</summary>

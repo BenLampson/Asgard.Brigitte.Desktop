@@ -15,6 +15,20 @@
 .preferences-header .muted { margin:8px 0 0; }
 .preferences-section { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:24px; }
 .preferences-section h2 { margin:0 0 24px; font-size:16px; }
+.preferences-section + .preferences-section { margin-top:20px; }
+/* 项目较多时使用搜索和单项目编辑，状态选项随窗口宽度换行。 */
+.notification-help { font-size:12px; line-height:1.8; margin:0 0 16px; }
+.notification-scope { display:grid; gap:8px; margin-bottom:16px; }
+.notification-scope label { font-size:13px; font-weight:600; margin:0; }
+.notification-scope input, .notification-scope select { width:100%; min-width:0; }
+.notification-rule { min-width:0; border:0; padding:12px 0 0; margin:12px 0 0; }
+.notification-rule legend { font-size:13px; font-weight:600; padding:0; }
+.notification-rule:disabled { opacity:.6; }
+.notification-rule .notification-rule:disabled { opacity:1; }
+.notification-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 16px; margin:12px 0 16px; }
+.notification-choice { display:flex; align-items:center; gap:8px; font-size:13px; line-height:1.6; margin:0; }
+.notification-choice input[type=checkbox] { width:16px; height:16px; min-height:0; flex:none; padding:0; margin:0; }
+.notification-feedback { margin:12px 0 0; font-size:12px; }
 .privacy-copy { line-height:1.85; }
 .privacy-copy h2 { margin:20px 0 8px; }
 .privacy-copy h2:first-child { margin-top:0; }

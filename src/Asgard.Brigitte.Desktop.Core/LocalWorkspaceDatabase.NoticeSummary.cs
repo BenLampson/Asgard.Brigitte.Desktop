@@ -55,10 +55,19 @@ public sealed partial class LocalWorkspaceDatabase
                 Text(project, "code") is { Length: > 0 } code ? code : ClientText.T("项目 #") + BugDisplay.ShortId(id));
         }
         var summaries = new Dictionary<string, List<string>>();
-        void Add(string key, string message)
+        var types = new Dictionary<string, NotificationChange>();
+        var targetStatuses = new Dictionary<string, HashSet<string>>();
+        // 类型与目标状态跟随摘要生成；不能解析翻译后的自然语言来判断提醒。
+        void Add(string key, string message, NotificationChange type, string? targetStatus = null)
         {
             if (!summaries.TryGetValue(key, out var messages)) summaries[key] = messages = [];
             if (!messages.Contains(message)) messages.Add(message);
+            types[key] = types.GetValueOrDefault(key) | type;
+            if (targetStatus is not null)
+            {
+                if (!targetStatuses.TryGetValue(key, out var statuses)) targetStatuses[key] = statuses = [];
+                statuses.Add(targetStatus);
+            }
         }
         var histories = changes.Where(x => x.Key.StartsWith("history/") && x.Value.Before is null && x.Value.After is not null)
             .Select(x => x.Value.After!).OrderBy(x => Text(x, "createTime")).ToArray();
@@ -66,38 +75,38 @@ public sealed partial class LocalWorkspaceDatabase
         {
             if (key.StartsWith("bug/"))
             {
-                if (after is null) { Add(key, ClientText.T("已移出当前工作区")); continue; }
+                if (after is null) { Add(key, ClientText.T("已移出当前工作区"), NotificationChange.Removed); continue; }
                 if (before is null)
                 {
-                    Add(key, Actor(Text(after, "createdBy")) + ClientText.T("提交了 BUG"));
+                    Add(key, Actor(Text(after, "createdBy")) + ClientText.T("提交了 BUG"), NotificationChange.Created);
                     if (Text(after, "status") is { Length: > 0 } status && status != "waiting")
-                        Add(key, ClientText.T("当前状态：") + BugDisplay.Statuses.GetValueOrDefault(status, status));
+                        Add(key, ClientText.T("当前状态：") + BugDisplay.Statuses.GetValueOrDefault(status, status), NotificationChange.Created);
                     if (Text(after, "lockOwnerId").Length > 0)
-                        Add(key, ClientText.T("由 {0} 领取", Claimant(after)));
+                        Add(key, ClientText.T("由 {0} 领取", Claimant(after)), NotificationChange.Created);
                     continue;
                 }
                 var actor = Actor(Text(after, "updatedBy"));
                 if (Changed(before, after, "status") && !histories.Any(x => Text(x, "bugId") == key[4..]))
-                    Add(key, StatusNotice(actor, Text(before, "status"), Text(after, "status")));
+                    Add(key, StatusNotice(actor, Text(before, "status"), Text(after, "status")), NotificationChange.Status, Text(after, "status"));
                 if (Changed(before, after, "lockOwnerId", "lockOwnerUserId"))
                 {
                     var owner = Text(after, "lockOwnerId");
                     Add(key, owner.Length > 0 ? ClientText.T("由 {0} 领取", Claimant(after)) :
-                        ClientText.T("{0} 的领取已释放", Claimant(before)));
+                        ClientText.T("{0} 的领取已释放", Claimant(before)), NotificationChange.Assignment);
                 }
-                if (Changed(before, after, "title")) Add(key, actor + ClientText.T("修改了标题"));
-                if (Changed(before, after, "description", "content")) Add(key, actor + ClientText.T("修改了内容"));
-                if (Changed(before, after, "priority")) Add(key, actor + ClientText.T("将优先级改为") + BugDisplay.Priorities.GetValueOrDefault(Text(after, "priority"), Text(after, "priority")));
-                if (Changed(before, after, "assigneeId")) Add(key, actor + ClientText.T("将负责人改为") + (Person(Text(after, "assigneeId")) is { Length: > 0 } assignee ? assignee : ClientText.T("未指派")));
-                if (Changed(before, after, "affectedServices")) Add(key, actor + ClientText.T("修改了涉及服务"));
-                if (Changed(before, after, "deploymentNotes")) Add(key, actor + ClientText.T("修改了部署说明"));
-                if (Changed(before, after, "source", "sourceRef")) Add(key, actor + ClientText.T("修改了来源信息"));
+                if (Changed(before, after, "title")) Add(key, actor + ClientText.T("修改了标题"), NotificationChange.Details);
+                if (Changed(before, after, "description", "content")) Add(key, actor + ClientText.T("修改了内容"), NotificationChange.Details);
+                if (Changed(before, after, "priority")) Add(key, actor + ClientText.T("将优先级改为") + BugDisplay.Priorities.GetValueOrDefault(Text(after, "priority"), Text(after, "priority")), NotificationChange.Details);
+                if (Changed(before, after, "assigneeId")) Add(key, actor + ClientText.T("将负责人改为") + (Person(Text(after, "assigneeId")) is { Length: > 0 } assignee ? assignee : ClientText.T("未指派")), NotificationChange.Assignment);
+                if (Changed(before, after, "affectedServices")) Add(key, actor + ClientText.T("修改了涉及服务"), NotificationChange.Details);
+                if (Changed(before, after, "deploymentNotes")) Add(key, actor + ClientText.T("修改了部署说明"), NotificationChange.Details);
+                if (Changed(before, after, "source", "sourceRef")) Add(key, actor + ClientText.T("修改了来源信息"), NotificationChange.Details);
             }
             else if (key.StartsWith("project/"))
             {
-                if (after is null) Add(key, ClientText.T("已移出当前工作区"));
-                else if (before is null) Add(key, ClientText.T("已加入当前工作区"));
-                else if (Changed(before, after, "name", "code", "description", "status", "ownerId", "memberUserIds")) Add(key, ClientText.T("项目资料已更新"));
+                if (after is null) Add(key, ClientText.T("已移出当前工作区"), NotificationChange.Project);
+                else if (before is null) Add(key, ClientText.T("已加入当前工作区"), NotificationChange.Project);
+                else if (Changed(before, after, "name", "code", "description", "status", "ownerId", "memberUserIds")) Add(key, ClientText.T("项目资料已更新"), NotificationChange.Project);
             }
             else if (key.StartsWith("comment/") || key.StartsWith("attachment/"))
             {
@@ -107,18 +116,18 @@ public sealed partial class LocalWorkspaceDatabase
                 if (key.StartsWith("attachment/"))
                 {
                     if (before is null || after is null || Changed(before, after, "fileName", "sizeBytes", "contentType"))
-                        Add(bugKey, after is null ? ClientText.T("删除了附件") : before is null ? ClientText.T("添加了附件") : ClientText.T("更新了附件"));
+                        Add(bugKey, after is null ? ClientText.T("删除了附件") : before is null ? ClientText.T("添加了附件") : ClientText.T("更新了附件"), NotificationChange.Attachments);
                 }
-                else if (after is null) Add(bugKey, ClientText.T("删除了回复"));
-                else if (before is null) Add(bugKey, Actor(Text(after, "authorId")) + CommentNotice(Text(after, "commentType")));
-                else if (Changed(before, after, "content", "commentType")) Add(bugKey, ClientText.T("修改了回复"));
+                else if (after is null) Add(bugKey, ClientText.T("删除了回复"), NotificationChange.Comments);
+                else if (before is null) Add(bugKey, Actor(Text(after, "authorId")) + CommentNotice(Text(after, "commentType")), NotificationChange.Comments);
+                else if (Changed(before, after, "content", "commentType")) Add(bugKey, ClientText.T("修改了回复"), NotificationChange.Comments);
             }
         }
         foreach (var history in histories)
         {
             var key = "bug/" + Text(history, "bugId");
             if (changes.TryGetValue(key, out var bug) && (bug.Before is null || bug.After is null)) continue;
-            Add(key, StatusNotice(Actor(Text(history, "operatorId")), Text(history, "fromStatus"), Text(history, "toStatus")));
+            Add(key, StatusNotice(Actor(Text(history, "operatorId")), Text(history, "fromStatus"), Text(history, "toStatus")), NotificationChange.Status, Text(history, "toStatus"));
         }
         var now = DateTimeOffset.UtcNow;
         return summaries.Select(x =>
@@ -127,7 +136,12 @@ public sealed partial class LocalWorkspaceDatabase
             var record = Record(x.Key);
             var label = NoticeLabel(Text(record, isBug ? "title" : "name"));
             var subject = isBug ? $"【{ProjectLabel(record)}】BUG #{BugDisplay.ShortId(x.Key[4..])}" + (label.Length > 0 ? " · " + label : "") : ClientText.T("项目 {0}", label);
-            return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value), now, false);
+            return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value), now, false)
+            {
+                ProjectId = isBug ? Text(record, "projectId") : x.Key[8..],
+                Changes = types[x.Key],
+                TargetStatuses = targetStatuses.TryGetValue(x.Key, out var statuses) ? statuses.ToArray() : []
+            };
         }).ToArray();
     }
     /// <summary>补充关联项目、BUG 和用户目录，读取的仍然是本次提交所依据的本地快照。</summary>

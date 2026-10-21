@@ -1,0 +1,58 @@
+using Asgard.Brigitte.Sync;
+
+namespace Asgard.Brigitte.Desktop.Core;
+
+/// <summary>本机提醒偏好按服务、租户和账号隔离；未单独配置的项目实时继承默认规则。</summary>
+public sealed class NotificationPreferenceStore
+{
+    private readonly string _path;
+    private Dictionary<string, NotificationRule> _rules = [];
+
+    /// <summary>配置不可读时保留原有全部提醒，不阻断客户端启动。</summary>
+    public NotificationPreferenceStore(string path)
+    {
+        _path = path;
+        try
+        {
+            if (File.Exists(path))
+                _rules = (JsonSerializer.Deserialize<Dictionary<string, NotificationRule?>>(File.ReadAllText(path)) ?? [])
+                    .Where(x => x.Value is not null).ToDictionary(x => x.Key, x => Copy(x.Value!));
+        }
+        catch (JsonException) { /* 损坏的本地配置不影响同步和启动。 */ }
+        catch (IOException) { /* 暂时不可读时使用默认提醒。 */ }
+        catch (UnauthorizedAccessException) { /* 无读取权限时使用默认提醒。 */ }
+    }
+
+    /// <summary>返回独立副本，调用方不能绕过保存过程修改规则。</summary>
+    public NotificationRule Get(string account, string? projectId = null) =>
+        Copy(_rules.GetValueOrDefault(Key(account, projectId)) ??
+             _rules.GetValueOrDefault(Key(account, null)) ?? new());
+
+    /// <summary>跟随默认规则与显式项目规则在界面上分别呈现。</summary>
+    public bool HasOverride(string account, string projectId) => _rules.ContainsKey(Key(account, projectId));
+
+    /// <summary>传 null 恢复继承；先原子保存，失败时内存仍保持原规则。</summary>
+    public void Set(string account, string? projectId, NotificationRule? rule)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(account);
+        if (rule is not null && (rule.Changes & ~NotificationChange.All) != 0)
+            throw new ArgumentException("提醒类型无效。", nameof(rule));
+        var updated = new Dictionary<string, NotificationRule>(_rules);
+        var key = Key(account, projectId);
+        if (rule is null) updated.Remove(key);
+        else updated[key] = Copy(rule);
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
+        var temporary = _path + ".tmp";
+        File.WriteAllText(temporary, JsonSerializer.Serialize(updated));
+        File.Move(temporary, _path, true);
+        _rules = updated;
+    }
+
+    /// <summary>仅过滤弹窗入口，不删除或标记已读任何动态。</summary>
+    public bool Allows(string account, SyncNotice notice) => Get(account, notice.ProjectId).Allows(notice);
+    /// <summary>账号键只记录摘要，不在偏好文件复制服务地址或用户身份。</summary>
+    private static string Key(string account, string? projectId) => SyncProtocol.Hash(account) +
+        (projectId is null ? "/default" : "/project/" + projectId);
+    /// <summary>数组必须复制，避免编辑草稿影响尚未保存的有效配置。</summary>
+    private static NotificationRule Copy(NotificationRule rule) => rule with { Statuses = rule.Statuses?.ToArray() };
+}

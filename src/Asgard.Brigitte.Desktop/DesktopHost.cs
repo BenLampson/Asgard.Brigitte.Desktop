@@ -19,6 +19,8 @@ public sealed partial class DesktopHost : IClientHost
     private readonly ThemePreferenceStore _theme;
     private readonly ClosePreferenceStore _closePreference;
     private readonly LanguagePreferenceStore _language;
+    private readonly NotificationPreferenceStore _notificationPreferences;
+    private readonly ClientOptions _options;
     /// <summary>同一连接状态供所有窗口显示。</summary>
     public string RealtimeStatus => _session.IsLocal ? ClientText.T("本机使用") : _realtime.Status;
     public bool SyncReady => _session.IsLocal ? _standalone.Ready : _realtime.Ready;
@@ -40,11 +42,13 @@ public sealed partial class DesktopHost : IClientHost
     /// <summary>供 CSS 使用的有效日夜模式。</summary>
     public string Theme => ThemePreference == "system" ? Application.Current?.RequestedTheme == AppTheme.Dark ? "dark" : "light" : ThemePreference;
     /// <summary>原生服务注入，不由组件持有平台句柄。</summary>
-    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference, LanguagePreferenceStore language, StandaloneWorkspace standalone)
+    public DesktopHost(IServiceProvider services, SessionService session, WorkspaceStore workspace, DesktopRealtime realtime, ThemePreferenceStore theme, ClosePreferenceStore closePreference, LanguagePreferenceStore language, StandaloneWorkspace standalone, NotificationPreferenceStore notificationPreferences, IOptions<ClientOptions> options)
     {
         _services = services; _session = session; _workspace = workspace; _realtime = realtime; _theme = theme;
         _closePreference = closePreference;
         _language = language;
+        _notificationPreferences = notificationPreferences;
+        _options = options.Value;
         _standalone = standalone;
         standalone.Changed += RealtimeChanged;
         ClientText.SetLanguage(language.Language);

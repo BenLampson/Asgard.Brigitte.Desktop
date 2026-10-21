@@ -32,6 +32,8 @@ public static class MauiProgram
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "theme.json"),
             () => Preferences.Default.Get("brigitte.theme", "system")));
         builder.Services.AddSingleton<DesktopHost>();
+        builder.Services.AddSingleton(_ => new NotificationPreferenceStore(
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "notifications.json")));
         builder.Services.AddSingleton(_ => new LanguagePreferenceStore(
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "language.json"),
             DesktopHost.SystemLanguage));

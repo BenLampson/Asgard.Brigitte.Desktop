@@ -9,6 +9,11 @@ internal sealed class RenderHost(string theme) : IClientHost
     public string LanguagePreference { get; private set; } = "system";
     public string Language => LanguagePreference == "system" ? ClientText.Language : LanguagePreference;
     public void SetLanguage(string language) { LanguagePreference = language; PublishStatus(); }
+    /// <summary>提醒交互测试可接入真实本地存储，普通渲染测试沿用默认规则。</summary>
+    public NotificationPreferenceStore? NotificationPreferences { get; init; }
+    public NotificationRule GetNotificationRule(string? projectId = null) => NotificationPreferences?.Get("render-test", projectId) ?? new();
+    public bool HasNotificationOverride(string projectId) => NotificationPreferences?.HasOverride("render-test", projectId) ?? false;
+    public void SetNotificationRule(string? projectId, NotificationRule? rule) { NotificationPreferences?.Set("render-test", projectId, rule); PublishStatus(); }
     public bool SyncReady { get; init; } = true;
     public bool CanWrite => true;
     public bool SyncHasManifest { get; set; } = true;

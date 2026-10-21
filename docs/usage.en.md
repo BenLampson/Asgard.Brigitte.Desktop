@@ -28,6 +28,10 @@ In online mode, workspace views read synchronized local data. The first sync mus
 
 Unread updates remain in the tray view until marked as read. System notifications include project names, bug titles, actors, and change summaries even in the background. Long Windows notifications are split into parts without dropping text. The OS may collapse banner text; full summaries remain in the tray. When you close the main window, choose whether to quit or continue in the tray. You can remember the choice and change it later in **Settings → General**. Quitting stops background synchronization and notifications.
 
+Open **Settings → Notifications** to control in-app and system notifications by project. Default rules apply to every project without custom rules, including new projects. To follow only a few projects, turn off default notifications, search for a project, clear **Use default rules**, and enable notifications for that project. Each rule can select new bugs, status changes, claims and assignees, bug details, replies, attachments, project changes, and bug removals. Filter status changes by their destination, such as Fixed or Closed. To follow status changes only, deselect the other types: any matching type in a batch can trigger a notification. Select **Use default rules** again to remove a project's custom rules.
+
+Changes save automatically on this device and persist after restarting, separately for each service, tenant, and account. Muting does not affect sync, unread activity, or other members, and previously muted notifications are not replayed when re-enabled. Local workspaces do not generate online activity notifications.
+
 ## Language and appearance
 
 **Settings → General → Language** offers **Follow system**, **简体中文**, and **English**. The default follows your operating system: Chinese language preferences use Simplified Chinese, and other languages use English. Switching language updates open windows without discarding form drafts. Project names, bug text, comments, and server-provided prompt content stay in their original language.
