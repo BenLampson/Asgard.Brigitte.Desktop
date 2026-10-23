@@ -50,9 +50,9 @@ The desktop client is open source under Apache-2.0. Documentation, privacy infor
 - MCP
 - Brigitte
 
-## What's new in 1.0.4
+## What's new in 1.0.6
 
-1.0.4: Adds Settings > Notifications with default rules and per-project overrides. Search projects, mute noisy projects, or enable only the projects you follow. Choose new bugs, status changes, claims and assignees, replies, attachments, and other changes. Status changes can be filtered by destination, such as Fixed or Closed. Preferences save on this device for each account. Muting preserves sync and unread activity. Existing users keep the previous notification behavior until they change their settings. No service update or data migration is needed. Save drafts before installing an update.
+1.0.6: Reorder board lanes by dragging their headers. See insertion markers, scroll automatically near the board edges, and press Escape to cancel. Keyboard users can use Alt + Left / Right, and the toolbar can reset the order. Existing device, account and project preferences are preserved, including lanes hidden by filters. Empty legacy lanes and filters are hidden while existing local historical records remain accessible. Save drafts before installing an update.
 
 ## Additional license terms
 

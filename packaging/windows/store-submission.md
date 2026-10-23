@@ -1,8 +1,12 @@
 # Microsoft Store submission for Asgard Brigitte
 
-## October 23, 2026 — 1.0.6 release preparation
+## October 23, 2026 — 1.0.6 submitted
 
-Partner Center confirms Submission 5 is published. A new Submission 6 (`1152921505702209958`) is being prepared for `1.0.6.0`: direct lane-header dragging with insertion markers and edge scrolling, keyboard/reset controls, preserved device preferences, and hidden empty legacy lanes and filters. All 195 client tests passed. See [1.0.6 release notes](../../docs/releases/v1.0.6.md) for source/package provenance and the final submission result.
+Partner Center confirms Submission 5 is published. Version `1.0.6.0` was uploaded, accepted as **Validated**, and formally submitted as Submission 6 (`1152921505702209958`). Current status is **In certification / pre-processing**. The page confirms publication begins immediately after certification; this is not confirmation of customer availability yet.
+
+The update adds direct lane-header dragging with insertion markers and edge scrolling, keyboard/reset controls, preserved device preferences, and hidden empty legacy lanes and filters. Both English and Simplified Chinese release notes were saved. All older packages, existing screenshots, availability, age ratings, and reviewer information were retained. The existing `runFullTrust` capability still produces the usual validation warning; no new capability was requested.
+
+The final MSIX was rebuilt locally from clean, pushed source `09ea4835dcf7ea5b4a80aa4baa8ff746da812c5f`. Size: 115757018 bytes. SHA-256: `94989d53040fd313586d5dfefe13691670c1af91d90981bd02dca70b64042ee5`. All 195 client tests passed. Local proof: `publish/store/1.0.6.0/store-submitted.png`. See [1.0.6 release notes](../../docs/releases/v1.0.6.md) for validation and upgrade limits.
 
 ## October 22, 2026 — 1.0.5 submitted
 
