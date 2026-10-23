@@ -3,7 +3,7 @@
 @foreach (var status in VisibleOrder)
 {
     <section class="lane" data-lane="@status" @key="status">
-        <h2><button type="button" class="lane-drag-handle" draggable="true"
+        <h2><button type="button" class="lane-drag-handle"
             title="@ClientText.T("拖动调整顺序；也可按 Alt＋←／→ 移动")"
             aria-label="@ClientText.T("调整泳道顺序：{0}。拖动或按 Alt＋左右方向键。", BugDisplay.Statuses[status])">
             <svg class="lane-grip" width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1" /><circle cx="8" cy="4" r="1" /><circle cx="4" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="8" cy="12" r="1" /></svg>
@@ -28,7 +28,7 @@
     private IEnumerable<string> VisibleOrder => Order.Where(s => Selected.Count == 0 || Selected.Contains(s))
         .Where(s => s is not ("fixed" or "regressed") || Counts.GetValueOrDefault(s) > 0 || Selected.Contains(s));
 
-    /// <summary>原生拖拽在本地处理落点和边缘滚动，放下后才通过 .NET 保存完整顺序。</summary>
+    /// <summary>指针拖拽在本地处理落点和边缘滚动，放下后才通过 .NET 保存完整顺序。</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;

@@ -50,9 +50,9 @@ The desktop client is open source under Apache-2.0. Documentation, privacy infor
 - MCP
 - Brigitte
 
-## What's new in 1.0.6
+## What's new in 1.0.7
 
-1.0.6: Reorder board lanes by dragging their headers. See insertion markers, scroll automatically near the board edges, and press Escape to cancel. Keyboard users can use Alt + Left / Right, and the toolbar can reset the order. Existing device, account and project preferences are preserved, including lanes hidden by filters. Empty legacy lanes and filters are hidden while existing local historical records remain accessible. Save drafts before installing an update.
+1.0.7: Fix board lane dragging in the desktop app. Drag a header to move the lane with a full-column floating preview, drop shadow, original-position placeholder and insertion marker. Scroll automatically near board edges; Escape or releasing outside the board cancels. Alt + Left / Right, reset, existing saved orders and filtered hidden lanes remain supported. Save drafts before installing an update.
 
 ## Additional license terms
 

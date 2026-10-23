@@ -1,0 +1,12 @@
+using Microsoft.Extensions.FileProviders;
+using LaneDragPreview;
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://127.0.0.1:8765");
+builder.WebHost.UseStaticWebAssets();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+var app = builder.Build();
+app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.GetFullPath("../../../src/Asgard.Brigitte.Desktop.UI/wwwroot")), RequestPath = "/assets" });
+app.UseAntiforgery();
+app.MapStaticAssets();
+app.MapRazorComponents<Preview>().AddInteractiveServerRenderMode();
+app.Run();

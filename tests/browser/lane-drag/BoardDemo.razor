@@ -1,0 +1,32 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Asgard.Brigitte.Desktop.Core
+@using Asgard.Brigitte.Desktop.UI.Components
+@rendermode InteractiveServer
+<div id="app"><div class="client @(_dark ? "dark" : "light")"><div class="workspace">
+<aside class="sidebar"><div class="product"><strong>Brigitte</strong></div><div style="padding:16px">本地界面验证<br /><small>全部为虚构测试数据</small></div></aside>
+<main class="board-main"><header><div class="heading"><h1>BUG 看板</h1><div class="spacer"></div><button @onclick="() => _dark = !_dark">切换日夜模式</button></div>
+<div class="search-toolbar"><input class="bug-search" placeholder="搜索 BUG" /><StatusFilters Counts="Counts" Selected="_selected" SelectedChanged="Select" /><div class="advanced-disclosure"><button class="advanced-toggle" @onclick="Filter">仅显示交付状态</button></div><button class="lane-order-reset" @onclick="Reset">恢复泳道顺序</button><button class="search-refresh" @onclick="Reload">刷新偏好</button></div></header>
+<LaneOrder Order="_order" Selected="_selected" Counts="Counts" OrderChanged="Save" Context="status">
+<article class="bug-card"><div class="card-meta"><span>test-01</span></div><strong class="bug-title">@(Titles.GetValueOrDefault(status, "此泳道的测试 BUG"))</strong><div class="card-bottom"><span class="priority medium">中</span><span class="owner-label">负责人</span><span>测试用户</span></div></article>
+</LaneOrder>
+<footer class="statusbar" data-ready="@(_ready ? "ready" : "pending")"><span>拖动标题调整顺序 · Alt＋←／→</span><span id="saved-order">@string.Join(",", _order)</span></footer></main>
+</div></div></div>
+@code {
+    private bool _dark = true;
+    private bool _ready;
+    private readonly BoardPreferenceStore _preferences = new(Path.GetFullPath("../../../output/playwright/lane-drag-tests/board.json"));
+    private string[] _order = [];
+    private IReadOnlySet<string> _selected = new HashSet<string>();
+    private static readonly Dictionary<string, string> Titles = new() { ["processing"] = "修复搜索结果刷新后重置的问题", ["pending_deployment"] = "修复已完成，等待部署验证", ["pending_regression"] = "交付测试环境，请进行人工回归", ["human_verified"] = "已通过人工验收，准备归档", ["fixed"] = "配置下一办理单位：编辑更新当前配置", ["regressed"] = "组织角色预算池权限显示与标题对应" };
+    private static readonly Dictionary<string, int> Counts = BugDisplay.BoardStatuses.ToDictionary(s => s, _ => 1);
+    protected override void OnInitialized() { ClientText.SetLanguage("zh-CN"); Reload(); }
+    // 等待交互渲染及子组件 JS 装配完成，避免自动化点击静态预渲染页面。
+    protected override void OnAfterRender(bool firstRender) { if (firstRender) { _ready = true; StateHasChanged(); } }
+    private void Save(IReadOnlyList<string> order) { _preferences.Set("preview", "preview", order); Reload(); }
+    private void Reload() => _order = _preferences.Get("preview", "preview");
+    private void Reset() => Save(BugDisplay.BoardStatuses);
+    private void Select(IReadOnlySet<string> selected) => _selected = selected;
+    private void Filter() => _selected = new HashSet<string> { "pending_deployment", "pending_regression", "human_verified", "fixed", "regressed" };
+}

@@ -1592,14 +1592,16 @@ body:has(.tray-client.dark) {
 .lane { position:relative; }
 .lane h2 { display:block; }
 .lane-drag-handle { display:flex; align-items:center; gap:8px; width:100%; min-height:38px; padding:4px 2px; border:0; border-radius:4px; background:transparent; color:var(--text); text-align:left; font:inherit; cursor:grab; user-select:none; }
+.lane-drag-handle { touch-action:none; }
 .lane-drag-handle:hover { background:var(--selected); }
 .lane-drag-handle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .lane-grip { flex:none; color:var(--muted); opacity:.55; }
 .lane-drag-handle:hover .lane-grip, .lane-drag-handle:focus-visible .lane-grip { opacity:1; color:var(--accent); }
 .lane-name { flex:1; min-width:0; overflow-wrap:anywhere; }
 .lane-drag-handle small { padding:1px 7px; border-radius:9px; background:var(--surface); color:var(--muted); font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
-.lane-dragging { opacity:.45; }
+.lane-dragging { opacity:.25; outline:2px dashed var(--line); outline-offset:-2px; }
 .is-reordering .lane-drag-handle { cursor:grabbing; }
+.lane-drag-preview { position:fixed; z-index:10000; pointer-events:none; margin:0; flex:none; opacity:.96; border:1px solid var(--accent); box-shadow:0 16px 40px #0005, 0 4px 12px #0003; transform:rotate(1deg); overflow:hidden; }
 .lane-drop-before::before, .lane-drop-after::after { content:""; position:absolute; top:0; bottom:0; width:4px; background:var(--accent); border-radius:3px; pointer-events:none; z-index:2; }
 .lane-drop-before::before { left:0; }
 .lane-drop-after::after { right:0; }

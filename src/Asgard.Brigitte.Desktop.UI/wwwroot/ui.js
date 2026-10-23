@@ -36,13 +36,14 @@ window.brigitte = {
   },
 };
 
-// 泳道只在标题上启动原生拖拽；卡片、附件拖放不参与排序。
+// Hybrid 宿主可能拦截 HTML 原生拖放；标题改用指针捕获，卡片和附件不参与排序。
 const laneOrderCleanup = new WeakMap();
 window.brigitte.attachLaneOrder = (board, receiver) => {
   laneOrderCleanup.get(board)?.();
   const controller = new AbortController();
   const options = { signal: controller.signal };
   let source = null, target = null, after = false, pointerX = 0, pointerY = 0, frame = 0, lastTime = 0;
+  let handle = null, pointerId = null, startX = 0, startY = 0, grabX = 0, grabY = 0, dragging = false, preview = null;
   const clearTarget = () => {
     target?.classList.remove("lane-drop-before", "lane-drop-after");
     target = null;
@@ -53,67 +54,103 @@ window.brigitte.attachLaneOrder = (board, receiver) => {
     lastTime = 0;
     source?.classList.remove("lane-dragging");
     source = null;
+    const capturedHandle = handle, capturedPointer = pointerId;
+    handle = null;
+    pointerId = null;
+    dragging = false;
+    preview?.remove();
+    preview = null;
+    if (capturedHandle?.hasPointerCapture(capturedPointer)) capturedHandle.releasePointerCapture(capturedPointer);
     board.classList.remove("is-reordering");
     clearTarget();
   };
   // 根据当前指针重新测量，滚动时落点仍与实际列对齐。
   const locate = () => {
     clearTarget();
+    const bounds = board.getBoundingClientRect();
+    if (pointerX < Math.max(0, bounds.left) || pointerX > Math.min(innerWidth, bounds.right)
+      || pointerY < Math.max(0, bounds.top) || pointerY > Math.min(innerHeight, bounds.bottom)) return;
     const lane = document.elementFromPoint(pointerX, pointerY)?.closest("[data-lane]");
     if (!lane || lane === source || lane.parentElement !== board) return;
     target = lane;
-    const bounds = lane.getBoundingClientRect();
-    after = pointerX >= bounds.left + bounds.width / 2;
+    const laneBounds = lane.getBoundingClientRect();
+    after = pointerX >= laneBounds.left + laneBounds.width / 2;
     lane.classList.add(after ? "lane-drop-after" : "lane-drop-before");
   };
   // 接近可视看板边缘时连续滚动，支持跨越屏幕外的泳道。
   const scroll = (time) => {
-    if (!source) return;
+    if (!dragging) return;
     const bounds = board.getBoundingClientRect();
-    const inside = pointerY >= bounds.top && pointerY <= bounds.bottom && pointerX >= bounds.left && pointerX <= bounds.right;
-    const speed = !inside ? 0 : pointerX < bounds.left + 64 ? -Math.min(1, (bounds.left + 64 - pointerX) / 64)
-      : pointerX > bounds.right - 64 ? Math.min(1, (pointerX - bounds.right + 64) / 64) : 0;
+    const left = Math.max(0, bounds.left), right = Math.min(innerWidth, bounds.right);
+    const inside = pointerY >= bounds.top && pointerY <= Math.min(innerHeight, bounds.bottom) && pointerX >= left && pointerX <= right;
+    const speed = !inside ? 0 : pointerX < left + 64 ? -Math.min(1, (left + 64 - pointerX) / 64)
+      : pointerX > right - 64 ? Math.min(1, (pointerX - right + 64) / 64) : 0;
     const elapsed = lastTime ? Math.min(32, time - lastTime) : 16;
     lastTime = time;
     if (speed) { board.scrollLeft += speed * elapsed * 0.8; locate(); }
     frame = requestAnimationFrame(scroll);
   };
-  board.addEventListener("dragstart", (event) => {
-    const handle = event.target.closest?.(".lane-drag-handle");
-    if (!handle || !event.dataTransfer) return;
+  board.addEventListener("pointerdown", (event) => {
+    const nextHandle = event.target.closest?.(".lane-drag-handle");
+    if (!nextHandle || !event.isPrimary || event.button !== 0 || pointerId !== null) return;
     finish();
+    handle = nextHandle;
     source = handle.closest("[data-lane]");
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", source.dataset.lane);
-    source.classList.add("lane-dragging");
-    board.classList.add("is-reordering");
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    frame = requestAnimationFrame(scroll);
+    pointerId = event.pointerId;
+    startX = pointerX = event.clientX;
+    startY = pointerY = event.clientY;
+    const bounds = source.getBoundingClientRect();
+    grabX = pointerX - bounds.left;
+    grabY = pointerY - bounds.top;
+    handle.setPointerCapture(pointerId);
   }, options);
-  document.addEventListener("dragover", (event) => {
-    if (!source) return;
+  board.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== pointerId) return;
     pointerX = event.clientX;
     pointerY = event.clientY;
-    locate();
-    if (board.contains(event.target)) {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = target ? "move" : "none";
+    if (!dragging) {
+      if (Math.hypot(pointerX - startX, pointerY - startY) < 5) return;
+      dragging = true;
+      source.classList.add("lane-dragging");
+      board.classList.add("is-reordering");
+      const bounds = source.getBoundingClientRect();
+      // 整列影像保留标题和卡片；不复制可交互身份，避免遮挡落点或重复 DOM ID。
+      preview = source.cloneNode(true);
+      preview.className = "lane lane-drag-preview";
+      preview.removeAttribute("data-lane");
+      preview.querySelectorAll("[id]").forEach(element => element.removeAttribute("id"));
+      preview.inert = true;
+      preview.style.width = `${bounds.width}px`;
+      preview.style.height = `${bounds.height}px`;
+      preview.setAttribute("aria-hidden", "true");
+      board.append(preview);
+      preview.querySelector(".lane-scroll").scrollTop = source.querySelector(".lane-scroll").scrollTop;
+      frame = requestAnimationFrame(scroll);
     }
-  }, options);
-  board.addEventListener("drop", (event) => {
-    if (!source) return;
     event.preventDefault();
-    event.stopPropagation();
+    preview.style.left = `${pointerX - grabX}px`;
+    preview.style.top = `${pointerY - grabY}px`;
+    locate();
+  }, options);
+  board.addEventListener("pointerup", (event) => {
+    if (event.pointerId !== pointerId) return;
     pointerX = event.clientX;
     pointerY = event.clientY;
-    locate();
+    if (dragging) { event.preventDefault(); locate(); }
     const from = source.dataset.lane, to = target?.dataset.lane, insertAfter = after;
     finish();
     if (to) receiver.invokeMethodAsync("MoveLane", from, to, insertAfter);
   }, options);
-  document.addEventListener("dragend", finish, options);
-  document.addEventListener("drop", finish, options);
+  const cancelPointer = (event) => { if (event.pointerId === pointerId) finish(); };
+  board.addEventListener("pointercancel", cancelPointer, options);
+  board.addEventListener("lostpointercapture", cancelPointer, options);
+  board.addEventListener("dragstart", (event) => {
+    if (event.target.closest?.(".lane-drag-handle")) event.preventDefault();
+  }, options);
+  window.addEventListener("blur", finish, options);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && source) { event.preventDefault(); finish(); }
+  }, options);
   // 标题按钮保留键盘入口，省去独立排序面板及重复的上下箭头。
   board.addEventListener("keydown", (event) => {
     const handle = event.target.closest?.(".lane-drag-handle");
