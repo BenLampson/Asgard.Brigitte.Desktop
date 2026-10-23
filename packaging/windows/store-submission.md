@@ -1,5 +1,15 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 23, 2026 — 1.0.7 submitted
+
+Partner Center confirms Submission 6 (1.0.6) is published. Version `1.0.7.0` fixes desktop lane dragging using pointer capture and adds a floating full-column shadow, original-position placeholder and insertion marker. The new x64 MSIX is **Validated** and ranks first. Submission 7 (`1152921505702211089`) was formally submitted and now shows **In certification / pre-processing**, with publication immediately after certification. This is not confirmation that 1.0.7 is available to customers yet.
+
+English and Simplified Chinese release notes were saved. All older packages were retained by canceling the automatic removal of 1.0.6; screenshots, price/availability, age ratings and private reviewer information were retained. The existing `runFullTrust` warning remains subject to certification.
+
+Clean source: `b038d8edcc21baa17cd19f38caaffede89370ba6`, tag `v1.0.7`. Local MSIX: `Asgard.Brigitte.Desktop_1.0.7.0_x64.msix`, 115757646 bytes, SHA-256 `501c716d4f9361cc47a271b6898ef9fbac8d936d15312805148ef761370bbde7`. All 195 Core/UI tests and repeatable real-mouse browser regression checks passed. An unpacked MAUI/WebView2 window successfully reordered lanes in a separate synthetic local project. Store installation/upgrade and WACK were not performed. See [1.0.7 release notes](../../docs/releases/v1.0.7.md).
+
+Evidence: `publish/store/1.0.7.0/store-submitted.jpg` and `candidate.json`. Portable ZIP, unsigned Store upload package, checksums and source manifest are available in the [GitHub 1.0.7 release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.7). No production service or database changes were made.
+
 ## October 23, 2026 — 1.0.6 submitted
 
 Partner Center confirms Submission 5 is published. Version `1.0.6.0` was uploaded, accepted as **Validated**, and formally submitted as Submission 6 (`1152921505702209958`). Current status is **In certification / pre-processing**. The page confirms publication begins immediately after certification; this is not confirmation of customer availability yet.
