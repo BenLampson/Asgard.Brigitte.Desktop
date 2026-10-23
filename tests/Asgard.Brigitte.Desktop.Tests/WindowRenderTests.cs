@@ -86,11 +86,11 @@ public sealed class WindowRenderTests
         var html = await Render(theme, DesktopViewKind.Main, list: list);
         Assert.Contains("client " + theme, html);
         if (list) Assert.Equal(18, html.Split("class=\"bug-cell\"").Length - 1);
-        else Assert.Equal(15, html.Split("class=\"lane\"").Length - 1);
+        else Assert.Equal(18, html.Split("class=\"lane\"").Length - 1);
         // 已处理、已回归和最终结束状态的卡片在默认看板与列表中都不能丢失。
         var decoded = System.Net.WebUtility.HtmlDecode(html);
         for (var i = 1; i < 18; i++) Assert.Contains("状态更新后卡片及时显示 · " + i + "\"", decoded);
-        Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 15), decoded);
+        Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 18), decoded);
         Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }
@@ -152,7 +152,7 @@ public sealed class WindowRenderTests
         using var session = new SessionService(Options.Create(new ClientOptions()), transport, store, store);
         // 只在测试程序集注入内存身份；产品没有跳过登录的参数或入口。
         if (authenticated) typeof(SessionService).GetField("_current", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(session, new StoredSession { Tokens = new HeimdallTokenSet { AccessToken = "render-test-only", ExpiresIn = 3600 }, SubjectId = "user", SessionId = "session", DisplayName = "测试账号", ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) });
-        var services = new ServiceCollection(); services.AddLogging(); services.AddSingleton<Microsoft.JSInterop.IJSRuntime, RenderJsRuntime>(); services.AddSingleton<IOptions<ClientOptions>>(Options.Create(new ClientOptions())); services.AddSingleton(session); services.AddSingleton<IClientSession>(session); services.AddSingleton<IHttpClientFactory>(transport); services.AddSingleton(local.Database); services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<IWorkspaceSync>(new TestWorkspaceSync()); services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton<IClientHost>(new RenderHost(theme) { SyncReady = !failProjects });
+        var services = new ServiceCollection(); services.AddLogging(); services.AddSingleton<Microsoft.JSInterop.IJSRuntime, RenderJsRuntime>(); services.AddSingleton<IOptions<ClientOptions>>(Options.Create(new ClientOptions())); services.AddSingleton(session); services.AddSingleton<IClientSession>(session); services.AddSingleton<IHttpClientFactory>(transport); services.AddSingleton(local.Database); services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<IWorkspaceSync>(new TestWorkspaceSync()); services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json"))); services.AddSingleton<IClientHost>(new RenderHost(theme) { SyncReady = !failProjects });
         if (list) services.AddSingleton<IComponentActivator>(new ListRenderActivator());
         using var provider = services.BuildServiceProvider(); await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
         // 原生宿主显示托盘前会先加载项目缓存，测试使用相同的准备顺序。

@@ -80,7 +80,8 @@ public partial class ManagementView
     {
         var endpoint = Options.Value.ApiBaseUrl.TrimEnd('/') + "/api/mcp";
         try { _setupPrompt = await Api.PromptAsync("mcpClientSetupPrompt", new() { ["mcpEndpoint"] = endpoint, ["mcpApiKey"] = _result!.PlainKey }); } catch { }
-        if (string.IsNullOrWhiteSpace(_setupPrompt)) _setupPrompt = ClientText.T("请帮我把 Brigitte MCP 接入当前使用的 MCP Client。\n\n服务地址：") + endpoint + "\nAPI Key：" + _result!.PlainKey + ClientText.T("\n\n配置示例：\n") + System.Text.Json.JsonSerializer.Serialize(new { mcpServers = new { brigitte = new { url = endpoint, headers = new Dictionary<string, string> { ["X-Api-Key"] = _result.PlainKey } } } }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + ClientText.T("\n请完成配置后验证工具能够正常列出，不要在日志、代码仓库或聊天中泄露这个 Key。");
+        // 模板暂未同步时仍给出真实连接步骤，不冒充已获取服务端操作指南。
+        if (string.IsNullOrWhiteSpace(_setupPrompt)) _setupPrompt = ClientText.T("请帮我把 Brigitte MCP 接入当前使用的 MCP Client。\n\n服务地址：") + endpoint + "\nAPI Key：" + _result!.PlainKey + ClientText.T("\n\n配置示例：\n") + System.Text.Json.JsonSerializer.Serialize(new { mcpServers = new { brigitte = new { url = endpoint, headers = new Dictionary<string, string> { ["X-Api-Key"] = _result.PlainKey } } } }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + ClientText.T("\n请完成配置后验证工具能够正常列出，不要在日志、代码仓库或聊天中泄露这个 Key。") + "\n" + ClientText.T("服务端模板暂未同步，此处仅是连接配置。重新连接后读取 MCP 初始化 instructions 和工具参数 schema；若看不到 Brigitte 工具就停止并报告。领取和续锁均调用 bug_claim，复用同一 workerId；必须确认领取成功才写入。超时先读取核查，不盲目重放。完整流程以服务端最新说明为准，不猜工具名称或参数。");
     }
     /// <summary>关闭后不保留密钥或预览图片。</summary>
     public void Dispose() { Host.Changed -= Changed; _result = null; _setupPrompt = ""; _image = null; }

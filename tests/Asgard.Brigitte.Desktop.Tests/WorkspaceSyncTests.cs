@@ -21,17 +21,17 @@ public sealed class WorkspaceSyncTests
         fixture.Replace(rows.ToArray());
         var reader = new LocalWorkspaceReader(fixture.Database);
         var stats = reader.Statistics().Single(x => x.ProjectId == "p");
-        Assert.Equal(16, stats.Total); Assert.Equal(10, stats.Unresolved); Assert.Equal(9, stats.UnresolvedHighPriority);
+        Assert.Equal(19, stats.Total); Assert.Equal(15, stats.Unresolved); Assert.Equal(14, stats.UnresolvedHighPriority);
         var empty = reader.Statistics().Single(x => x.ProjectId == "empty");
         Assert.Equal(0, empty.Unresolved); Assert.Equal(0, empty.UnresolvedHighPriority);
         rows.RemoveAll(x => x.Key == "bug/reopened");
-        var resolved = SyncProtocol.Row("bug", "reopened", new Bug { Id = "reopened", ProjectId = "p", Status = "fixed", Priority = "critical" });
+        var resolved = SyncProtocol.Row("bug", "reopened", new Bug { Id = "reopened", ProjectId = "p", Status = "closed", Priority = "critical" });
         rows.Add(resolved);
         var frame = fixture.Begin(rows.ToArray()); fixture.Database.Apply(frame with { Phase = "rows", Rows = [resolved] });
-        Assert.Equal(9, reader.Statistics().Single(x => x.ProjectId == "p").UnresolvedHighPriority);
+        Assert.Equal(14, reader.Statistics().Single(x => x.ProjectId == "p").UnresolvedHighPriority);
         fixture.Database.Apply(frame with { Phase = "commit" });
         stats = reader.Statistics().Single(x => x.ProjectId == "p");
-        Assert.Equal(9, stats.Unresolved); Assert.Equal(8, stats.UnresolvedHighPriority);
+        Assert.Equal(14, stats.Unresolved); Assert.Equal(13, stats.UnresolvedHighPriority);
     }
     [Fact]
     public void Notifications_are_committed_once_and_replay_and_lock_renewals_are_silent()

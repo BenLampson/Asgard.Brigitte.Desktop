@@ -21,6 +21,13 @@ internal sealed class NotificationSettingsTestRenderer(IServiceProvider services
         await RenderRootComponentAsync(_componentId, ParameterView.Empty);
     }
 
+    /// <summary>状态筛选等无依赖组件也通过真实渲染事件验证。</summary>
+    internal async Task MountAsync(IComponent component, ParameterView parameters)
+    {
+        _componentId = AssignRootComponentId(component);
+        await RenderRootComponentAsync(_componentId, parameters);
+    }
+
     /// <summary>取当前渲染结果的处理器标识，避免复用重绘前已经失效的事件。</summary>
     internal Task ChangeAsync(string id, object value)
     {

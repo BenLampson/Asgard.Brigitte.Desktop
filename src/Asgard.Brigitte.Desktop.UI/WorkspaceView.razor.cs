@@ -13,7 +13,18 @@ public partial class WorkspaceView
     [Inject] public IOptions<ClientOptions> Options { get; set; } = null!;
     private List<Bug> _bugs = [];
     private Dictionary<string, List<PromptAction>> _actions = [];
-    private string _projectSearch = "", _selected = "", _keyword = "", _status = "", _priority = "", _assignee = "", _source = "", _error = "", _toast = "", _lastRefresh = "—";
+    private string _projectSearch = "", _selected = "", _keyword = "", _priority = "", _assignee = "", _source = "", _error = "", _toast = "", _lastRefresh = "—";
+    /// <summary>本机项目泳道偏好，不写入服务端。</summary>
+    [Inject] public BoardPreferenceStore BoardPreferences { get; set; } = null!;
+    private IReadOnlySet<string> _statuses = new HashSet<string>();
+    private string[] _laneOrder = BugDisplay.BoardStatuses.ToArray();
+    private string BoardAccount => Session.IsLocal ? "local-workspace" : Options.Value.ApiBaseUrl.TrimEnd('/') + "\n" + Options.Value.TenantId + "\n" + Session.SubjectId;
+    /// <summary>保存成功才更新界面，失败时保留原顺序并提示。</summary>
+    private void SaveLaneOrder(IReadOnlyList<string> order)
+    {
+        try { BoardPreferences.Set(BoardAccount, _selected, order); _laneOrder = BoardPreferences.Get(BoardAccount, _selected); }
+        catch (Exception ex) { _error = AppView.SafeError(ex); }
+    }
     private bool _busy, _list;
     private int _page = 1, _size = 20, _loadVersion;
     private Project? Project => Workspace.Projects.FirstOrDefault(p => p.Id == _selected);
@@ -24,10 +35,10 @@ public partial class WorkspaceView
     private LocalDateRange _dateRange = new(null, null);
     private string _dateError = "";
     private IEnumerable<Bug> MatchingOtherFilters => _dateError.Length > 0 ? [] : _bugs.Where(b => _dateRange.Contains(b.CreateTime) && BugDisplay.Matches(b, _keyword, "", _priority, _assignee, _source));
-    private List<Bug> Filtered => MatchingOtherFilters.Where(b => _status.Length == 0 || b.Status == _status).ToList();
+    private List<Bug> Filtered => MatchingOtherFilters.Where(b => _statuses.Count == 0 || _statuses.Contains(b.Status)).ToList();
     private IReadOnlyDictionary<string, int> StatusCounts => MatchingOtherFilters.GroupBy(b => b.Status).ToDictionary(g => g.Key, g => g.Count());
     /// <summary>标签切换同步作用于看板和列表，其他筛选及项目不变。</summary>
-    private void SelectStatus(string status) { _status = status; ResetPage(); }
+    private void SelectStatuses(IReadOnlySet<string> statuses) { _statuses = statuses; ResetPage(); }
     /// <summary>用户选择本地日期，转 UTC 后与同步数据比较，保留其他筛选。</summary>
     private void ApplyDates()
     {
@@ -57,6 +68,7 @@ public partial class WorkspaceView
             // 项目标识和结果一起更新，过期请求不能把新项目的界面切回去。
             if (_selected != selected) _page = 1;
             _selected = selected;
+            _laneOrder = BoardPreferences.Get(BoardAccount, selected);
             _bugs = bugs; _actions = actions; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
             _page = Math.Clamp(_page, 1, Math.Max(1, (int)Math.Ceiling((double)Filtered.Count / _size)));
         }

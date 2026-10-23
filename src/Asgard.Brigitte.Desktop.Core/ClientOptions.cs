@@ -2,6 +2,11 @@ namespace Asgard.Brigitte.Desktop.Core;
 /// <summary>资源服务器、授权服务器和管理站点独立配置。</summary>
 public sealed class ClientOptions
 {
+    /// <summary>由原生宿主填入真实应用版本，服务端只用于诊断和兼容判断。</summary>
+    public string ClientVersion { get; set; } = "unknown";
+    /// <summary>由原生宿主填入运行平台。</summary>
+    public string ClientPlatform { get; set; } = "unknown";
+
     /// <summary>现有 BUG 服务入口。</summary>
     public string ApiBaseUrl { get; set; } = "https://brigitte.mudou.tech/";
     /// <summary>精确 OIDC issuer。</summary>

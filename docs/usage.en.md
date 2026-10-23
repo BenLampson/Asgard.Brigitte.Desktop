@@ -18,6 +18,8 @@ After sign-in, wait for workspace sync to finish. Create a project from the empt
 
 Choose a project in the sidebar. Switch between board and list views, search, and filter by status, priority, assignee, or source. Bug details, editing, replies, status changes, projects, invitations, and keys open in separate windows.
 
+Drag a lane header to reorder the board. An insertion line marks the drop position, and the board scrolls when you drag near its left or right edge. Press Escape to cancel. Keyboard users can focus a header and press Alt + Left / Right. Use **Reset lane order** to restore the default. Order saves on this device for the current account and project; filtering preserves hidden lanes, and existing saved orders are retained when upgrading.
+
 Use **Report bug** to enter a title, description, issue details, priority, assignee, and affected services. Markdown is supported. You can select attachments or paste and drag images and files. Each attachment is limited to 50 MB. Downloaded files are saved to the location you choose.
 
 Claiming a bug takes a temporary work lock. Another worker's active lock prevents changes while keeping reading, copying, and downloading available. The server makes the final authorization decision. Deleting a bug requires two confirmations and also removes associated comments, history, and attachments.

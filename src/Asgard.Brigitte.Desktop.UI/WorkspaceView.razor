@@ -32,7 +32,7 @@
 <button disabled="@(Project is null || _busy)" @onclick="BatchPrompt">@ClientText.T("⧉ 复制批量修复提示词")</button><button class="primary" disabled="@(Project is null || !Host.CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Create, ProjectId: _selected), View)">@ClientText.T("＋ 提交 BUG")</button></div>
 <div class="search-toolbar">
 <input class="bug-search" placeholder="@ClientText.T("搜索 BUG")" title="@ClientText.T("搜索标题、描述、内容或来源")" aria-label="@ClientText.T("搜索 BUG")" @bind="_keyword" @bind:event="oninput" @bind:after="ResetPage" />
-<StatusFilters Counts="StatusCounts" Selected="@_status" SelectedChanged="SelectStatus" />
+<StatusFilters Counts="StatusCounts" Selected="_statuses" SelectedChanged="SelectStatuses" />
 <div class="advanced-disclosure">
 <button type="button" class="advanced-toggle" aria-expanded="@(_moreFilters ? "true" : "false")" @onclick="() => _moreFilters = !_moreFilters"><span aria-hidden="true">@(_moreFilters ? "▾" : "▸")</span>@ClientText.T("更多筛选") @if (ActiveFilterCount > 0) { <span class="filter-count">@ActiveFilterCount</span> }</button>
 <div class="advanced-filter-panel" hidden="@(!_moreFilters)"><div class="filters">
@@ -47,6 +47,7 @@
 </div>
 @if (_dateError.Length > 0) { <div class="notice error" role="alert">@ClientText.T(_dateError)</div> }
 </div></div>
+@if (!_list) { <button type="button" class="lane-order-reset" title="@ClientText.T("仅影响本机当前账号、当前项目的显示顺序，不改变状态流程。")" @onclick="() => SaveLaneOrder(BugDisplay.BoardStatuses)">@ClientText.T("恢复泳道顺序")</button> }
 <button class="search-refresh" @onclick="Reload" disabled="@_busy">@ClientText.T("↻ 刷新")</button>
 </div>
 </header>
@@ -62,11 +63,10 @@ else if (Workspace.Projects.Count == 0) {
 </section>
 }
 else if (!_list) {
-<div class="lanes" id="board-scroll" @key="(_selected, false)">
-@foreach(var status in (_status=="" ? BugDisplay.BoardStatuses : new[]{_status})) {
+<LaneOrder Order="_laneOrder" Selected="_statuses" Counts="StatusCounts" OrderChanged="SaveLaneOrder" @key="_selected" Context="status">
+@{
 var bugs = Filtered.Where(b=>b.Status==status).ToList();
-<section class="lane" @key="status"><h2><span class="status-dot @status"></span>@BugDisplay.Statuses[status]<small>@bugs.Count</small></h2>
-<div class="lane-scroll" data-scroll="@status">
+}
 @foreach(var bug in bugs) {
 <article class="bug-card" tabindex="0" role="button" @key="bug.Id" @onclick="() => OpenBug(bug)" @onkeydown="e => OnCardKey(e, bug)">
 <div class="card-meta"><span title="@bug.Id">@BugDisplay.ShortId(bug.Id)</span><button class="icon-button" title="@ClientText.T("复制完整 BUG ID")" aria-label="@ClientText.T("复制 BUG ID")" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true" @onclick="() => Copy(bug.Id)">⧉</button><div class="spacer"></div>
@@ -77,8 +77,7 @@ var bugs = Filtered.Where(b=>b.Status==status).ToList();
 <div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">@ClientText.T("负责人")</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></div>
 </article> }
 @if(bugs.Count==0) { <p class="empty-column">@ClientText.T("暂无 BUG")</p> }
-</div></section> }
-</div>
+</LaneOrder>
 } else {
 <div class="table-scroll" @key="(_selected, true)"><table><thead><tr><th>BUG</th><th>@ClientText.T("状态")</th><th>@ClientText.T("优先级")</th><th>@ClientText.T("负责人")</th><th>@ClientText.T("涉及服务")</th><th>@ClientText.T("领取者 / 锁")</th><th>@ClientText.T("来源")</th><th>@ClientText.T("创建时间")</th><th>@ClientText.T("操作")</th></tr></thead><tbody>
 @foreach(var bug in Filtered.Skip((_page-1)*_size).Take(_size)) { <tr @key="bug.Id">

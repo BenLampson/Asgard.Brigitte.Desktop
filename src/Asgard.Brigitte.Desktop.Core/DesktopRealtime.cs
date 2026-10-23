@@ -89,6 +89,7 @@ public sealed class DesktopRealtime : IWorkspaceSync, IDisposable
                 SetStatus("正在连接工作区"); HasManifest = false;
                 await using var connection = new HubConnectionBuilder().WithUrl(new Uri(new Uri(_options.ApiBaseUrl), "api/brigitte/sync"), o =>
                 {
+                    foreach (var header in DesktopClientIdentity.Headers(_options)) o.Headers[header.Key] = header.Value;
                     o.Transports = HttpTransportType.WebSockets; o.SkipNegotiation = true;
                     o.AccessTokenProvider = async () => (await _session.GetLeaseAsync(lifetime.Token)).AccessToken;
                 }).Build();

@@ -93,6 +93,7 @@ public sealed partial class StandaloneWorkspace
     {
         var status = Property(input, "status");
         if (status is null || !BugDisplay.Statuses.ContainsKey(status)) throw new ArgumentException(ClientText.T("BUG 状态无效。"));
+        BugWorkflow.Validate(bug.Status, status, Property(input, "reason"));
         if (bug.Status == status) return bug;
         var history = new BugHistory { Id = NewId(), BugId = bug.Id, FromStatus = bug.Status, ToStatus = status,
             Reason = Property(input, "reason") ?? "", OperatorType = "human", CreateTime = DateTimeOffset.UtcNow };

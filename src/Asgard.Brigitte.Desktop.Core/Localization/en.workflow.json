@@ -1,0 +1,22 @@
+{
+  "待部署": "Pending deployment",
+  "待人工回归": "Pending human verification",
+  "人工回归通过": "Human verified",
+  "历史已处理 · 部署待确认": "Legacy fixed · deployment unconfirmed",
+  "历史回归通过 · 验收待确认": "Legacy regression · acceptance unconfirmed",
+  "状态已变化或流转不允许，请重新打开窗口。": "The status has changed or this transition is not allowed. Please reopen this window.",
+  "请填写变更原因；部署和验收需注明环境、版本及结果。": "Provide a reason. For deployment and verification, include the environment, version and results.",
+  "仅在你已完成实际人工验收后确认；AI 自测不属于人工验收。": "Confirm only after you have personally verified the result. AI testing is not human acceptance.",
+  "我已人工验收通过": "I have personally verified this",
+  "已选 {0} 项": "{0} selected",
+  "可多选，匹配任一所选状态；未选择时显示全部。": "Select multiple statuses to match any of them. No selection shows all statuses.",
+  "清除选择": "Clear selection",
+  "泳道顺序": "Lane order",
+  "仅影响本机当前账号、当前项目的显示顺序，不改变状态流程。": "Display order for this account and project on this device only. The workflow stays the same.",
+  "恢复默认顺序": "Restore default order",
+  "上移 {0}": "Move {0} up",
+  "下移 {0}": "Move {0} down",
+  "恢复泳道顺序": "Reset lane order",
+  "拖动调整顺序；也可按 Alt＋←／→ 移动": "Drag to reorder, or press Alt + Left / Right",
+  "调整泳道顺序：{0}。拖动或按 Alt＋左右方向键。": "Reorder lane: {0}. Drag or press Alt + Left / Right."
+}

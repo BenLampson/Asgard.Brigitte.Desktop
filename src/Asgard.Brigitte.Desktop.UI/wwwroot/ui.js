@@ -36,6 +36,99 @@ window.brigitte = {
   },
 };
 
+// 泳道只在标题上启动原生拖拽；卡片、附件拖放不参与排序。
+const laneOrderCleanup = new WeakMap();
+window.brigitte.attachLaneOrder = (board, receiver) => {
+  laneOrderCleanup.get(board)?.();
+  const controller = new AbortController();
+  const options = { signal: controller.signal };
+  let source = null, target = null, after = false, pointerX = 0, pointerY = 0, frame = 0, lastTime = 0;
+  const clearTarget = () => {
+    target?.classList.remove("lane-drop-before", "lane-drop-after");
+    target = null;
+  };
+  const finish = () => {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    lastTime = 0;
+    source?.classList.remove("lane-dragging");
+    source = null;
+    board.classList.remove("is-reordering");
+    clearTarget();
+  };
+  // 根据当前指针重新测量，滚动时落点仍与实际列对齐。
+  const locate = () => {
+    clearTarget();
+    const lane = document.elementFromPoint(pointerX, pointerY)?.closest("[data-lane]");
+    if (!lane || lane === source || lane.parentElement !== board) return;
+    target = lane;
+    const bounds = lane.getBoundingClientRect();
+    after = pointerX >= bounds.left + bounds.width / 2;
+    lane.classList.add(after ? "lane-drop-after" : "lane-drop-before");
+  };
+  // 接近可视看板边缘时连续滚动，支持跨越屏幕外的泳道。
+  const scroll = (time) => {
+    if (!source) return;
+    const bounds = board.getBoundingClientRect();
+    const inside = pointerY >= bounds.top && pointerY <= bounds.bottom && pointerX >= bounds.left && pointerX <= bounds.right;
+    const speed = !inside ? 0 : pointerX < bounds.left + 64 ? -Math.min(1, (bounds.left + 64 - pointerX) / 64)
+      : pointerX > bounds.right - 64 ? Math.min(1, (pointerX - bounds.right + 64) / 64) : 0;
+    const elapsed = lastTime ? Math.min(32, time - lastTime) : 16;
+    lastTime = time;
+    if (speed) { board.scrollLeft += speed * elapsed * 0.8; locate(); }
+    frame = requestAnimationFrame(scroll);
+  };
+  board.addEventListener("dragstart", (event) => {
+    const handle = event.target.closest?.(".lane-drag-handle");
+    if (!handle || !event.dataTransfer) return;
+    finish();
+    source = handle.closest("[data-lane]");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", source.dataset.lane);
+    source.classList.add("lane-dragging");
+    board.classList.add("is-reordering");
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    frame = requestAnimationFrame(scroll);
+  }, options);
+  document.addEventListener("dragover", (event) => {
+    if (!source) return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    locate();
+    if (board.contains(event.target)) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = target ? "move" : "none";
+    }
+  }, options);
+  board.addEventListener("drop", (event) => {
+    if (!source) return;
+    event.preventDefault();
+    event.stopPropagation();
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    locate();
+    const from = source.dataset.lane, to = target?.dataset.lane, insertAfter = after;
+    finish();
+    if (to) receiver.invokeMethodAsync("MoveLane", from, to, insertAfter);
+  }, options);
+  document.addEventListener("dragend", finish, options);
+  document.addEventListener("drop", finish, options);
+  // 标题按钮保留键盘入口，省去独立排序面板及重复的上下箭头。
+  board.addEventListener("keydown", (event) => {
+    const handle = event.target.closest?.(".lane-drag-handle");
+    if (!handle || !event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    const lanes = [...board.querySelectorAll(":scope > [data-lane]")];
+    const from = handle.closest("[data-lane]");
+    const direction = event.key === "ArrowLeft" ? -1 : 1;
+    const to = lanes[lanes.indexOf(from) + direction];
+    if (to) receiver.invokeMethodAsync("MoveLane", from.dataset.lane, to.dataset.lane, direction > 0);
+  }, options);
+  laneOrderCleanup.set(board, () => { finish(); controller.abort(); laneOrderCleanup.delete(board); });
+};
+window.brigitte.detachLaneOrder = (board) => laneOrderCleanup.get(board)?.();
+
 // 菜单使用顶层浮层，避免被泳道及窗口滚动容器裁切。
 document.addEventListener("beforetoggle", (event) => {
   const menu = event.target;

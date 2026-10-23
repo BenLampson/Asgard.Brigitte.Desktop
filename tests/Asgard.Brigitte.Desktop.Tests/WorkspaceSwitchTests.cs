@@ -14,7 +14,7 @@ public sealed class WorkspaceSwitchTests
         await local.EnterAsync(); await local.ProjectAsync();
         var services = new ServiceCollection();
         services.AddLogging(); services.AddSingleton(local.Api); services.AddSingleton(local.Session);
-        services.AddSingleton<WorkspaceStore>(); services.AddSingleton<IClientHost>(new RenderHost("light"));
+        services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json"))); services.AddSingleton<IClientHost>(new RenderHost("light"));
         services.AddSingleton<IOptions<ClientOptions>>(Options.Create(new ClientOptions()));
         services.AddSingleton<Microsoft.JSInterop.IJSRuntime, RenderJsRuntime>();
         using var provider = services.BuildServiceProvider();

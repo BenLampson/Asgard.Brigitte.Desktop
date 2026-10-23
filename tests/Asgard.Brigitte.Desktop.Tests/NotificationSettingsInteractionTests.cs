@@ -31,7 +31,7 @@ public sealed class NotificationSettingsInteractionTests
         services.AddSingleton<IOptions<ClientOptions>>(Options.Create(new ClientOptions()));
         services.AddSingleton<IHttpClientFactory>(transport); services.AddSingleton(local.Database);
         services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<IWorkspaceSync>(new TestWorkspaceSync());
-        services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton<IClientHost>(host);
+        services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json"))); services.AddSingleton<IClientHost>(host);
         using var provider = services.BuildServiceProvider();
         await using var renderer = new NotificationSettingsTestRenderer(provider);
         await renderer.Dispatcher.InvokeAsync(async () =>

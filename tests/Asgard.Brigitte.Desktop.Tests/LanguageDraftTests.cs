@@ -23,7 +23,7 @@ public sealed class LanguageDraftTests
         services.AddSingleton(session); services.AddSingleton<IClientSession>(session);
         services.AddSingleton<IHttpClientFactory>(transport); services.AddSingleton(workspace.Database);
         services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<IWorkspaceSync>(new TestWorkspaceSync());
-        services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>();
+        services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json")));
         services.AddSingleton<IClientHost>(new RenderHost("light"));
         var activator = new LanguageComponentActivator(); services.AddSingleton<IComponentActivator>(activator);
         using var provider = services.BuildServiceProvider();

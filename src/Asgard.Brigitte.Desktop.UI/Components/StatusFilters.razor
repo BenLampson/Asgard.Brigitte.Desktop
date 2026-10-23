@@ -1,35 +1,41 @@
 <div class="status-disclosure">
-<button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span><span>@ClientText.T("按状态筛选")</span><span class="status-summary-value">@(_selectedAll ? ClientText.T("全部状态") : BugDisplay.Statuses.GetValueOrDefault(Selected, Selected))</span><span class="status-tag-count">@(_selectedAll ? Counts.Values.Sum() : Counts.GetValueOrDefault(Selected))</span></button>
-<nav hidden="@(!_expanded)" class="status-filters" aria-label="@ClientText.T("按状态筛选")">
-    <button class="status-tag @(_selectedAll ? "is-selected" : null)" aria-pressed="@(_selectedAll ? "true" : "false")" @onclick="Clear">
-        <span>@ClientText.T("全部状态")</span><span class="status-tag-count">@Counts.Values.Sum()</span>
-    </button>
-    @foreach (var status in BugDisplay.Statuses)
+<button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span><span>@ClientText.T("按状态筛选")</span><span title="@string.Join("、", Selected.Select(s => BugDisplay.Statuses.GetValueOrDefault(s, s)))" class="status-summary-value">@(Selected.Count == 0 ? ClientText.T("全部状态") : ClientText.T("已选 {0} 项", Selected.Count))</span><span class="status-tag-count">@SelectedCount</span></button>
+<div hidden="@(!_expanded)" class="status-filters" role="group" aria-label="@ClientText.T("按状态筛选")">
+    <div class="status-filter-heading"><small>@ClientText.T("可多选，匹配任一所选状态；未选择时显示全部。")</small><button type="button" disabled="@(Selected.Count == 0)" @onclick="Clear">@ClientText.T("清除选择")</button></div>
+    @foreach (var status in BugDisplay.Statuses.Where(s => s.Key is not ("fixed" or "regressed") || Counts.GetValueOrDefault(s.Key) > 0 || Selected.Contains(s.Key)))
     {
-        var selected = Selected == status.Key;
-        <button @key="status.Key" class="status-tag tone-@Tone(status.Key) @(selected ? "is-selected" : null)" aria-pressed="@(selected ? "true" : "false")" @onclick="() => Select(status.Key)">
+        var selected = Selected.Contains(status.Key);
+        <label @key="status.Key" class="status-tag tone-@Tone(status.Key) @(selected ? "is-selected" : null)">
+            <input id="status-filter-@status.Key" type="checkbox" checked="@selected" @onchange="() => Toggle(status.Key)" />
             <span class="status-tag-dot" aria-hidden="true"></span><span>@status.Value</span><span class="status-tag-count">@Counts.GetValueOrDefault(status.Key)</span>
-        </button>
+        </label>
     }
-</nav>
+</div>
 </div>
 @code {
-    // 展开面板参与父工具栏布局，不覆盖看板。
+    // 展开后参与布局，不遮挡看板；复选框支持键盘和读屏。
     private bool _expanded;
-    /// <button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span>计数已应用搜索、日期等条件，但不受当前状态影响，便于切换比较。</button>
+    /// <summary>计数应用其他条件，不受状态选择影响。</summary>
     [Parameter] public IReadOnlyDictionary<string, int> Counts { get; set; } = new Dictionary<string, int>();
-    [Parameter] public string Selected { get; set; } = "";
-    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
-    private Task Clear() => SelectedChanged.InvokeAsync("");
-    private Task Select(string status) => SelectedChanged.InvokeAsync(Selected == status ? "" : status);
-    private bool _selectedAll => Selected.Length == 0;
-    /// <button type="button" class="status-toggle" aria-expanded="@(_expanded ? "true" : "false")" @onclick="() => _expanded = !_expanded"><span aria-hidden="true">@(_expanded ? "▾" : "▸")</span>阶段共用语义色，文字与数量始终可见，选择态不单靠颜色区分。</button>
+    /// <summary>空集合表示全部；选择状态之间为或关系。</summary>
+    [Parameter] public IReadOnlySet<string> Selected { get; set; } = new HashSet<string>();
+    [Parameter] public EventCallback<IReadOnlySet<string>> SelectedChanged { get; set; }
+    private int SelectedCount => Selected.Count == 0 ? Counts.Values.Sum() : Selected.Sum(x => Counts.GetValueOrDefault(x));
+    private Task Clear() => SelectedChanged.InvokeAsync(new HashSet<string>());
+    /// <summary>复制集合再回调，不修改父组件传入的状态。</summary>
+    private Task Toggle(string status)
+    {
+        var next = Selected.ToHashSet(StringComparer.Ordinal);
+        if (!next.Add(status)) next.Remove(status);
+        return SelectedChanged.InvokeAsync(next);
+    }
+    /// <summary>历史结果用中性色，人工验收才使用通过色。</summary>
     private static string Tone(string status) => status switch
     {
         "blocked" or "reopened" => "danger",
-        "need_info" or "waiting" => "warning",
-        "fixed" or "regressed" or "closed" => "success",
-        "wont_fix" or "duplicate" or "cannot_reproduce" => "neutral",
+        "need_info" or "waiting" or "pending_deployment" or "pending_regression" => "warning",
+        "human_verified" or "closed" => "success",
+        "fixed" or "regressed" or "wont_fix" or "duplicate" or "cannot_reproduce" => "neutral",
         _ => "active"
     };
 }

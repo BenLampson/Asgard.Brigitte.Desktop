@@ -9,7 +9,12 @@ public static class DesktopHttpClients
     {
         services.AddHttpClient("oidc", c => c.Timeout = TimeSpan.FromSeconds(45))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
-        services.AddHttpClient("brigitte", c => { c.BaseAddress = new Uri(options.ApiBaseUrl.TrimEnd('/') + "/"); c.Timeout = TimeSpan.FromSeconds(90); })
+        services.AddHttpClient("brigitte", c =>
+            {
+                foreach (var header in DesktopClientIdentity.Headers(options)) c.DefaultRequestHeaders.Add(header.Key, header.Value);
+                c.BaseAddress = new Uri(options.ApiBaseUrl.TrimEnd('/') + "/");
+                c.Timeout = TimeSpan.FromSeconds(90);
+            })
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false })
             .AddStandardResilienceHandler(o =>
             {

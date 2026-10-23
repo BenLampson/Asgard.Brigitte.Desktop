@@ -46,8 +46,8 @@ public sealed class StandaloneWorkspaceTests
         await local.Api.CommentAsync(bug.Id, "回复内容", "comment", "human", null);
         await local.Api.CommentAsync(bug.Id, "处理记录", "process", "human", null);
         await local.Api.ClaimAsync(bug.Id, "worker-local");
-        await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.StatusAsync(bug.Id, "fixed", "", "another-worker"));
-        await local.Api.StatusAsync(bug.Id, "fixed", "本机验证通过", "worker-local");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.StatusAsync(bug.Id, "pending_deployment", "", "another-worker"));
+        await local.Api.StatusAsync(bug.Id, "pending_deployment", "本机验证通过", "worker-local");
         await local.Api.ReleaseAsync(bug.Id, "worker-local");
         var attachment = await local.Api.UploadAsync(bug.Id, "中文附件.txt", "text/plain", [0, 1, 2, 255], null);
         Assert.Equal("", attachment.Base64Content);
@@ -56,9 +56,9 @@ public sealed class StandaloneWorkspaceTests
         Assert.Equal(2, detail.Comments.Length); Assert.Equal(2, detail.Histories.Length);
         Assert.Single(detail.Attachments); Assert.Empty(detail.Attachments[0].Base64Content);
         var stats = Assert.Single(await local.Api.GetAsync<List<ProjectStatistics>>("bugs/statistics", TestContext.Current.CancellationToken));
-        Assert.Equal(1, stats.Total); Assert.Equal(0, stats.Unresolved);
+        Assert.Equal(1, stats.Total); Assert.Equal(1, stats.Unresolved);
         Assert.Contains("编辑后的问题", await local.Api.PromptAsync("localFixPrompt", new() { ["bugId"] = bug.Id }));
-        Assert.NotEmpty(await local.Api.ActionsAsync("fixed"));
+        Assert.NotEmpty(await local.Api.ActionsAsync("pending_deployment"));
         local.Database.Dispose();
         using var reopened = new StandaloneWorkspace(Path.Combine(local.DirectoryPath, "local")); reopened.Open();
         Assert.Equal("编辑后的问题", Assert.Single(reopened.Read<Bug>("bug")).Title);
@@ -114,7 +114,7 @@ public sealed class StandaloneWorkspaceTests
         Assert.Equal(0, changes); Assert.Equal("测试事务", (await local.Api.DetailAsync(bug.Id)).Bug.Title);
         Assert.Empty(local.Database.Read<BugAttachment>("attachment")); Assert.Empty(local.Database.Read<BugHistory>("history"));
         await local.Api.CommentAsync(bug.Id, "测试回复", "comment", "human", null);
-        await local.Api.StatusAsync(bug.Id, "closed", "测试历史", null);
+        await local.Api.StatusAsync(bug.Id, "pending_deployment", "测试历史", null);
         var file = await local.Api.UploadAsync(bug.Id, "delete.txt", "text/plain", [9], null);
         await local.Api.DeleteAttachmentAsync(bug.Id, file.Id, null);
         await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.DownloadAsync(bug.Id, file.Id));

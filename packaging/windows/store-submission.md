@@ -1,5 +1,17 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 23, 2026 — 1.0.6 release preparation
+
+Partner Center confirms Submission 5 is published. A new Submission 6 (`1152921505702209958`) is being prepared for `1.0.6.0`: direct lane-header dragging with insertion markers and edge scrolling, keyboard/reset controls, preserved device preferences, and hidden empty legacy lanes and filters. All 195 client tests passed. See [1.0.6 release notes](../../docs/releases/v1.0.6.md) for source/package provenance and the final submission result.
+
+## October 22, 2026 — 1.0.5 submitted
+
+Partner Center confirmed Submission 4 is published. Version `1.0.5.0` was uploaded and validated, then formally submitted as Submission 5 (`1152921505702198725`). The returned status is **In certification**; the page explicitly confirms publication begins immediately after certification. This is not confirmation that 1.0.5 is already available to customers.
+
+The new x64 package is ranked first. English and Simplified Chinese release notes were updated for local lane ordering, multiple-status filtering and styling fixes, deployment/human-verification workflow, client capability/version identifiers, and repair/MCP guidance. Existing older packages, listing screenshots, availability, age ratings and reviewer information were retained.
+
+Local Release MSIX: `Asgard.Brigitte.Desktop_1.0.5.0_x64.msix`, 115753099 bytes. SHA-256: `2e6f228b70422d1225daa6df330d40887cc692ef70dd381af24c70ed53050ec8`. Client tests: 180 passed. Local evidence: `publish/store/1.0.5.0/store-submitted.jpg`. No production service or database changes were made during this Store submission.
+
 ## October 21, 2026 — 1.0.4 submitted
 
 Version `1.0.3.0` is available in Microsoft Store, confirmed by Partner Center and the installed Store-signed package. Version `1.0.4.0` adds device-local per-project notification rules. At approximately 17:03 Asia/Shanghai, Submission 4 (`1152921505702190079`) was formally submitted and shows **In certification / pre-processing**. The new x64 package is Validated and ranked first. Publication starts immediately after certification; 1.0.4 is not yet available through the Store.

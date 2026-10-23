@@ -71,7 +71,7 @@ public sealed class StandaloneRenderTests
         services.AddSingleton(local.Session); services.AddSingleton<IClientSession>(local.Session);
         services.AddSingleton(local.Database); services.AddSingleton(local.OnlineDatabase); services.AddSingleton<IHttpClientFactory>(local.Transport);
         services.AddSingleton<IWorkspaceSync>(local.Sync); services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<BrigitteApi>();
-        services.AddSingleton<WorkspaceStore>(); services.AddSingleton<IClientHost>(new RenderHost(theme) { SyncReady = false });
+        services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json"))); services.AddSingleton<IClientHost>(new RenderHost(theme) { SyncReady = false });
         services.AddSingleton<Microsoft.JSInterop.IJSRuntime, RenderJsRuntime>();
         await using var provider = services.BuildServiceProvider();
         // 容器只负责渲染器，夹具负责会话与数据库寿命，避免跨窗口提前释放同一实例。

@@ -1,0 +1,58 @@
+@implements IAsyncDisposable
+<div class="lanes" id="board-scroll" @ref="_board" aria-label="@ClientText.T("BUG 看板")">
+@foreach (var status in VisibleOrder)
+{
+    <section class="lane" data-lane="@status" @key="status">
+        <h2><button type="button" class="lane-drag-handle" draggable="true"
+            title="@ClientText.T("拖动调整顺序；也可按 Alt＋←／→ 移动")"
+            aria-label="@ClientText.T("调整泳道顺序：{0}。拖动或按 Alt＋左右方向键。", BugDisplay.Statuses[status])">
+            <svg class="lane-grip" width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1" /><circle cx="8" cy="4" r="1" /><circle cx="4" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="8" cy="12" r="1" /></svg>
+            <span class="status-dot @status"></span><span class="lane-name">@BugDisplay.Statuses[status]</span><small>@Counts.GetValueOrDefault(status)</small>
+        </button></h2>
+        <div class="lane-scroll" data-scroll="@status">@ChildContent(status)</div>
+    </section>
+}
+</div>
+@code {
+    /// <summary>交互仅在原生 WebView 渲染完成后装配。</summary>
+    [Inject] public IJSRuntime JS { get; set; } = null!;
+    private ElementReference _board;
+    private DotNetObjectReference<LaneOrder>? _receiver;
+    /// <summary>完整顺序用于保存；筛选只影响显示，不会删掉未显示泳道的偏好。</summary>
+    [Parameter] public IReadOnlyList<string> Order { get; set; } = BugDisplay.BoardStatuses;
+    [Parameter] public IReadOnlySet<string> Selected { get; set; } = new HashSet<string>();
+    [Parameter] public IReadOnlyDictionary<string, int> Counts { get; set; } = new Dictionary<string, int>();
+    [Parameter] public EventCallback<IReadOnlyList<string>> OrderChanged { get; set; }
+    [Parameter, EditorRequired] public RenderFragment<string> ChildContent { get; set; } = null!;
+    // 迁移后的空历史泳道不再占位；本机仍有历史记录或显式选中时保持可见。
+    private IEnumerable<string> VisibleOrder => Order.Where(s => Selected.Count == 0 || Selected.Contains(s))
+        .Where(s => s is not ("fixed" or "regressed") || Counts.GetValueOrDefault(s) > 0 || Selected.Contains(s));
+
+    /// <summary>原生拖拽在本地处理落点和边缘滚动，放下后才通过 .NET 保存完整顺序。</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _receiver = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("brigitte.attachLaneOrder", _board, _receiver);
+    }
+
+    /// <summary>验证可见落点；非法拖入、原位置释放或取消不写入偏好。</summary>
+    [JSInvokable]
+    public Task MoveLane(string source, string target, bool after)
+    {
+        if (source == target || !VisibleOrder.Contains(source) || !VisibleOrder.Contains(target)) return Task.CompletedTask;
+        var next = Order.ToList();
+        next.Remove(source);
+        next.Insert(next.IndexOf(target) + (after ? 1 : 0), source);
+        return next.SequenceEqual(Order) ? Task.CompletedTask : OrderChanged.InvokeAsync(next);
+    }
+
+    /// <summary>切换项目、列表或关闭窗口时取消拖拽并释放 JS 和 .NET 引用。</summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_receiver is null) return;
+        try { await JS.InvokeVoidAsync("brigitte.detachLaneOrder", _board); }
+        catch (JSDisconnectedException) { /* WebView 已关闭，无需再清理 DOM。 */ }
+        finally { _receiver.Dispose(); }
+    }
+}

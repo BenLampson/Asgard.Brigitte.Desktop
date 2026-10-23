@@ -11,11 +11,14 @@ public static class BugDisplay
         ["triaged"] = "已分诊",
         ["assigned"] = "已指派",
         ["processing"] = "处理中",
+        ["reopened"] = "重新打开",
+        ["pending_deployment"] = "待部署",
+        ["pending_regression"] = "待人工回归",
+        ["human_verified"] = "人工回归通过",
         ["blocked"] = "阻塞中",
         ["need_info"] = "待补充信息",
-        ["fixed"] = "已处理",
-        ["regressed"] = "已回归",
-        ["reopened"] = "重新打开",
+        ["fixed"] = "历史已处理 · 部署待确认",
+        ["regressed"] = "历史回归通过 · 验收待确认",
         ["closed"] = "已关闭",
         ["wont_fix"] = "不处理",
         ["duplicate"] = "重复 BUG",
@@ -23,8 +26,11 @@ public static class BugDisplay
     };
     /// <summary>默认看板展示全部状态，结束状态也必须保留可见的泳道。</summary>
     public static readonly string[] BoardStatuses = StatusKeys.Keys.ToArray();
-    /// <summary>仍需要处理的状态；已处理、已回归及其他结束状态不计入未解决。</summary>
-    public static bool IsUnresolved(string status) => status is "waiting" or "confirmed" or "reproducing" or "triaged" or "assigned" or "processing" or "blocked" or "need_info" or "reopened";
+    /// <summary>交付、人工验收和历史待确认都仍需跟进，仅归档或明确终止后结束。</summary>
+    public static bool IsUnresolved(string status) => status is not ("closed" or "wont_fix" or "duplicate" or "cannot_reproduce");
+    /// <summary>批量修复只包含尚未完成修复的事项，不重复修改待交付与验收记录。</summary>
+    public static bool NeedsRepair(string status) => status is "waiting" or "confirmed" or "reproducing" or "triaged" or
+        "assigned" or "processing" or "blocked" or "need_info" or "reopened";
     /// <summary>紧急度使用文字标签。</summary>
     private static readonly IReadOnlyDictionary<string, string> PriorityKeys = new Dictionary<string, string>
     { ["critical"] = "紧急", ["high"] = "高", ["medium"] = "中", ["low"] = "低" };

@@ -1559,3 +1559,47 @@ body:has(.tray-client.dark) {
 .status-tag-count { min-width:18px; padding:0 4px; border-radius:8px; background:var(--subtle); color:var(--tag-color); font-variant-numeric:tabular-nums; font-weight:600; }
 .status-tag.is-selected { border-color:var(--tag-color); box-shadow:inset 0 0 0 1px var(--tag-color); background:var(--selected); font-weight:600; }
 .status-tag:hover:not(:disabled) { border-color:var(--tag-color); }
+
+/* 多选状态与本机泳道排序：标题直接拖拽，不再展开独立排序面板。 */
+.search-toolbar { grid-template-columns:minmax(160px,1fr) auto auto auto auto; }
+.lane-order-reset { grid-column:4; grid-row:1; min-height:32px; font-size:12px; color:var(--muted); }
+.search-refresh { grid-column:5; }
+.status-filter-heading { flex-basis:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.status-filter-heading small { color:var(--muted); line-height:1.5; }
+.status-filter-heading button { flex:none; }
+.status-tag { border:1px solid var(--line); cursor:pointer; white-space:normal; border-radius:6px; margin:0; }
+/* 复选框不继承普通输入框的最小高度、内边距和焦点框。 */
+.status-tag input[type=checkbox] { appearance:auto; display:block; flex:none; width:14px; height:14px; min-height:0; padding:0; margin:0; border:0; border-radius:0; background:transparent; accent-color:var(--accent); }
+.status-tag input[type=checkbox]:focus { outline:none; }
+.status-tag:has(input:focus-visible) { outline:2px solid var(--accent); outline-offset:2px; }
+.status-dot.pending_deployment, .status-dot.pending_regression { background:#b58028; }
+.status-dot.human_verified { background:#219367; }
+.status-dot.fixed, .status-dot.regressed { background:#89939e; }
+@media(max-width:900px) {
+ .search-toolbar { grid-template-columns:1fr auto auto auto; }
+ .search-toolbar .bug-search { grid-column:1 / -1; grid-row:1; }
+ .status-toggle { grid-column:1; grid-row:2; }
+ .advanced-toggle { grid-column:2; grid-row:2; }
+ .lane-order-reset { grid-column:3; grid-row:2; }
+ .search-refresh { grid-column:4; grid-row:2; }
+ .search-toolbar .status-filters { grid-row:3; }
+ .advanced-filter-panel { grid-row:4; }
+}
+
+/* 历史状态名称较长，标题允许自然换行且色点不收缩。 */
+.lane h2 { flex-basis:auto; min-height:38px; overflow-wrap:anywhere; }
+.lane h2 .status-dot, .lane h2 small { flex-shrink:0; }
+.lane { position:relative; }
+.lane h2 { display:block; }
+.lane-drag-handle { display:flex; align-items:center; gap:8px; width:100%; min-height:38px; padding:4px 2px; border:0; border-radius:4px; background:transparent; color:var(--text); text-align:left; font:inherit; cursor:grab; user-select:none; }
+.lane-drag-handle:hover { background:var(--selected); }
+.lane-drag-handle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.lane-grip { flex:none; color:var(--muted); opacity:.55; }
+.lane-drag-handle:hover .lane-grip, .lane-drag-handle:focus-visible .lane-grip { opacity:1; color:var(--accent); }
+.lane-name { flex:1; min-width:0; overflow-wrap:anywhere; }
+.lane-drag-handle small { padding:1px 7px; border-radius:9px; background:var(--surface); color:var(--muted); font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
+.lane-dragging { opacity:.45; }
+.is-reordering .lane-drag-handle { cursor:grabbing; }
+.lane-drop-before::before, .lane-drop-after::after { content:""; position:absolute; top:0; bottom:0; width:4px; background:var(--accent); border-radius:3px; pointer-events:none; z-index:2; }
+.lane-drop-before::before { left:0; }
+.lane-drop-after::after { right:0; }
