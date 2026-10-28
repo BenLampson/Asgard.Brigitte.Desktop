@@ -14,8 +14,10 @@ public sealed partial class StandaloneWorkspace
         if (path is ["bugs", var bugId])
         {
             if (method == "PUT") return SaveBug(bugId, input, transaction);
-            if (method == "DELETE") return DeleteBug(bugId, query, transaction);
+            if (method == "DELETE") throw new InvalidOperationException(ClientText.T("请在 BUG 管理中先下载备份，再确认删除已关闭的 BUG。"));
         }
+        if (path is ["bugs", var archivedBugId, "archive", "delete"] && method == "POST") return DeleteArchivedBug(archivedBugId, input, transaction);
+        if (path is ["bugs", "archive", "delete"] && method == "POST") return DeleteArchivedBatch(input, transaction);
         if (path is ["bugs", var id, var action] && method == "POST")
         {
             var bug = RequireBug(id);
@@ -129,19 +131,6 @@ public sealed partial class StandaloneWorkspace
         RequireWritable(bug, Property(input, "workerId"));
         bug.LockOwnerId = null; bug.LockOwnerName = null; bug.LockOwnerUserId = null; bug.LockTime = null; bug.LockExpireTime = null;
         Save("bug", bug.Id, bug, transaction); return bug;
-    }
-
-    /// <summary>两次确认后的物理删除同时移除子记录和附件正文。</summary>
-    private object DeleteBug(string id, string query, SqliteTransaction transaction)
-    {
-        var bug = RequireBug(id);
-        if (!string.Equals(Query(query, "hardDelete"), "true", StringComparison.OrdinalIgnoreCase) || Query(query, "confirmBugId") != id)
-            throw new ArgumentException(ClientText.T("删除 BUG 需要明确确认。"));
-        if (BugDisplay.HasLock(bug)) throw new InvalidOperationException(ClientText.T("有处理锁时请先释放锁再删除。"));
-        foreach (var item in Read<BugAttachment>("attachment").Where(x => x.BugId == id)) DeleteAttachment(item.Id, transaction);
-        foreach (var item in Read<BugComment>("comment").Where(x => x.BugId == id)) Delete("comment", item.Id, transaction);
-        foreach (var item in Read<BugHistory>("history").Where(x => x.BugId == id)) Delete("history", item.Id, transaction);
-        Delete("bug", id, transaction); return new { };
     }
 
     /// <summary>每次写入读取当前记录，关闭窗口中的旧副本不能绕过锁检查。</summary>

@@ -50,6 +50,10 @@ The desktop client is open source under Apache-2.0. Documentation, privacy infor
 - MCP
 - Brigitte
 
+## What's new in 1.0.8
+
+1.0.8: Select multiple closed bugs across pages in Bug Management. Save a ZIP containing SQLite and Excel backups before permanently deleting the selection. Export an offline HTML report with status and priority charts and a responsive layout. Online deletion requires a compatible server.
+
 ## What's new in 1.0.7
 
 1.0.7: Fix board lane dragging in the desktop app. Drag a header to move the lane with a full-column floating preview, drop shadow, original-position placeholder and insertion marker. Scroll automatically near board edges; Escape or releasing outside the board cancels. Alt + Left / Right, reset, existing saved orders and filtered hidden lanes remain supported. Save drafts before installing an update.

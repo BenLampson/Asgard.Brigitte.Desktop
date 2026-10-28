@@ -35,16 +35,61 @@ internal sealed class WorkspaceSwitchRenderer(IServiceProvider services) : Rende
         _root = AssignRootComponentId(InstantiateComponent(typeof(WorkspaceView)));
         await RenderRootComponentAsync(_root);
     }
-    internal async Task SwitchAsync(bool list)
+    internal Task SwitchAsync(bool list) => SwitchAsync(list ? 1 : 0);
+    internal async Task SwitchAsync(int mode)
     {
         var frames = GetCurrentRenderTreeFrames(_root);
         var events = new List<ulong>();
         for (var i = 0; i < frames.Count; i++)
             if (frames.Array[i].FrameType == RenderTreeFrameType.Attribute && frames.Array[i].AttributeName == "class" && (string?)frames.Array[i].AttributeValue == "segmented")
-                for (var j = i + 1; j < frames.Count && events.Count < 2; j++)
+                for (var j = i + 1; j < frames.Count && events.Count < 3; j++)
                     if (frames.Array[j].FrameType == RenderTreeFrameType.Attribute && frames.Array[j].AttributeName == "onclick") events.Add(frames.Array[j].AttributeEventHandlerId);
         InsertedClasses.Clear();
-        await DispatchEventAsync(events[list ? 1 : 0], null, new Microsoft.AspNetCore.Components.Web.MouseEventArgs());
+        await DispatchEventAsync(events[mode], null, new Microsoft.AspNetCore.Components.Web.MouseEventArgs());
+    }
+    internal string Text()
+    {
+        var frames = GetCurrentRenderTreeFrames(_root);
+        return string.Concat(Enumerable.Range(0, frames.Count).Where(i => frames.Array[i].FrameType == RenderTreeFrameType.Text)
+            .Select(i => frames.Array[i].TextContent));
+    }
+    internal async Task ClickButtonAsync(string label)
+    {
+        var frames = GetCurrentRenderTreeFrames(_root);
+        for (var i = 0; i < frames.Count; i++)
+        {
+            if (frames.Array[i].FrameType != RenderTreeFrameType.Element || frames.Array[i].ElementName != "button") continue;
+            var end = i + frames.Array[i].ElementSubtreeLength;
+            var text = string.Concat(Enumerable.Range(i + 1, end - i - 1).Select(j => frames.Array[j].FrameType switch
+            {
+                RenderTreeFrameType.Text => frames.Array[j].TextContent,
+                RenderTreeFrameType.Markup => System.Net.WebUtility.HtmlDecode(frames.Array[j].MarkupContent),
+                _ => ""
+            }));
+            if (text != label) continue;
+            for (var j = i + 1; j < end && frames.Array[j].FrameType == RenderTreeFrameType.Attribute; j++)
+                if (frames.Array[j].AttributeName == "onclick")
+                {
+                    await DispatchEventAsync(frames.Array[j].AttributeEventHandlerId, null, new Microsoft.AspNetCore.Components.Web.MouseEventArgs());
+                    return;
+                }
+        }
+        throw new InvalidOperationException("找不到按钮：" + label);
+    }
+    internal async Task ChangeCheckboxAsync(string label, bool value)
+    {
+        var frames = GetCurrentRenderTreeFrames(_root);
+        for (var i = 0; i < frames.Count; i++)
+        {
+            if (frames.Array[i].FrameType != RenderTreeFrameType.Element || frames.Array[i].ElementName != "input") continue;
+            var attributes = new List<int>();
+            for (var j = i + 1; j < frames.Count && frames.Array[j].FrameType == RenderTreeFrameType.Attribute; j++) attributes.Add(j);
+            if (!attributes.Any(j => frames.Array[j].AttributeName == "aria-label" && (string?)frames.Array[j].AttributeValue == label)) continue;
+            var change = attributes.First(j => frames.Array[j].AttributeName == "onchange");
+            await DispatchEventAsync(frames.Array[change].AttributeEventHandlerId, null, new ChangeEventArgs { Value = value });
+            return;
+        }
+        throw new InvalidOperationException("找不到选择框：" + label);
     }
 }
 #pragma warning restore BL0006
