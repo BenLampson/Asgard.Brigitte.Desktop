@@ -160,7 +160,7 @@ public sealed partial class DesktopHost : IClientHost
         return result;
     }
     /// <summary>保存通过原生平台的另存为对话框完成。</summary>
-    public Task SaveAsync(string fileName, byte[] bytes) => SavePlatformAsync(Path.GetFileName(fileName), bytes);
+    public Task<bool> SaveAsync(string fileName, byte[] bytes) => SavePlatformAsync(Path.GetFileName(fileName), bytes);
     /// <summary>只允许外部系统浏览器打开 HTTP(S)。</summary>
     public async Task OpenExternalAsync(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http") await Launcher.Default.OpenAsync(uri); }
     private void SessionChanged() => MainThread.BeginInvokeOnMainThread(() =>
@@ -209,7 +209,7 @@ public sealed partial class DesktopHost : IClientHost
     private static string Title(DesktopViewKind kind) => "Asgard Brigitte · " + (kind switch { DesktopViewKind.Main => ClientText.T("BUG 管理器"), DesktopViewKind.Detail => ClientText.T("BUG 详情"), DesktopViewKind.Create => ClientText.T("提交 BUG"), DesktopViewKind.Edit => ClientText.T("编辑 BUG"), DesktopViewKind.Tray => ClientText.T("项目"), DesktopViewKind.Settings => ClientText.T("设置"), DesktopViewKind.About => ClientText.T("关于"), DesktopViewKind.Privacy => ClientText.T("隐私与数据"), DesktopViewKind.ProjectInvitations => ClientText.T("邀请项目成员"), DesktopViewKind.JoinProject => ClientText.T("加入项目"), _ => ClientText.T("BUG 管理") });
     private partial IPlatformTray CreateTray();
     private partial void AttachPlatformWindow(Window window, DesktopViewKind kind, Window? owner);
-    private partial Task SavePlatformAsync(string fileName, byte[] bytes);
+    private partial Task<bool> SavePlatformAsync(string fileName, byte[] bytes);
     private partial void ApplyPlatformTheme();
     private partial void PositionPopup(Window window, double x, double y);
 }

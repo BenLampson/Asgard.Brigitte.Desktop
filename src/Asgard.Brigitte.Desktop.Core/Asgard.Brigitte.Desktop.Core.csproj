@@ -4,6 +4,7 @@
     <EmbeddedResource Include="Localization/en.*.json" />
     <ProjectReference Include="../Asgard.Brigitte.Sync/Asgard.Brigitte.Sync.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="Asgard.Heimdall.Client" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />

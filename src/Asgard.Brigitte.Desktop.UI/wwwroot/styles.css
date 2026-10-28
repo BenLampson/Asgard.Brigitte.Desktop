@@ -494,6 +494,16 @@ summary::-webkit-details-marker {
   background: var(--surface);
   color: var(--accent);
 }
+/* 窄窗口允许标题和操作换行，避免管理入口被挤出视野。 */
+.board-main > header .heading { flex-wrap: wrap; }
+.board-main > header .segmented { flex-shrink: 0; }
+.table-scroll th { white-space: nowrap; }
+.bug-management-table { min-width:680px; }
+.bug-status-cell { white-space:nowrap; }
+/* 批量选择始终显示总数，跨页后仍可确认实际删除范围。 */
+.bug-management-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 22px; }
+.bug-management-toolbar button { font-size:12px; }
+.bug-management-toolbar input[type="checkbox"], .table-scroll input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); }
 .heading > button {
   font-size: 12px;
 }

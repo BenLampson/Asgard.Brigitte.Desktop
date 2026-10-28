@@ -9,5 +9,5 @@ public sealed partial class DesktopHost
     {
         window.Created+=(_,_)=>MainThread.BeginInvokeOnMainThread(()=>MacTray.Attach(window.Title,kind==DesktopViewKind.Main));
     }
-    private partial Task SavePlatformAsync(string fileName,byte[] bytes)=>MainThread.InvokeOnMainThreadAsync(()=>MacTray.Save(fileName,bytes));
+    private partial Task<bool> SavePlatformAsync(string fileName,byte[] bytes)=>MainThread.InvokeOnMainThreadAsync(()=>MacTray.Save(fileName,bytes));
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.IO.Compression;
 using Asgard.Brigitte.Desktop.Core;
 using Asgard.Brigitte.Desktop.Core.Models;
 using Asgard.Brigitte.Sync;
@@ -119,11 +120,32 @@ public sealed class StandaloneWorkspaceTests
         await local.Api.DeleteAttachmentAsync(bug.Id, file.Id, null);
         await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.DownloadAsync(bug.Id, file.Id));
         await local.Api.UploadAsync(bug.Id, "cascade.txt", "text/plain", [10], null);
-        await Assert.ThrowsAsync<ArgumentException>(() => local.Api.WriteAsync<JsonElement>("bugs/" + bug.Id, null, "DELETE", TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.WriteAsync<JsonElement>("bugs/" + bug.Id, null, "DELETE", TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.PrepareBugArchiveAsync(bug.Id));
         await local.Api.ClaimAsync(bug.Id, "worker");
         await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.DeleteBugAsync(bug.Id));
         await local.Api.ReleaseAsync(bug.Id, "worker");
-        await local.Api.DeleteBugAsync(bug.Id);
+        await local.Api.StatusAsync(bug.Id, "pending_regression", "已部署", null);
+        await local.Api.StatusAsync(bug.Id, "human_verified", "验收通过", null);
+        await local.Api.StatusAsync(bug.Id, "closed", "完成", null);
+        var backup = await local.Api.PrepareBugArchiveAsync(bug.Id);
+        using (var zip = new ZipArchive(new MemoryStream(Convert.FromBase64String(backup.Base64Content)), ZipArchiveMode.Read))
+        {
+            var sqlite = zip.GetEntry("bugs.sqlite"); var excel = zip.GetEntry("bugs.xlsx"); Assert.NotNull(sqlite); Assert.NotNull(excel);
+            var archivePath = Path.Combine(local.DirectoryPath, "export-test.sqlite");
+            await using (var stream = File.Create(archivePath)) await sqlite.Open().CopyToAsync(stream, TestContext.Current.CancellationToken);
+            using var exported = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = archivePath, Pooling = false }.ToString());
+            exported.Open(); using var select = exported.CreateCommand(); select.CommandText = "SELECT content FROM attachment_data";
+            Assert.Equal(new byte[] { 10 }, (byte[])select.ExecuteScalar()!);
+            using var workbookBytes = new MemoryStream(); await excel.Open().CopyToAsync(workbookBytes, TestContext.Current.CancellationToken); workbookBytes.Position = 0;
+            using var workbook = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(workbookBytes, false);
+            Assert.Empty(new DocumentFormat.OpenXml.Validation.OpenXmlValidator().Validate(workbook, TestContext.Current.CancellationToken));
+        }
+        await local.Api.CommentAsync(bug.Id, "备份后的新记录", "comment", "human", null);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => local.Api.DeleteArchivedBugAsync(bug.Id, backup.ConfirmationToken));
+        Assert.Single(await local.Api.BugsAsync(project.Id, TestContext.Current.CancellationToken));
+        backup = await local.Api.PrepareBugArchiveAsync(bug.Id);
+        await local.Api.DeleteArchivedBugAsync(bug.Id, backup.ConfirmationToken);
         Assert.Empty(await local.Api.BugsAsync(project.Id, TestContext.Current.CancellationToken));
         Assert.Empty(local.Database.Read<BugComment>("comment")); Assert.Empty(local.Database.Read<BugHistory>("history")); Assert.Empty(local.Database.Read<BugAttachment>("attachment"));
         using var inspect = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = Path.Combine(local.DirectoryPath, "local", "workspace.sqlite"), Pooling = false }.ToString()); inspect.Open();

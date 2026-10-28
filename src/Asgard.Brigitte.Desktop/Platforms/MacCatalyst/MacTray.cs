@@ -52,7 +52,7 @@ internal sealed class MacTray : IPlatformTray
     /// <summary>仅隐藏原生主窗口，应用继续保留状态栏入口。</summary>
     public void Show(Window window,bool visible){if(IsAvailable)Function<ShowWindow>("BrigitteTrayShowWindow")(window.Title,visible?1:0);else if(visible)Application.Current!.ActivateWindow(window);}
     internal static void Attach(string title,bool main){if(_library!=0)Function<AttachWindow>("BrigitteTrayAttachWindow")(title,main?1:0);}
-    internal static void Save(string name,byte[] bytes){if(_library==0)throw new InvalidOperationException(ClientText.T("macOS 文件保存扩展未加载。"));Function<SaveFile>("BrigitteTraySaveFile")(name,bytes,(nuint)bytes.Length);}
+    internal static bool Save(string name,byte[] bytes){if(_library==0)throw new InvalidOperationException(ClientText.T("macOS 文件保存扩展未加载。"));return Function<SaveFile>("BrigitteTraySaveFile")(name,bytes,(nuint)bytes.Length)==1;}
     /// <summary>最低两位为动作，第三位为记住选择，取消永不写入偏好。</summary>
     internal static (string Action,bool Remember) PromptClose(bool canUseTray)
     {

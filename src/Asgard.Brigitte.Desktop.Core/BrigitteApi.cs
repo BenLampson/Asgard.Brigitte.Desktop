@@ -98,9 +98,29 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     /// <summary>新增现有评论或处理记录。</summary>
     public Task<BugComment> CommentAsync(string id, string content, string commentType, string authorType, string? workerId)
         => WriteAsync<BugComment>("bugs/" + E(id) + "/comments", new { content, commentType, authorType, workerId });
-    /// <summary>单个 BUG 的两次确认物理删除。</summary>
+    /// <summary>保留旧客户端契约；服务端和本机工作区会拒绝未备份的删除。</summary>
     public Task<JsonElement> DeleteBugAsync(string id)
         => WriteAsync<JsonElement>("bugs/" + E(id) + "?" + Query(("hardDelete", true), ("confirmBugId", id)), null, "DELETE");
+    /// <summary>获取一次性备份和确认凭据；只有已关闭的 BUG 才能准备。</summary>
+    public async Task<BugArchive> PrepareBugArchiveAsync(string id)
+    {
+        if (IsLocal) return await Task.Run(() => Standalone.PrepareArchive(id));
+        if (!sync.CanWrite) throw new InvalidOperationException(ClientText.T("当前工作区只读，连接并完成同步后才能提交。"));
+        return (await RequestAsync<ApiResponse<BugArchive>>(HttpMethod.Post, "bugs/" + E(id) + "/archive/prepare")).Data;
+    }
+    /// <summary>用户保存备份后确认物理删除，不自动重试。</summary>
+    public Task<JsonElement> DeleteArchivedBugAsync(string id, string confirmationToken)
+        => WriteAsync<JsonElement>("bugs/" + E(id) + "/archive/delete", new { confirmationToken });
+    /// <summary>一次性准备同一项目内所有所选 BUG 的备份。</summary>
+    public async Task<BugArchive> PrepareBugBatchArchiveAsync(string projectId, IReadOnlyList<string> bugIds)
+    {
+        if (IsLocal) return await Task.Run(() => Standalone.PrepareBatchArchive(projectId, bugIds));
+        if (!sync.CanWrite) throw new InvalidOperationException(ClientText.T("当前工作区只读，连接并完成同步后才能提交。"));
+        return (await RequestAsync<ApiResponse<BugArchive>>(HttpMethod.Post, "bugs/archive/prepare", new { projectId, bugIds })).Data;
+    }
+    /// <summary>确认已保存整批备份后统一物理删除。</summary>
+    public Task<JsonElement> DeleteArchivedBugsAsync(string confirmationToken)
+        => WriteAsync<JsonElement>("bugs/archive/delete", new { confirmationToken });
     /// <summary>添加已有 base64 附件。</summary>
     public Task<BugAttachment> UploadAsync(string id, string fileName, string contentType, byte[] content, string? workerId)
         => WriteAsync<BugAttachment>("bugs/" + E(id) + "/attachments", new { fileName, contentType, base64Content = Convert.ToBase64String(content), workerId });

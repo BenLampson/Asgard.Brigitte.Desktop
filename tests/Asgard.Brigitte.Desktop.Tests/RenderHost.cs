@@ -25,6 +25,11 @@ internal sealed class RenderHost(string theme) : IClientHost
     public bool ShowNotification(DesktopView view) => view.Kind == DesktopViewKind.Main;
     public string WorkerId => "desktop-test-worker";
     public string? RequestedProjectId => null;
+    public bool ConfirmResult { get; set; }
+    public bool SaveResult { get; set; }
+    public int ConfirmationCount { get; private set; }
+    public int SaveCount { get; private set; }
+    public byte[]? SavedContent { get; private set; }
     public event Action? Changed { add { } remove { } }
     public event Action? StatusChanged;
     public void PublishStatus() => StatusChanged?.Invoke();
@@ -33,9 +38,9 @@ internal sealed class RenderHost(string theme) : IClientHost
     public void Close(DesktopView view) { }
     public void PublishChange() { }
     public Task CopyAsync(string value) => Task.CompletedTask;
-    public Task<bool> ConfirmAsync(string title, string message) => Task.FromResult(false);
+    public Task<bool> ConfirmAsync(string title, string message) { ConfirmationCount++; return Task.FromResult(ConfirmResult); }
     public Task<IReadOnlyList<PickedFile>> PickFilesAsync() => Task.FromResult<IReadOnlyList<PickedFile>>([]);
-    public Task SaveAsync(string name, byte[] bytes) => Task.CompletedTask;
+    public Task<bool> SaveAsync(string name, byte[] bytes) { SaveCount++; SavedContent = bytes; return Task.FromResult(SaveResult); }
     public Task OpenExternalAsync(string url) => Task.CompletedTask;
     public void Quit() { }
 }

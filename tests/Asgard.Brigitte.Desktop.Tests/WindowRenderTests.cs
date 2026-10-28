@@ -94,6 +94,16 @@ public sealed class WindowRenderTests
         Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }
+    [Fact]
+    public async Task Management_view_displays_the_closed_bug_and_export_actions()
+    {
+        var html = await Render("dark", DesktopViewKind.Main, management: true);
+        var decoded = System.Net.WebUtility.HtmlDecode(html);
+        Assert.Contains("备份并批量删除", decoded); Assert.Contains("导出 BUG 报表", decoded);
+        Assert.Contains("状态更新后卡片及时显示 · 14", decoded);
+        Assert.DoesNotContain("状态更新后卡片及时显示 · 15", decoded);
+        await ExportPreview("bug-management-dark", html);
+    }
     [Theory]
     [InlineData(DesktopViewKind.Detail)]
     [InlineData(DesktopViewKind.Create)]
@@ -131,7 +141,7 @@ public sealed class WindowRenderTests
         var output = Path.Combine(root, "tests/Asgard.Brigitte.Desktop.Tests/obj/ui-validation"); Directory.CreateDirectory(output);
         await File.WriteAllTextAsync(Path.Combine(output, name + ".html"), "<!doctype html><html lang='" + ClientText.Language + "'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>" + css + "</style><body><div id='app'>" + html + "</div></body></html>", TestContext.Current.CancellationToken);
     }
-    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false)
+    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false, bool management = false)
     {
         using var transport = new TestTransport(_ => throw new InvalidOperationException("渲染业务界面不得读取 REST"));
         using var local = new SyncTestWorkspace();
@@ -154,6 +164,7 @@ public sealed class WindowRenderTests
         if (authenticated) typeof(SessionService).GetField("_current", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(session, new StoredSession { Tokens = new HeimdallTokenSet { AccessToken = "render-test-only", ExpiresIn = 3600 }, SubjectId = "user", SessionId = "session", DisplayName = "测试账号", ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) });
         var services = new ServiceCollection(); services.AddLogging(); services.AddSingleton<Microsoft.JSInterop.IJSRuntime, RenderJsRuntime>(); services.AddSingleton<IOptions<ClientOptions>>(Options.Create(new ClientOptions())); services.AddSingleton(session); services.AddSingleton<IClientSession>(session); services.AddSingleton<IHttpClientFactory>(transport); services.AddSingleton(local.Database); services.AddSingleton<LocalWorkspaceReader>(); services.AddSingleton<IWorkspaceSync>(new TestWorkspaceSync()); services.AddSingleton<BrigitteApi>(); services.AddSingleton<WorkspaceStore>(); services.AddSingleton(new BoardPreferenceStore(Path.Combine(Path.GetTempPath(), "brigitte-board-render-" + Guid.NewGuid().ToString("N") + ".json"))); services.AddSingleton<IClientHost>(new RenderHost(theme) { SyncReady = !failProjects });
         if (list) services.AddSingleton<IComponentActivator>(new ListRenderActivator());
+        if (management) services.AddSingleton<IComponentActivator>(new ManagementRenderActivator());
         using var provider = services.BuildServiceProvider(); await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
         // 原生宿主显示托盘前会先加载项目缓存，测试使用相同的准备顺序。
         if (kind == DesktopViewKind.Tray) await provider.GetRequiredService<WorkspaceStore>().LoadAsync();

@@ -121,13 +121,16 @@ public sealed partial class DesktopHost
         var area=DisplayArea.GetFromPoint(new Windows.Graphics.PointInt32((int)x,(int)y),DisplayAreaFallback.Nearest).WorkArea;
         app.Move(new Windows.Graphics.PointInt32(Math.Clamp((int)x-app.Size.Width,area.X,Math.Max(area.X,area.X+area.Width-app.Size.Width)),Math.Clamp((int)y-app.Size.Height-10,area.Y,Math.Max(area.Y,area.Y+area.Height-app.Size.Height))));
     }
-    private partial async Task SavePlatformAsync(string fileName, byte[] bytes)
+    private partial async Task<bool> SavePlatformAsync(string fileName, byte[] bytes)
     {
         var picker = new FileSavePicker { SuggestedFileName = fileName };
         var extension = Path.GetExtension(fileName); if (string.IsNullOrEmpty(extension)) extension = ".bin";
         picker.FileTypeChoices.Add(ClientText.T("附件"), new List<string> { extension });
         var native = (Microsoft.UI.Xaml.Window)ActivePage.Window.Handler!.PlatformView!;
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(native));
-        var file = await picker.PickSaveFileAsync(); if (file is not null) await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);
+        var file = await picker.PickSaveFileAsync();
+        if (file is null) return false;
+        await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);
+        return true;
     }
 }

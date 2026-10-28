@@ -72,7 +72,7 @@ public interface IClientHost
     /// <summary>系统文件选择器。</summary>
     Task<IReadOnlyList<PickedFile>> PickFilesAsync();
     /// <summary>将用户选择的附件保存到指定位置。</summary>
-    Task SaveAsync(string fileName, byte[] content);
+    Task<bool> SaveAsync(string fileName, byte[] content);
     /// <summary>在系统浏览器打开明确的外链。</summary>
     Task OpenExternalAsync(string url);
     /// <summary>退出整个客户端。</summary>
