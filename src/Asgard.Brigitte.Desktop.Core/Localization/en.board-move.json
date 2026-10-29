@@ -1,0 +1,8 @@
+{
+  "查看详情": "View details",
+  "状态已变化，请刷新后重新拖动。": "The status has changed. Refresh and drag the card again.",
+  "工作区已变化，请重新拖动。": "The workspace has changed. Drag the card again.",
+  "移至{0}": "Move to {0}",
+  "已移至{0}": "Moved to {0}",
+  "自动释放锁失败；本次临时锁最长 1 分钟后到期。{0}": "The temporary lock could not be released. It expires within 1 minute. {0}"
+}

@@ -53,6 +53,7 @@
 </header>
 }
 @if (_error != "") { <div class="notice error" role="alert">@_error</div> }
+@if (_moveError != "") { <div class="notice error" role="alert">@_moveError</div> }
 @if (Workspace.DirectoryError != "") { <div class="notice">@Workspace.DirectoryError</div> }
 @if (_toast != "") { <div class="toast" role="status">@_toast</div> }
 @if (_busy && _bugs.Count == 0) { <div class="center">@ClientText.T("正在加载…")</div> }
@@ -63,18 +64,18 @@ else if (Workspace.Projects.Count == 0) {
 </section>
 }
 else if (!_list && !_manage) {
-<LaneOrder Order="_laneOrder" Selected="_statuses" Counts="StatusCounts" OrderChanged="SaveLaneOrder" @key="_selected" Context="status">
+<LaneOrder Order="_laneOrder" Selected="_statuses" Counts="StatusCounts" OrderChanged="SaveLaneOrder" CanMoveBugs="@(Host.CanWrite && _movingBugId is null && _pendingMove is null)" BugDropped="MoveBug" @key="_selected" Context="status">
 @{
 var bugs = Filtered.Where(b=>b.Status==status).ToList();
 }
 @foreach(var bug in bugs) {
-<article class="bug-card" tabindex="0" role="button" @key="bug.Id" @onclick="() => OpenBug(bug)" @onkeydown="e => OnCardKey(e, bug)">
+<article class="bug-card @(_movingBugId == bug.Id ? "bug-card-moving" : "")" @key="bug.Id" data-bug-id="@bug.Id" data-bug-status="@bug.Status" data-bug-targets="@MoveTargets(bug)" aria-busy="@(_movingBugId == bug.Id ? "true" : "false")">
 <div class="card-meta"><span title="@bug.Id">@BugDisplay.ShortId(bug.Id)</span><button class="icon-button" title="@ClientText.T("复制完整 BUG ID")" aria-label="@ClientText.T("复制 BUG ID")" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true" @onclick="() => Copy(bug.Id)">⧉</button><div class="spacer"></div>
 @if(_actions.TryGetValue(bug.Status, out var actions) && actions.Count>0) {
 <PromptButtons Actions="actions" OnCopy="a=>CopyPrompt(a,bug)" /> }</div>
 <strong class="bug-title" title="@bug.Title">@bug.Title</strong>
 @if (BugDisplay.HasLock(bug)) { <div class="claim ellipsis" tabindex="0" title="@ClaimTitle(bug)">♙ @ClientText.T("领取者：{0}", BugDisplay.Claimant(bug, Workspace.Users))</div> }
-<div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">@ClientText.T("负责人")</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span></div>
+<div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">@ClientText.T("负责人")</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span><button type="button" class="card-detail-button" @onclick="() => OpenBug(bug)">@ClientText.T("查看详情")</button></div>
 </article> }
 @if(bugs.Count==0) { <p class="empty-column">@ClientText.T("暂无 BUG")</p> }
 </LaneOrder>
@@ -96,3 +97,6 @@ var bugs = Filtered.Where(b=>b.Status==status).ToList();
 }
 <footer class="statusbar"><span>@ClientText.T("{0} 条 BUG · {1} 个状态", _bugs.Count, BugDisplay.Statuses.Count)</span><span>@ClientText.T("实时：{0} · 最后刷新 {1}", Host.RealtimeStatus, _lastRefresh)</span><span>@(Host.CloseBehavior switch { "tray" => ClientText.T("关闭主窗口后继续在托盘运行"), "exit" => ClientText.T("关闭主窗口时退出程序"), _ => ClientText.T("关闭主窗口时询问退出或托盘") })</span></footer>
 </main></div>
+@if (_pendingMove is { } move) {
+<BugMoveReason @key="move" Title="@_bugs.FirstOrDefault(b => b.Id == move.BugId)?.Title" Status="@move.ToStatus" Submit="CompleteMove" Cancel="CancelMove" />
+}

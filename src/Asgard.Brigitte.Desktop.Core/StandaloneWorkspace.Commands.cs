@@ -121,7 +121,8 @@ public sealed partial class StandaloneWorkspace
         var worker = Text(Property(input, "workerId"), 200, true);
         RequireWritable(bug, worker);
         bug.LockOwnerId = worker; bug.LockOwnerName = UserId; bug.LockOwnerUserId = UserId;
-        bug.LockTime = DateTimeOffset.UtcNow; bug.LockExpireTime = bug.LockTime.Value.AddHours(1);
+        var minutes = input.TryGetProperty("ttlMinutes", out var ttl) && ttl.TryGetInt32(out var requested) ? Math.Clamp(requested, 1, 1440) : 60;
+        bug.LockTime = DateTimeOffset.UtcNow; bug.LockExpireTime = bug.LockTime.Value.AddMinutes(minutes);
         Save("bug", bug.Id, bug, transaction); return bug;
     }
 

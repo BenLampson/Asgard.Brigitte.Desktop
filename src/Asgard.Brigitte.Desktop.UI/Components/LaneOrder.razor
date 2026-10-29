@@ -1,5 +1,5 @@
 @implements IAsyncDisposable
-<div class="lanes" id="board-scroll" @ref="_board" aria-label="@ClientText.T("BUG 看板")">
+<div class="lanes" id="board-scroll" @ref="_board" aria-label="@ClientText.T("BUG 看板")" data-bug-move-enabled="@(CanMoveBugs && BugDropped.HasDelegate ? "true" : "false")">
 @foreach (var status in VisibleOrder)
 {
     <section class="lane" data-lane="@status" @key="status">
@@ -18,11 +18,16 @@
     [Inject] public IJSRuntime JS { get; set; } = null!;
     private ElementReference _board;
     private DotNetObjectReference<LaneOrder>? _receiver;
+    private IJSObjectReference? _cardDrag;
+    private bool _disposed, _initializing;
     /// <summary>完整顺序用于保存；筛选只影响显示，不会删掉未显示泳道的偏好。</summary>
     [Parameter] public IReadOnlyList<string> Order { get; set; } = BugDisplay.BoardStatuses;
     [Parameter] public IReadOnlySet<string> Selected { get; set; } = new HashSet<string>();
     [Parameter] public IReadOnlyDictionary<string, int> Counts { get; set; } = new Dictionary<string, int>();
     [Parameter] public EventCallback<IReadOnlyList<string>> OrderChanged { get; set; }
+    /// <summary>卡片流转独立于标题排序，只有可写且无待处理操作时启用。</summary>
+    [Parameter] public bool CanMoveBugs { get; set; }
+    [Parameter] public EventCallback<BugCardDrop> BugDropped { get; set; }
     [Parameter, EditorRequired] public RenderFragment<string> ChildContent { get; set; } = null!;
     // 迁移后的空历史泳道不再占位；本机仍有历史记录或显式选中时保持可见。
     private IEnumerable<string> VisibleOrder => Order.Where(s => Selected.Count == 0 || Selected.Contains(s))
@@ -31,9 +36,19 @@
     /// <summary>指针拖拽在本地处理落点和边缘滚动，放下后才通过 .NET 保存完整顺序。</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
-        _receiver = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("brigitte.attachLaneOrder", _board, _receiver);
+        if (!firstRender || _disposed) return;
+        _initializing = true;
+        try
+        {
+            _receiver = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("brigitte.attachLaneOrder", _board, _receiver);
+            if (_disposed) return;
+            _cardDrag = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Asgard.Brigitte.Desktop.UI/bug-card-drag.js");
+            if (!_disposed) await _cardDrag.InvokeVoidAsync("attach", _board, _receiver);
+        }
+        catch (JSDisconnectedException) when (_disposed) { /* 窗口关闭时取消初始化。 */ }
+        catch (TaskCanceledException) when (_disposed) { /* WebView 关闭可取消模块加载。 */ }
+        finally { _initializing = false; if (_disposed) await ReleaseAsync(); }
     }
 
     /// <summary>验证可见落点；非法拖入、原位置释放或取消不写入偏好。</summary>
@@ -47,12 +62,30 @@
         return next.SequenceEqual(Order) ? Task.CompletedTask : OrderChanged.InvokeAsync(next);
     }
 
+    /// <summary>只接收当前可见泳道之间的卡片移动，业务层再次验证状态、权限和处理锁。</summary>
+    [JSInvokable]
+    public Task MoveBug(string id, string source, string target) => !_disposed && CanMoveBugs && source != target
+        && VisibleOrder.Contains(source) && VisibleOrder.Contains(target)
+        ? BugDropped.InvokeAsync(new(id, source, target)) : Task.CompletedTask;
+
     /// <summary>切换项目、列表或关闭窗口时取消拖拽并释放 JS 和 .NET 引用。</summary>
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+        if (!_initializing) await ReleaseAsync();
+    }
+
+    /// <summary>初始化与销毁共用收尾，避免模块加载期间重复释放 .NET 引用。</summary>
+    private async ValueTask ReleaseAsync()
+    {
         if (_receiver is null) return;
-        try { await JS.InvokeVoidAsync("brigitte.detachLaneOrder", _board); }
+        try
+        {
+            await JS.InvokeVoidAsync("brigitte.detachLaneOrder", _board);
+            if (_cardDrag is not null) { await _cardDrag.InvokeVoidAsync("detach", _board); await _cardDrag.DisposeAsync(); }
+        }
         catch (JSDisconnectedException) { /* WebView 已关闭，无需再清理 DOM。 */ }
-        finally { _receiver.Dispose(); }
+        catch (TaskCanceledException) { /* 原生窗口关闭时取消尚未完成的互操作。 */ }
+        finally { _receiver.Dispose(); _receiver = null; _cardDrag = null; }
     }
 }

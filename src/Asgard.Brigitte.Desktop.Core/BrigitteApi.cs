@@ -1,6 +1,6 @@
 namespace Asgard.Brigitte.Desktop.Core;
 /// <summary>业务读取来自 SQLite；命令与附件下载走线上，拒绝重定向、过期响应和写请求重放。</summary>
-public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession session, LocalWorkspaceReader local, IWorkspaceSync sync, StandaloneWorkspace? standalone = null)
+public sealed partial class BrigitteApi(IHttpClientFactory factory, IClientSession session, LocalWorkspaceReader local, IWorkspaceSync sync, StandaloneWorkspace? standalone = null)
 {
     /// <summary>供界面隐藏仅适用于远程协作的能力。</summary>
     public bool IsLocal => session.IsLocal;
@@ -90,9 +90,9 @@ public sealed class BrigitteApi(IHttpClientFactory factory, IClientSession sessi
     /// <summary>更新已有状态。</summary>
     public Task<Bug> StatusAsync(string id, string status, string reason, string? workerId)
         => WriteAsync<Bug>("bugs/" + E(id) + "/status", new { status, reason, operatorType = "human", workerId });
-    /// <summary>领取现有一小时处理锁。</summary>
-    public Task<Bug> ClaimAsync(string id, string workerId)
-        => WriteAsync<Bug>("bugs/" + E(id) + "/claim", new { workerId, workerName = "Asgard Brigitte Desktop", ttlMinutes = 60 });
+    /// <summary>领取处理锁；手工领取默认一小时，快捷流转使用短租期。</summary>
+    public Task<Bug> ClaimAsync(string id, string workerId, int ttlMinutes = 60)
+        => WriteAsync<Bug>("bugs/" + E(id) + "/claim", new { workerId, workerName = "Asgard Brigitte Desktop", ttlMinutes });
     /// <summary>仅释放本客户端的锁。</summary>
     public Task<Bug> ReleaseAsync(string id, string workerId) => WriteAsync<Bug>("bugs/" + E(id) + "/release-lock", new { workerId });
     /// <summary>新增现有评论或处理记录。</summary>

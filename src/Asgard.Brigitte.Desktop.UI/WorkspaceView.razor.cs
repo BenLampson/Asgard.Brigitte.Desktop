@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Options;
 using Asgard.Brigitte.Desktop.Core;
 using Asgard.Brigitte.Desktop.Core.Models;
@@ -85,7 +84,7 @@ public partial class WorkspaceView
             foreach (var status in bugs.Select(b => b.Status).Distinct()) actions[status] = await Api.ActionsAsync(status);
             if (version != _loadVersion) return;
             // 项目标识和结果一起更新，过期请求不能把新项目的界面切回去。
-            if (_selected != selected) { _page = 1; _selectedBugIds.Clear(); }
+            if (_selected != selected) { _page = 1; _selectedBugIds.Clear(); _pendingMove = null; _moveError = ""; }
             _selected = selected;
             _laneOrder = BoardPreferences.Get(BoardAccount, selected);
             _bugs = bugs; _actions = actions; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
@@ -98,7 +97,6 @@ public partial class WorkspaceView
     private Task SelectProject(string id) => Host.OpenAsync(new(DesktopViewKind.Main, ProjectId: id), View);
     private Task OpenBug(Bug bug) => Host.OpenAsync(new(DesktopViewKind.Detail, bug.Id, bug.ProjectId), View);
     private Task OpenProject() => Project is null ? Task.CompletedTask : Host.OpenAsync(new(DesktopViewKind.Project, Project.Id, Project.Id), View);
-    private Task OnCardKey(KeyboardEventArgs e, Bug bug) => e.Key == "Enter" ? OpenBug(bug) : Task.CompletedTask;
     private void ResetPage() => _page = 1;
     private Task OpenAccount() => Host.OpenExternalAsync(Options.Value.HeimdallWebBaseUrl.TrimEnd('/') + "/account");
     private static PromptAction Primary(List<PromptAction> actions) => actions.FirstOrDefault(a => a.IsPrimary) ?? actions[0];
@@ -146,5 +144,5 @@ public partial class WorkspaceView
     }
     private async Task Logout() { try { await Session.LogoutAsync(); } catch (Exception ex) { _error = AppView.SafeError(ex); } }
     /// <summary>窗口销毁后解除事件，防止关闭窗口继续请求。</summary>
-    public void Dispose() { _loadVersion++; Host.Changed -= OnChanged; }
+    public void Dispose() { _disposed = true; _pendingMove = null; _loadVersion++; Host.Changed -= OnChanged; }
 }

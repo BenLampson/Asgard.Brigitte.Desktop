@@ -1,0 +1,24 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Asgard.Brigitte.Desktop.Core
+@using Asgard.Brigitte.Desktop.UI
+@rendermode InteractiveServer
+@implements IDisposable
+@inject PreviewHost Host
+<div id="app"><div class="client @Host.Theme" lang="@ClientText.Language"><WorkspaceView /></div></div>
+<div class="preview-controls" style="position:fixed;right:16px;bottom:36px;z-index:10002;display:flex;gap:8px">
+<button @onclick="ToggleTheme">切换日夜模式</button>
+<button @onclick="ToggleReadonly">切换只读</button>
+<button @onclick="ToggleConfirm">人工确认：@(Host.ConfirmResult ? "通过" : "取消")</button>
+<button @onclick="ToggleLanguage">切换语言</button>
+</div>
+@code {
+    protected override void OnInitialized() => Host.Changed += OnChanged;
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+    private void ToggleTheme() => Host.SetTheme(Host.Theme == "dark" ? "light" : "dark");
+    private void ToggleReadonly() { Host.CanWrite = !Host.CanWrite; Host.PublishChange(); }
+    private void ToggleConfirm() => Host.ConfirmResult = !Host.ConfirmResult;
+    private void ToggleLanguage() { ClientText.SetLanguage(ClientText.Language == "en" ? "zh-CN" : "en"); Host.PublishChange(); }
+    public void Dispose() => Host.Changed -= OnChanged;
+}
