@@ -1,5 +1,15 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 29, 2026 — 1.0.9 submitted
+
+Partner Center confirms Submission 8 (1.0.8) is published. Version `1.0.9.0` adds direct bug-card status dragging, automatic short-lived work locks, and a dedicated **View details** button. Its x64 MSIX was accepted as **Validated** and ranked first. Submission 9 (`1152921505702269363`) was formally submitted on October 29 and now shows **In certification / pre-processing**, with publication immediately after certification. This does not confirm that 1.0.9 is available to customers yet.
+
+English and Simplified Chinese release notes were saved. All older packages, including 1.0.8, were retained by cancelling automatic removal. Existing screenshots, price/availability, age ratings and private reviewer information were retained. The existing `runFullTrust` validation warning remains subject to Microsoft certification; no new capability was added.
+
+Clean, pushed package source: `8e71b4242fbdc1dd2d048bb0e0cc7776ebb66148`, tag `v1.0.9`. MSIX: `Asgard.Brigitte.Desktop_1.0.9.0_x64.msix`, 121270773 bytes, SHA-256 `12745b2a9fc56ce2b6af8b9f26a9353decb540fa4f2d762a1943368566690a58`. All 221 local Core/UI tests, Windows Release build and real-component browser checks passed. The source commit's [GitHub CI run](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/40904851816) also passed the Windows and Linux Core/UI test jobs and the Windows MAUI build. Store-signed installation/upgrade, WACK and native MAUI/WebView2 runtime acceptance were not performed for this candidate. The optional symbol package was not generated because `mspdbcmf.exe` is unavailable.
+
+Local evidence: `publish/store/1.0.9.0/store-submitted.jpg` and `candidate.json`. See the [1.0.9 release notes](../../docs/releases/v1.0.9.md). This desktop release made no production service or database changes.
+
 ## October 23, 2026 — 1.0.7 submitted
 
 Partner Center confirms Submission 6 (1.0.6) is published. Version `1.0.7.0` fixes desktop lane dragging using pointer capture and adds a floating full-column shadow, original-position placeholder and insertion marker. The new x64 MSIX is **Validated** and ranks first. Submission 7 (`1152921505702211089`) was formally submitted and now shows **In certification / pre-processing**, with publication immediately after certification. This is not confirmation that 1.0.7 is available to customers yet.
