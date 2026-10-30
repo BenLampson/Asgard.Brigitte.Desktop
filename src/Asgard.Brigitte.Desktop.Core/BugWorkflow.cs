@@ -3,14 +3,13 @@ namespace Asgard.Brigitte.Desktop.Core;
 /// <summary>桌面在线表单和本机工作区共用流程规则，线上仍由服务端最终校验。</summary>
 public static class BugWorkflow
 {
-    /// <summary>历史状态仅允许保留，不能把新记录写成历史验收结果。</summary>
+    /// <summary>历史状态仅允许保留；人工可从任意状态关闭，部署和人工验收仍校验前置状态。</summary>
     public static bool CanTransition(string from, string to) => BugDisplay.Statuses.ContainsKey(to) &&
         (from == to || (to switch
         {
             "fixed" or "regressed" => false,
             "pending_regression" => from is "pending_deployment" or "fixed" or "regressed",
             "human_verified" => from == "pending_regression",
-            "closed" => from == "human_verified",
             _ => true
         }));
     /// <summary>交付和结束记录必须说明依据，不能以 AI 自测代替人工验收。</summary>

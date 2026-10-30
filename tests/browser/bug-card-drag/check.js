@@ -22,7 +22,8 @@ async (page) => {
       const source = board.querySelector(`[data-bug-id="${target.id}"]`).closest('[data-lane]');
       const lane = board.querySelector(`[data-lane="${target.status}"]`);
       const left = Math.min(source.getBoundingClientRect().left, lane.getBoundingClientRect().left);
-      board.scrollLeft += left - board.getBoundingClientRect().left - 12;
+      const right = Math.max(source.getBoundingClientRect().right, lane.getBoundingClientRect().right);
+      if (right - left <= board.clientWidth - 24) board.scrollLeft += left - board.getBoundingClientRect().left - 12;
     }, { id: byTitle(title), status });
     const start = await source.locator('.bug-title').boundingBox(), end = await lane.boundingBox();
     return { start: { x: start.x + Math.min(70, start.width / 2), y: start.y + start.height / 2 }, end: { x: end.x + end.width / 2, y: end.y + 160 } };
@@ -30,6 +31,19 @@ async (page) => {
   const begin = async (title, status) => {
     const { start, end } = await position(title, status);
     await page.mouse.move(start.x, start.y); await page.mouse.down();
+    // Distant lanes require the same edge scrolling as a real desktop drag.
+    const bounds = await page.locator('#board-scroll').boundingBox();
+    const left = Math.max(0, bounds.x), right = Math.min(page.viewportSize().width, bounds.x + bounds.width);
+    if (end.x < left + 52 || end.x > right - 52) {
+      await page.mouse.move(end.x < left + 52 ? left + 10 : right - 10, end.y, { steps: 12 });
+      await page.waitForFunction(status => {
+        const board = document.querySelector('#board-scroll'), lane = board.querySelector(`[data-lane="${status}"]`);
+        const b = board.getBoundingClientRect(), l = lane.getBoundingClientRect();
+        return l.left > b.left + 60 && l.right < Math.min(innerWidth, b.right) - 60;
+      }, status);
+      const target = await page.locator(`[data-lane="${status}"]`).boundingBox();
+      end.x = target.x + target.width / 2;
+    }
     await page.mouse.move(end.x, end.y, { steps: 12 });
     return end;
   };
@@ -72,6 +86,21 @@ async (page) => {
   await step('invalid');
   await drop(title, 'human_verified'); await waitStatus(title, 'processing');
   assert(await page.locator('.bug-move-dialog').count() === 0, 'Invalid transition opened a form');
+  // Direct closure needs a reason, but does not require a human verification transition.
+  await step('direct-close');
+  await drop(title, 'closed'); await page.locator('.bug-move-dialog[open]').waitFor();
+  assert((await bug(title)).status === 'processing' && (await bug(title)).lockOwnerId === null, 'Closure form wrote before save');
+  assert(await page.locator('.bug-move-dialog button[type="submit"]').isDisabled(), 'Empty closure reason accepted');
+  await page.keyboard.press('Escape'); await page.locator('.bug-move-dialog').waitFor({ state: 'detached' });
+  await waitStatus(title, 'processing');
+  await drop(title, 'closed'); await page.locator('.bug-move-dialog[open]').waitFor();
+  await page.getByRole('textbox', { name: '状态变更原因', exact: true }).fill('人工决定从处理中直接关闭');
+  await page.screenshot({ path: 'output/playwright/bug-card-drag/direct-close-dark.png' });
+  await page.locator('.bug-move-dialog button[type="submit"]').click();
+  await waitStatus(title, 'closed');
+  assert((await bug(title)).lockOwnerId === null, 'Direct closure leaked its automatic lock');
+  assert((await state()).confirmations === confirmations, 'Direct closure incorrectly required human verification');
+  await drop(title, 'processing'); await waitStatus(title, 'processing');
   // Required reasons are collected before acquiring any lock; Escape cancels.
   await step('reason');
   await drop(title, 'pending_deployment');

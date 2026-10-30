@@ -19,6 +19,23 @@ public sealed class BugStatusMoveTests
         Assert.Equal("pending_deployment", rig.Server.Status); Assert.False(BugDisplay.HasLock(rig.Server));
     }
 
+    /// <summary>每种状态都能直接拖动关闭，关闭原因及自动锁释放都必须保留。</summary>
+    [Theory]
+    [MemberData(nameof(ClosingStatuses))]
+    public async Task Any_card_can_close_with_a_reason_and_release_its_lock(string from)
+    {
+        using var rig = new BugStatusMoveTransport();
+        rig.Server.Status = from; rig.Publish();
+        var result = await rig.Api.MoveStatusAsync("b", from, "closed", "人工决定直接关闭", "desktop-worker", "u");
+        Assert.True(result.Changed); Assert.Null(result.Error); Assert.Null(result.ReleaseError);
+        Assert.Equal(new[] { "claim", "status", "release-lock" }, rig.Requests.Select(r => r.Action));
+        Assert.Equal("人工决定直接关闭", rig.Requests[1].Body.GetProperty("reason").GetString());
+        Assert.Equal("closed", rig.Server.Status); Assert.False(BugDisplay.HasLock(rig.Server));
+    }
+
+    /// <summary>关闭泳道自身不触发重复流转，其他状态全部覆盖。</summary>
+    public static TheoryData<string> ClosingStatuses => new(BugDisplay.BoardStatuses.Where(status => status != "closed"));
+
     [Fact]
     public async Task Rejected_claim_never_changes_or_releases_any_lock()
     {
@@ -60,7 +77,7 @@ public sealed class BugStatusMoveTests
 
     [Theory]
     [InlineData("human_verified", "人工已验收")]
-    [InlineData("closed", "归档")]
+    [InlineData("closed", " ")]
     [InlineData("pending_deployment", " ")]
     [InlineData("fixed", "历史")]
     public async Task Invalid_transitions_and_missing_reasons_do_not_claim(string status, string reason)
@@ -153,5 +170,36 @@ public sealed class BugStatusMoveTests
         Assert.Equal(0, local.Transport.Count);
         var claimed = await local.Api.ClaimAsync(bug.Id, "temporary-worker", 1);
         Assert.True(claimed.LockExpireTime <= DateTimeOffset.UtcNow.AddMinutes(1));
+    }
+
+    /// <summary>本机直接关闭保留真实来源状态，不补造人工验收记录，也不调用在线服务。</summary>
+    [Theory]
+    [InlineData("waiting")]
+    [InlineData("processing")]
+    [InlineData("pending_regression")]
+    [InlineData("human_verified")]
+    [InlineData("duplicate")]
+    public async Task Local_card_can_close_directly_with_history_and_without_HTTP(string from)
+    {
+        using var local = new StandaloneTestWorkspace(); await local.EnterAsync();
+        var project = await local.ProjectAsync();
+        var bug = await local.Api.CreateBugAsync(new() { ProjectId = project.Id, Title = "拖动关闭测试" });
+        var steps = from switch
+        {
+            "waiting" => Array.Empty<string>(),
+            "pending_regression" => ["pending_deployment", "pending_regression"],
+            "human_verified" => ["pending_deployment", "pending_regression", "human_verified"],
+            _ => [from]
+        };
+        foreach (var status in steps)
+            await local.Api.StatusAsync(bug.Id, status, "专用测试环境 v1：设置测试状态", null);
+        var result = await local.Api.MoveStatusAsync(bug.Id, from, "closed", "人工决定直接关闭", "local-worker", StandaloneWorkspace.UserId);
+        Assert.True(result.Changed); Assert.Null(result.Error); Assert.Null(result.ReleaseError);
+        var detail = await local.Api.DetailAsync(bug.Id);
+        Assert.Equal("closed", detail.Bug.Status); Assert.False(BugDisplay.HasLock(detail.Bug));
+        var history = Assert.Single(detail.Histories, h => h.ToStatus == "closed");
+        Assert.Equal(from, history.FromStatus); Assert.Equal("人工决定直接关闭", history.Reason);
+        Assert.Equal(steps.Length + 1, detail.Histories.Count());
+        Assert.Equal(0, local.Transport.Count);
     }
 }
