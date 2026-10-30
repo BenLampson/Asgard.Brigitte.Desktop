@@ -34,6 +34,7 @@ public sealed partial class StandaloneWorkspace
                 + "\n\n" + ClientText.T("本机任务步骤：先核对快照中的项目、BUG ID、正文、评论和历史，再结合当前仓库定位。附件这里只含元数据，缺少正文时向用户索取，不猜附件内容。批量按快照顺序逐个处理，待部署、待验收和历史记录不属于批量修复队列。")
                 + "\n" + ClientText.T("仅在用户授权范围内修改、验证、提交或推送；没有在线 MCP，不调用 bug_claim 或任何远程写工具。无法复现、信息不足或验证失败时明确记录，不虚报修复成功。")
                 + "\n" + ClientText.T("交付时逐个给出 BUG ID、根因、修改文件、验证命令与结果、提交和推送情况、涉及组件、部署步骤、残余风险。修复后建议待部署，实际部署后建议待人工回归；AI 自测不能代表人工通过。由用户在本机界面更新状态，不自动修改 SQLite。")
+                + "\n" + ClientText.T("每个 BUG 的交付说明使用 Markdown：先写“## 处理摘要”，用两到四句通俗语言说明本次处理内容、当前结果、验证情况和下一步；再写“## 交接记录”，保留上述完整技术材料及必要证据位置、补丁依赖和后续动作。按实际情况使用三级标题和列表，标题、段落与列表之间留空行；路径与提交号用行内代码，命令与日志用代码块，不把整篇正文包进代码块。")
                 + "\n\n" + JsonSerializer.Serialize(new { projects = projects.Where(p => bugs.Any(b => b.ProjectId == p.Id)), bugs = context }, new JsonSerializerOptions(Json)
                 { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) });
         }

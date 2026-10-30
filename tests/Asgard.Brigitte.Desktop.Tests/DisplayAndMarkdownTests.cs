@@ -2,7 +2,7 @@ using Asgard.Brigitte.Desktop.Core;
 using Asgard.Brigitte.Desktop.Core.Models;
 using Asgard.Brigitte.Desktop.UI;
 namespace Asgard.Brigitte.Desktop.Tests;
-/// <summary>展示真实身份字段并禁止 Markdown 执行活动内容。</summary>
+/// <summary>展示真实身份字段，保留 Markdown 换行与结构并禁止执行活动内容。</summary>
 public sealed class DisplayAndMarkdownTests
 {
     [Fact]
@@ -29,9 +29,21 @@ public sealed class DisplayAndMarkdownTests
     {
         var html = SafeMarkdown.Render(markdown); Assert.DoesNotContain("<script", html); Assert.DoesNotContain("href=\"javascript:", html); Assert.DoesNotContain("src=\"data:", html); Assert.DoesNotContain(" onclick=", html);
     }
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public void Markdown_preserves_single_line_breaks_and_blank_line_paragraphs(string newline)
+    {
+        var html = SafeMarkdown.Render($"第一行{newline}第二行{newline}{newline}下一段");
+        Assert.Contains("第一行<br />\n第二行", html);
+        Assert.Contains("<p>下一段</p>", html);
+    }
     [Fact]
     public void Markdown_keeps_existing_tables_and_code()
     {
-        var html = SafeMarkdown.Render("| A | B |\n|---|---|\n| 1 | 2 |\n\n```cs\nConsole.WriteLine(1);\n```"); Assert.Contains("<table>", html); Assert.Contains("language-cs", html);
+        var html = SafeMarkdown.Render("| A | B |\n|---|---|\n| 1 | 2 |\n\n```cs\nConsole.WriteLine(1);\nConsole.WriteLine(2);\n```");
+        Assert.Contains("<table>", html); Assert.Contains("language-cs", html);
+        Assert.Contains("Console.WriteLine(1);\nConsole.WriteLine(2);", html);
+        Assert.DoesNotContain("<br", html);
     }
 }
