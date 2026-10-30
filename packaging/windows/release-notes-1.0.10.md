@@ -11,3 +11,7 @@
 - Improved repair prompts request a short, plain-language summary followed by complete technical handoff details, making progress easier to read while preserving the information needed by the next person.
 - Markdown now preserves ordinary line breaks in bug descriptions, replies, work logs, status history and editor previews, while keeping headings, lists, tables and code blocks intact.
 - Drag bug cards directly into the Closed lane from any status, or close them from the status window, with a required explanation and the existing work-lock and access checks. Closing does not automatically mark human verification as passed.
+
+## 发布记录
+
+246 项客户端测试、Windows 商店包与便携版构建、包身份及程序集校验通过，源码 CI 通过。`1.0.10.0` 已通过 Partner Center 包验证并正式提交 Submission 10，当前正在认证／预处理，通过后立即发布；尚不代表已上架。商店详细状态见[提交记录](store-submission.md)。

@@ -1,5 +1,15 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 30, 2026 — 1.0.10 submitted
+
+Partner Center confirms Submission 9 (1.0.9) is published. Version `1.0.10.0` adds readable repair summaries with complete technical handoff details, preserves ordinary Markdown line breaks, and includes direct card dragging into Closed from any status with a required explanation. The x64 MSIX is **Validated** and ranked first. Submission 10 (`1152921505702276197`) was formally submitted on October 30 and shows **In certification / pre-processing**, with publication immediately after certification. This does not establish customer availability of 1.0.10 yet.
+
+English and Simplified Chinese release notes were saved. Automatic removal of 1.0.9 was cancelled, and every older package was retained. Existing screenshots, price/availability, age ratings and private reviewer information were retained. The existing `runFullTrust` validation warning remains subject to certification; no new capability was added.
+
+Clean, pushed package source: `056f6e5a075872237f01020c3bef91a77c6159fb`, tag `v1.0.10`. MSIX: `Asgard.Brigitte.Desktop_1.0.10.0_x64.msix`, 121271591 bytes, SHA-256 `8a8efa4f309e171762ed71eaf15f567050bb995525c9d67508b8282982b593ea`. All 246 local Core/UI tests, Windows Store and portable builds, package identity and payload checks passed. The source commit's [GitHub CI run](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41029730595) passed. Store-signed installation/upgrade, WACK and native MAUI/WebView2 runtime acceptance were not performed for this candidate. The optional symbol package was not generated because `mspdbcmf.exe` is unavailable.
+
+Local evidence: `publish/store/1.0.10.0/store-submitted.jpg` and `candidate.json`. Portable ZIP, unsigned Store upload package, checksums and source manifest are provided in [GitHub Release 1.0.10](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.10). See the [1.0.10 release notes](../../docs/releases/v1.0.10.md).
+
 ## October 29, 2026 — 1.0.9 submitted
 
 Partner Center confirms Submission 8 (1.0.8) is published. Version `1.0.9.0` adds direct bug-card status dragging, automatic short-lived work locks, and a dedicated **View details** button. Its x64 MSIX was accepted as **Validated** and ranked first. Submission 9 (`1152921505702269363`) was formally submitted on October 29 and now shows **In certification / pre-processing**, with publication immediately after certification. This does not confirm that 1.0.9 is available to customers yet.

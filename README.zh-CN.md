@@ -41,7 +41,7 @@ Brigitte 把问题发现、领取、处理和回归串在同一个项目工作�
 
 ## 帮助、隐私与语言
 
-Windows x64 便携版从 [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest) 下载。完整解压 ZIP 后运行 `Asgard.Brigitte.Desktop.exe`，需要 WebView2 Runtime。已发布的 `1.0.0` 在线版需要服务账号，本机模式需使用包含本机工作区改动的构建。本次变更与商店状态见 [1.0.2 更新说明](docs/releases/v1.0.2.md)。
+Windows x64 便携版从 [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest) 下载。完整解压 ZIP 后运行 `Asgard.Brigitte.Desktop.exe`，需要 WebView2 Runtime。本机使用无需账号或服务器。本次变更和分发状态见 [1.0.10 更新说明](docs/releases/v1.0.10.md)及[商店提交记录](packaging/windows/store-submission.md)。
 
 普通问题和功能建议统一[提交 GitHub Issue](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose)，支持中英文。Issue 是公开的，请先移除私有内容和凭据。详见[支持说明](SUPPORT.zh-CN.md)、[隐私政策](PRIVACY.zh-CN.md)（[English](PRIVACY.md)）及[使用说明](docs/usage.md)。隐私和账号删除请求请使用政策中的邮箱。
 
