@@ -1,5 +1,11 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 31, 2026 — 1.0.12 prepared
+
+Version `1.0.12.0` has been built but has **not** been submitted to Microsoft Store. Partner Center showed the previous Submission 11 (`1.0.11`) in certification; the next submission depends on that in-progress review. Microsoft Store availability of 1.0.12 has not been established.
+
+The x64 Store MSIX was built locally from clean, pushed commit `017a562836132b8dd047448968611f519b6bb6e2`; it is 121361431 bytes with SHA-256 `ad227fd404fdbdef52c73dd10ede2bd5fe4cf0543854e1013e285c1ef17cc11d`. Its identity, version and packaged settings stylesheet were checked. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.12) includes the portable ZIP, unsigned MSIX, checksums and source manifest. Local Core/UI tests (270), Windows build, interactive browser checks and [Windows/Linux CI](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41209116060) passed. Store-signed installation/upgrade, WACK and native window visual acceptance were not performed.
+
 ## October 31, 2026 — 1.0.11 submitted
 
 Partner Center confirms Submission 10 (1.0.10) is published. Version `1.0.11.0` has been formally submitted as Submission 11 (`1152921505702283666`), and the page shows **In certification / pre-processing**. Publication starts immediately after certification; this does not yet confirm customer availability of 1.0.11.
