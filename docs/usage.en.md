@@ -12,6 +12,8 @@ Choose **Back to welcome** from the **Local user** menu to return to the sign-in
 
 Select **Sign in with Heimdall** to restore saved online credentials or sign in through your system browser and return through a local callback. If the service offers registration, **Create an account** opens its registration page. Online mode needs network access and an account on the configured service.
 
+If sign-in reports a difference between your computer's clock and the sign-in service, enable automatic date and time in your system settings, synchronize the clock, and sign in again. Desktop checks the validity time of sign-in credentials, so it may fail even when web sign-in works. If the problem remains after synchronization, ask your service administrator to check the sign-in service's clock. When the service time cannot be measured, the app asks you to check your clock without claiming a specific difference.
+
 After sign-in, wait for workspace sync to finish. Create a project from the empty workspace or project management window, or use **Join with invitation** and paste the full link shared by its owner. Enter an invitation password if requested. Joining a project gives collaboration access according to server permissions; it does not make you an administrator.
 
 ## Work with bugs

@@ -11,6 +11,7 @@
             <p class="brand-eyebrow">WELCOME TO BRIGITTE</p>
             <h1>@(Verifying ? ClientText.T("正在唤醒工作区") : ClientText.T("欢迎回来"))</h1>
             <p class="brand-entry-intro">@(Verifying ? ClientText.T("圣火已点亮，正在恢复你的登录状态。") : ClientText.T("和 Brigid 一起，让每一个 BUG 都有归处。"))</p>
+            @if (!Verifying && !string.IsNullOrEmpty(Error)) { <p class="brand-entry-error" role="alert">@Error</p> }
             @if (Verifying)
             {
                 <div class="brand-wait" role="status"><span class="brand-spinner" aria-hidden="true"></span>@ClientText.T("正在验证登录…")</div>
@@ -21,7 +22,7 @@
                 <p class="brand-login-help">@ClientText.T("无需登录，断网也能完整使用。数据保存在这台电脑。")</p>
                 @if (RestorePending)
                 {
-                    <p class="brand-restore" role="status">@ClientText.T("已保存登录信息，暂时无法连接登录服务。恢复连接后即可继续。")</p>
+                    <p class="brand-restore" role="status">@ClientText.T("暂时未能恢复已保存的登录，可重试或重新登录。")</p>
                     <button class="brand-login" disabled="@Busy" @onclick="Restore">@(Restoring ? ClientText.T("正在恢复登录…") : ClientText.T("重试恢复登录"))</button>
                 }
                 <button class="brand-login brand-login-secondary" disabled="@Busy" @onclick="Login">
@@ -30,7 +31,6 @@
                 </button>
                 <p class="brand-login-help">@ClientText.T("将在浏览器中安全登录，完成后自动返回。登录后可创建项目或通过邀请加入。")</p>
                 <button class="brand-register" disabled="@Busy" @onclick="Register">@ClientText.T("没有账号？注册新账号 ↗")</button>
-                @if (!string.IsNullOrEmpty(Error)) { <p class="brand-entry-error" role="alert">@Error</p> }
                 <div class="brand-entry-note"><span aria-hidden="true">✦</span><p>@ClientText.T("专注创造，安心交付。")<small>@ClientText.T("从发现到修复，让团队的每一步都清晰可见。")</small></p></div>
             }
         </div>

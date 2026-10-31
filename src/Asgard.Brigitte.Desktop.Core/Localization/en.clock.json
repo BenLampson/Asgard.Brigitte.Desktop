@@ -1,0 +1,10 @@
+{
+  "{0} 天": "{0} days",
+  "{0} 小时": "{0} hours",
+  "{0} 分钟": "{0} minutes",
+  "{0} 秒": "{0} seconds",
+  "登录凭据校验失败。请检查电脑的日期、时间和时区，开启自动设置并同步时间后重新登录；如果仍失败，请联系管理员检查登录服务。": "Sign-in verification failed. Check your computer's date, time, and time zone, turn on automatic settings and synchronize the clock, then sign in again. If it still fails, ask your administrator to check the sign-in service.",
+  "登录凭据校验失败。本机时间比登录服务快约 {0}。请开启系统自动设置日期、时间和时区并同步时间，然后重新登录；如果仍失败，请联系管理员检查登录服务时间。": "Sign-in verification failed. Your computer's clock is approximately {0} ahead of the sign-in service. Turn on automatic date, time, and time zone settings, synchronize the clock, and sign in again. If it still fails, ask your administrator to check the sign-in service's clock.",
+  "登录凭据校验失败。本机时间比登录服务慢约 {0}。请开启系统自动设置日期、时间和时区并同步时间，然后重新登录；如果仍失败，请联系管理员检查登录服务时间。": "Sign-in verification failed. Your computer's clock is approximately {0} behind the sign-in service. Turn on automatic date, time, and time zone settings, synchronize the clock, and sign in again. If it still fails, ask your administrator to check the sign-in service's clock.",
+  "暂时未能恢复已保存的登录，可重试或重新登录。": "Your saved sign-in could not be restored. Retry or sign in again."
+}

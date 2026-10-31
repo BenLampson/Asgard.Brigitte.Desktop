@@ -34,6 +34,20 @@ public sealed class WelcomeRenderTests
         Assert.Equal(busy ? 4 : 0, html.Split(" disabled").Length - 1);
         await WindowRenderTests.ExportPreview("restore-" + busy, "<div class='client light'>" + html + "</div>");
     }
+    /// <summary>时间偏差提示在恢复入口可见，不再错误地声称登录服务无法连接。</summary>
+    [Fact]
+    public async Task Clock_diagnostic_is_visible_when_restoring_sign_in()
+    {
+        using var language = ClientText.UseLanguage("zh-CN");
+        var error = AppView.SafeError(new ClientClockSkewException(TimeSpan.FromMinutes(-2), new Exception()));
+        var html = await Render(new() { [nameof(WelcomeView.RestorePending)] = true, [nameof(WelcomeView.Error)] = error });
+
+        Assert.Contains("本机时间比登录服务慢约 2 分钟", html);
+        Assert.Contains("同步时间", html);
+        Assert.Contains("重试恢复登录", html);
+        Assert.DoesNotContain("暂时无法连接登录服务", html);
+        Assert.True(html.IndexOf("role=\"alert\"", StringComparison.Ordinal) < html.IndexOf("重试恢复登录", StringComparison.Ordinal));
+    }
     private static async Task<string> Render(Dictionary<string, object?> parameters)
     {
         var services = new ServiceCollection(); services.AddLogging();

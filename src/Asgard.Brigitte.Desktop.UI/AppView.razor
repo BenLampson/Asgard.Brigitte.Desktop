@@ -86,7 +86,24 @@ else if (!Session.HasWorkspace) {
         if (!Session.HasWorkspace) Workspace.Clear();
         _ = InvokeAsync(() => { if (Session.HasWorkspace) _error = ""; StateHasChanged(); });
     }
-    /// <summary>协议异常只显示安全分类，不输出回调或令牌。</summary>
-    public static string SafeError(Exception ex) => ex is Asgard.Heimdall.Client.HeimdallClientException sdk ? ClientText.T("登录服务返回：") + sdk.Category : ex.Message;
+    /// <summary>协议异常显示安全提示，不输出回调、令牌或服务端原始响应。</summary>
+    public static string SafeError(Exception ex) => ex switch {
+        ClientClockSkewException clock => ClockError(clock.Difference),
+        Asgard.Heimdall.Client.HeimdallClientException { Category: "invalid_jwt" } => ClientText.T("登录凭据校验失败。请检查电脑的日期、时间和时区，开启自动设置并同步时间后重新登录；如果仍失败，请联系管理员检查登录服务。"),
+        Asgard.Heimdall.Client.HeimdallClientException sdk => ClientText.T("登录服务返回：") + sdk.Category,
+        _ => ex.Message
+    };
+    /// <summary>只展示服务响应测出的相对时差，不断言是哪一方的时钟出错。</summary>
+    private static string ClockError(TimeSpan difference)
+    {
+        var duration = difference.Duration();
+        var amount = duration.TotalDays >= 1 ? ClientText.T("{0} 天", Math.Round(duration.TotalDays, 1))
+            : duration.TotalHours >= 1 ? ClientText.T("{0} 小时", Math.Round(duration.TotalHours, 1))
+            : duration.TotalMinutes >= 1 ? ClientText.T("{0} 分钟", Math.Round(duration.TotalMinutes, 1))
+            : ClientText.T("{0} 秒", Math.Round(duration.TotalSeconds));
+        return difference > TimeSpan.Zero
+            ? ClientText.T("登录凭据校验失败。本机时间比登录服务快约 {0}。请开启系统自动设置日期、时间和时区并同步时间，然后重新登录；如果仍失败，请联系管理员检查登录服务时间。", amount)
+            : ClientText.T("登录凭据校验失败。本机时间比登录服务慢约 {0}。请开启系统自动设置日期、时间和时区并同步时间，然后重新登录；如果仍失败，请联系管理员检查登录服务时间。", amount);
+    }
     public void Dispose() { Session.Changed -= Changed; Host.Changed -= Changed; Host.StatusChanged -= Changed; }
 }

@@ -10,9 +10,10 @@ namespace Asgard.Brigitte.Desktop.Tests;
 internal sealed class SignedOidcTransport(SessionTestClock clock) : HttpMessageHandler, IHttpClientFactory
 {
     private readonly RSA _rsa = RSA.Create(2048);
-    internal int Refreshes, Requests, ServerAheadSeconds;
-    internal bool Offline, InvalidGrant;
+    internal int Refreshes, Requests, ServerAheadSeconds, TokenIssuedOffsetSeconds;
+    internal bool Offline, InvalidGrant, ReportServerDate, FailClockProbe, CachedClockProbe, InvalidSignature;
     internal string? LoginNonce;
+    internal Action? OnClockProbe;
     internal readonly List<string> PresentedRefreshTokens = [];
     internal readonly TaskCompletionSource Renewed = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal ClientOptions Options { get; } = new() { Authority = "https://issuer.test/tenant", ClientId = "desktop", TenantId = "tenant", ApplicationId = "app", Audience = "api", Scope = "openid profile offline_access api" };
@@ -23,7 +24,16 @@ internal sealed class SignedOidcTransport(SessionTestClock clock) : HttpMessageH
     {
         Requests++;
         if (Offline) throw new HttpRequestException("test network unavailable");
-        if (request.RequestUri!.AbsolutePath.EndsWith("openid-configuration")) return Json(new { issuer = Options.Authority, authorization_endpoint = Options.Authority + "/authorize", token_endpoint = Options.Authority + "/token", jwks_uri = Options.Authority + "/jwks", revocation_endpoint = Options.Authority + "/revoke", userinfo_endpoint = Options.Authority + "/userinfo" });
+        if (request.RequestUri!.AbsolutePath.EndsWith("openid-configuration"))
+        {
+            var isClockProbe = request.Headers.CacheControl is { NoCache: true, NoStore: true };
+            if (isClockProbe && FailClockProbe) throw new HttpRequestException("test clock probe unavailable");
+            if (isClockProbe) OnClockProbe?.Invoke();
+            var discovery = Json(new { issuer = Options.Authority, authorization_endpoint = Options.Authority + "/authorize", token_endpoint = Options.Authority + "/token", jwks_uri = Options.Authority + "/jwks", revocation_endpoint = Options.Authority + "/revoke", userinfo_endpoint = Options.Authority + "/userinfo" });
+            if (ReportServerDate) discovery.Headers.Date = clock.GetUtcNow().AddSeconds(ServerAheadSeconds);
+            if (isClockProbe && CachedClockProbe) discovery.Headers.Age = TimeSpan.FromMinutes(1);
+            return discovery;
+        }
         if (request.RequestUri.AbsolutePath.EndsWith("/jwks")) { var key = _rsa.ExportParameters(false); return Json(new { keys = new[] { new { kty = "RSA", kid = "test-key", alg = "RS256", use = "sig", n = B64(key.Modulus!), e = B64(key.Exponent!) } } }); }
         if (request.RequestUri.AbsolutePath.EndsWith("/token"))
         {
@@ -42,10 +52,12 @@ internal sealed class SignedOidcTransport(SessionTestClock clock) : HttpMessageH
     /// <summary>真实签名并带 nbf，复现 IDP 比机器时间快几秒的登录失败。</summary>
     internal string Token(string subject, string sid, bool idToken = false)
     {
-        var issued = clock.GetUtcNow().AddSeconds(ServerAheadSeconds);
+        var issued = clock.GetUtcNow().AddSeconds(ServerAheadSeconds + TokenIssuedOffsetSeconds);
         var header = B64(JsonSerializer.SerializeToUtf8Bytes(new { alg = "RS256", kid = "test-key", typ = "JWT" }));
         var payload = B64(JsonSerializer.SerializeToUtf8Bytes(new { iss = Options.Authority, aud = idToken ? Options.ClientId : Options.Audience, sub = subject, sid, nonce = idToken ? LoginNonce : null, tenant_id = "tenant", application_id = "app", client_id = "desktop", token_type = "UserLogin", scope = "openid profile offline_access api", iat = issued.ToUnixTimeSeconds(), nbf = issued.ToUnixTimeSeconds(), exp = issued.AddMinutes(15).ToUnixTimeSeconds() }));
-        var input = header + "." + payload; return input + "." + B64(_rsa.SignData(Encoding.UTF8.GetBytes(input), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+        var input = header + "." + payload; var signature = _rsa.SignData(Encoding.UTF8.GetBytes(input), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        if (InvalidSignature) signature[0] ^= 1;
+        return input + "." + B64(signature);
     }
     private static string B64(byte[] value) => Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     private static HttpResponseMessage Json(object value) => TestTransport.Json(JsonSerializer.Serialize(value));

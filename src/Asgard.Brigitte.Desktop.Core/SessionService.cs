@@ -52,6 +52,11 @@ public sealed partial class SessionService(
             await CommitAsync(candidate, true);
         }
         catch (HeimdallClientException ex) when (ex.Category == "invalid_grant") { await ClearAsync(); }
+        catch (HeimdallClientException ex) when (ex.Category == "invalid_jwt")
+        {
+            await CheckClockAfterInvalidJwtAsync(ex, cancellationToken);
+            throw;
+        }
         finally { _gate.Release(); Changed?.Invoke(); }
     }
     /// <summary>登录事务只在当前操作内存中存在且只消费一次。</summary>
@@ -84,6 +89,12 @@ public sealed partial class SessionService(
             Changed?.Invoke();
             await browser.CompleteAsync(true);
         }
+        catch (HeimdallClientException ex) when (ex.Category == "invalid_jwt")
+        {
+            await browser.CompleteAsync(false);
+            await CheckClockAfterInvalidJwtAsync(ex, pending.Token);
+            throw;
+        }
         catch { await browser.CompleteAsync(false); throw; }
         finally { _loginCancellation = null; _loginGate.Release(); }
     }
@@ -109,6 +120,11 @@ public sealed partial class SessionService(
                 }
                 catch (HeimdallClientException ex) when (ex.Category == "invalid_grant")
                 { await ClearAsync(); throw new UnauthorizedAccessException(ClientText.T("登录已失效，请重新登录。")); }
+                catch (HeimdallClientException ex) when (ex.Category == "invalid_jwt")
+                {
+                    await CheckClockAfterInvalidJwtAsync(ex, cancellationToken);
+                    throw;
+                }
             }
             return new TokenLease(Version, _current!.Tokens.AccessToken) { IdentityVersion = IdentityVersion };
         }
