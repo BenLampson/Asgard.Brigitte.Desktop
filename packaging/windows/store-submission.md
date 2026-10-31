@@ -1,5 +1,15 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## October 31, 2026 — 1.0.11 submitted
+
+Partner Center confirms Submission 10 (1.0.10) is published. Version `1.0.11.0` has been formally submitted as Submission 11 (`1152921505702283666`), and the page shows **In certification / pre-processing**. Publication starts immediately after certification; this does not yet confirm customer availability of 1.0.11.
+
+The x64 MSIX was accepted as **Validated** and ranked first. English and Simplified Chinese release notes were saved; the automatic removal of older packages was cancelled and all historical packages remain in the submission. Existing screenshots, availability, age rating and private reviewer information were retained. The existing `runFullTrust` validation warning remains subject to certification; no new capability was added.
+
+The Store and portable packages were built locally from clean, pushed source `81a690950c2ea057261d2d7c463e507099311437`. The MSIX is 121341247 bytes; SHA-256 `12b2dab84fc4015c3dca2d71a2137474fe3947e2632693747a4edebea047e017`. All 266 local Core/UI tests, the local Windows Release build and [source CI](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41183853289) passed. Browser checks exercised lane reorder, copy and persistence, record collapse, and light/dark layouts. Store-signed installation/upgrade, WACK and native MAUI/WebView2 runtime acceptance were not performed. The optional symbol package was not generated because `mspdbcmf.exe` is unavailable.
+
+Portable ZIP, unsigned Store upload MSIX, checksums and source manifest are provided in the [GitHub 1.0.11 release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.11). See the [1.0.11 release notes](../../docs/releases/v1.0.11.md).
+
 ## October 30, 2026 — 1.0.10 submitted
 
 Partner Center confirms Submission 9 (1.0.9) is published. Version `1.0.10.0` adds readable repair summaries with complete technical handoff details, preserves ordinary Markdown line breaks, and includes direct card dragging into Closed from any status with a required explanation. The x64 MSIX is **Validated** and ranked first. Submission 10 (`1152921505702276197`) was formally submitted on October 30 and shows **In certification / pre-processing**, with publication immediately after certification. This does not establish customer availability of 1.0.10 yet.

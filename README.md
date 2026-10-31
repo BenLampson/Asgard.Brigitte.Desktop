@@ -29,17 +29,17 @@ This repository publishes the desktop client, shared synchronization contracts, 
 
 ## Platform status
 
-Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. Version `1.0.0` failed Store certification because online discovery blocked access to the workspace. Version `1.0.1` is available in Microsoft Store. Version `1.0.2` adds complete board status visibility and verified claimant display. macOS signing and notarization remain separate release work.
+Windows is the primary development platform and is built in CI using MAUI, WinUI 3, and WebView2. macOS sources use Mac Catalyst and an AppKit tray bridge; building and validating them requires a Mac with Xcode. There is no Linux desktop host, but the Core/UI tests can run without MAUI. The local-first app is available in Microsoft Store; see the submission log for the status of the newest update. macOS signing and notarization remain separate release work.
 
 ## Help, privacy, and language
 
-Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime is required. Local use needs no account or server. See the [1.0.10 release notes](docs/releases/v1.0.10.md) and [Store submission log](packaging/windows/store-submission.md) for current changes and distribution status.
+Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime is required. Local use needs no account or server. See the [1.0.11 release notes](docs/releases/v1.0.11.md) and [Store submission log](packaging/windows/store-submission.md) for current changes and distribution status.
 
 Use [GitHub Issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose) for bugs and feature requests; English and Chinese are welcome. See the [support guide](SUPPORT.md), [privacy policy](PRIVACY.md) ([简体中文](PRIVACY.zh-CN.md)), and [usage guide](docs/usage.en.md). Issues are public: remove private content and credentials. Privacy and account-deletion requests go to the email in the policy.
 
 Open **Settings → General → Language** to choose **Follow system**, **简体中文**, or **English**. Chinese system languages use Simplified Chinese; other languages use English. The preference is saved on the device and applies to open windows. User content and server-provided templates remain in their original language.
 
-Microsoft Store descriptions, public package identity, links, and submission status are in the [Store submission guide](packaging/windows/store-submission.md). The first submission failed certification on October 17, 2026; the local-first replacement is not yet certified or published. Free pricing and automatic publication after approval remain selected.
+Microsoft Store descriptions, public package identity, links, and submission status are in the [Store submission guide](packaging/windows/store-submission.md). The local-first app is published; subsequent updates require Microsoft certification. Free pricing and automatic publication after approval remain selected.
 
 ![Asgard Brigitte list view with fictional sample data](docs/screenshots/en-US/02-list.png)
 
