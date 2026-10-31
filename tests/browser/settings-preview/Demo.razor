@@ -1,0 +1,12 @@
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Asgard.Brigitte.Desktop.UI
+@using SettingsPreview
+@rendermode InteractiveServer
+@implements IDisposable
+@inject SettingsHost Host
+<div id="app"><div class="client @Host.Theme"><SettingsView /></div></div>
+@code {
+    protected override void OnInitialized() => Host.Changed += Refresh;
+    private void Refresh() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Host.Changed -= Refresh;
+}

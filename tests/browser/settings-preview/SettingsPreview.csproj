@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><RootNamespace>SettingsPreview</RootNamespace></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../../src/Asgard.Brigitte.Desktop.UI/Asgard.Brigitte.Desktop.UI.csproj" /></ItemGroup>
+</Project>
