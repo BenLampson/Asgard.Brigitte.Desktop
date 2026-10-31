@@ -662,13 +662,9 @@ summary::-webkit-details-marker {
   flex-shrink: 0;
   white-space: nowrap;
 }
+.owner-group { display:block; flex:1; min-width:0; }
 .card-bottom .priority {
   flex-shrink: 0;
-}
-.owner {
-  margin-left: auto;
-  max-width: 128px;
-  text-align: right;
 }
 .priority {
   display: inline-block;

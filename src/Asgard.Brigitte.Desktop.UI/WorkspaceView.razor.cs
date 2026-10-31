@@ -100,7 +100,8 @@ public partial class WorkspaceView
     private void ResetPage() => _page = 1;
     private Task OpenAccount() => Host.OpenExternalAsync(Options.Value.HeimdallWebBaseUrl.TrimEnd('/') + "/account");
     private static PromptAction Primary(List<PromptAction> actions) => actions.FirstOrDefault(a => a.IsPrimary) ?? actions[0];
-    private string OwnerTitle(Bug b) => ClientText.T("负责人：") + Workspace.Assignee(b.AssigneeId) + ClientText.T("\n标识：") + (b.AssigneeId ?? ClientText.T("未指派"));
+    private string OwnerDisplay(Bug b) => string.IsNullOrWhiteSpace(b.AssigneeId) ? ClientText.T("无") : Workspace.Assignee(b.AssigneeId);
+    private string OwnerTitle(Bug b) => ClientText.T("负责人：") + OwnerDisplay(b) + (string.IsNullOrWhiteSpace(b.AssigneeId) ? "" : ClientText.T("\n标识：") + b.AssigneeId);
     private string ClaimTitle(Bug b) => ClientText.T("领取者：") + BugDisplay.Claimant(b, Workspace.Users) + ClientText.T("\n标识：") + b.LockOwnerUserId + "\nWorker ID：" + b.LockOwnerId + ClientText.T("\n到期：") + b.LockExpireTime?.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
     private async Task Copy(string value) { await Host.CopyAsync(value); _toast = ClientText.T("已复制"); }
     private Dictionary<string, string?> Variables(Bug? bug = null) => new()

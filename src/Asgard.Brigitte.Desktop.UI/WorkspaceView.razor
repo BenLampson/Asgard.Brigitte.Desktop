@@ -75,7 +75,7 @@ var bugs = Filtered.Where(b=>b.Status==status).ToList();
 <PromptButtons Actions="actions" OnCopy="a=>CopyPrompt(a,bug)" /> }</div>
 <strong class="bug-title" title="@bug.Title">@bug.Title</strong>
 @if (BugDisplay.HasLock(bug)) { <div class="claim ellipsis" tabindex="0" title="@ClaimTitle(bug)">♙ @ClientText.T("领取者：{0}", BugDisplay.Claimant(bug, Workspace.Users))</div> }
-<div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-label">@ClientText.T("负责人")</span><span class="ellipsis owner" tabindex="0" title="@OwnerTitle(bug)">@Workspace.Assignee(bug.AssigneeId)</span><button type="button" class="card-detail-button" @onclick="() => OpenBug(bug)">@ClientText.T("查看详情")</button></div>
+<div class="card-bottom"><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority, bug.Priority)</span><span class="owner-group ellipsis" tabindex="0" title="@OwnerTitle(bug)"><span class="owner-label">@ClientText.T("负责人：")</span>@OwnerDisplay(bug)</span><button type="button" class="card-detail-button" @onclick="() => OpenBug(bug)">@ClientText.T("查看详情")</button></div>
 </article> }
 @if(bugs.Count==0) { <p class="empty-column">@ClientText.T("暂无 BUG")</p> }
 </LaneOrder>

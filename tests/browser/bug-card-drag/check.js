@@ -50,6 +50,12 @@ async (page) => {
   const drop = async (title, status) => { await begin(title, status); await page.mouse.up(); await idle(); };
   await page.setViewportSize({ width: 1680, height: 920 });
   await page.locator('#board-scroll[data-bug-move-enabled="true"][data-bug-drag-ready="true"]').waitFor();
+  assert((await card('可直接拖动的问题').locator('.owner-group').innerText()) === '负责人：无', 'Missing Chinese unassigned label');
+  await page.getByRole('button', { name: '切换语言' }).click();
+  await page.waitForFunction(() => document.querySelector('.client')?.getAttribute('lang') === 'en');
+  assert((await card('可直接拖动的问题').locator('.owner-group').innerText()) === 'Assignee: None', 'Missing English unassigned label');
+  await page.getByRole('button', { name: '切换语言' }).click();
+  await page.waitForFunction(() => document.querySelector('.client')?.getAttribute('lang') === 'zh-CN');
   const initialOrder = await page.locator('#board-scroll > [data-lane]').evaluateAll(lanes => lanes.map(lane => lane.dataset.lane).join(','));
   // Card clicks and tiny movements do not navigate; details have a dedicated button.
   await step('details');

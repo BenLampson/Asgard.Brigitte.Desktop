@@ -94,6 +94,16 @@ public sealed class WindowRenderTests
         Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }
+    /// <summary>未指派负责人时，中英文卡片都将标签和值放在一起。</summary>
+    [Theory]
+    [InlineData("zh-CN", "负责人：无")]
+    [InlineData("en", "Assignee: None")]
+    public async Task Unassigned_card_shows_a_localized_adjacent_owner(string language, string expected)
+    {
+        using var scope = ClientText.UseLanguage(language);
+        var html = System.Net.WebUtility.HtmlDecode(await Render("dark", DesktopViewKind.Main));
+        Assert.Contains("title=\"" + expected + "\"", html);
+    }
     [Fact]
     public async Task Management_view_displays_the_closed_bug_and_export_actions()
     {
@@ -175,6 +185,7 @@ public sealed class WindowRenderTests
         object data; var paged = false; var total = 1; var path = uri.AbsolutePath;
         var project = new Project { Id = "project", Name = "Brigitte", Code = "brigitte", Status = "active", OwnerId = "owner", MemberUserIds = ["owner"] };
         var bugs = Enumerable.Range(0, 18).Select(i => new Bug { Id = i == 0 ? "bug" : "bug-" + i, ProjectId = "project", Title = i == 0 ? "刷新列表后筛选条件被重置" : "状态更新后卡片及时显示 · " + i, Description = "问题描述", Content = "## 复现步骤\n1. 打开看板\n2. 点击刷新", Status = "processing", Priority = "high", AssigneeId = "raw-owner-id-very-long", LockOwnerId = i == 0 ? "worker-7" : null, LockOwnerName = i == 0 ? "AI-Worker-7" : null, LockOwnerUserId = i == 0 ? "owner" : null, LockExpireTime = DateTimeOffset.UtcNow.AddHours(1), CreateTime = DateTimeOffset.UtcNow }).ToList();
+        bugs[1].AssigneeId = null;
         // 六条完成记录必须与处理中记录一起显示，覆盖之前缺失的四个最终状态。
         var completed = new[] { "fixed", "regressed", "closed", "wont_fix", "duplicate", "cannot_reproduce" };
         for (var i = 0; i < completed.Length; i++) bugs[12 + i].Status = completed[i];
