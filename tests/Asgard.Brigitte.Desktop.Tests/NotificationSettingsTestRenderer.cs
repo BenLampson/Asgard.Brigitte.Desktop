@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Logging.Abstractions;
 using Asgard.Brigitte.Desktop.UI.Components;
 
@@ -34,6 +35,12 @@ internal sealed class NotificationSettingsTestRenderer(IServiceProvider services
         var attributes = Attributes(id);
         var handler = attributes.Single(x => x.AttributeName is "onchange" or "oninput").AttributeEventHandlerId;
         return DispatchEventAsync(handler, null, new ChangeEventArgs { Value = value });
+    }
+
+    internal Task ClickAsync(string id)
+    {
+        var handler = Attributes(id).Single(x => x.AttributeName == "onclick").AttributeEventHandlerId;
+        return DispatchEventAsync(handler, null, new MouseEventArgs());
     }
 
     /// <summary>检查失败恢复、继承切换之后界面实际显示的保存值。</summary>

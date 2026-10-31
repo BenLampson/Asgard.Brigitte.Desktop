@@ -16,13 +16,17 @@ public sealed class NotificationSettingsRenderTests
     public async Task Settings_render_project_rules_and_all_destination_statuses(string theme, string language)
     {
         using var scope = ClientText.UseLanguage(language);
-        var html = await WindowRenderTests.Render(theme, DesktopViewKind.Settings);
+        var shell = WebUtility.HtmlDecode(await WindowRenderTests.Render(theme, DesktopViewKind.Settings));
+        Assert.Contains(ClientText.T("设置分类"), shell);
+        Assert.Contains(ClientText.T("常规"), shell);
+        Assert.Contains(ClientText.T("提醒"), shell);
+        Assert.Contains(ClientText.T("应用更新"), shell);
+        var html = await WindowRenderTests.Render(theme, DesktopViewKind.Settings, notificationComponent: true);
         var decoded = WebUtility.HtmlDecode(html);
         Assert.Contains(ClientText.T("提醒设置"), decoded);
         Assert.Contains(ClientText.T("默认规则（未单独配置的项目）"), decoded);
-        Assert.Contains("value=\"project\"", html);
-        Assert.Contains("notification-search", html);
-        foreach (var label in BugDisplay.Statuses.Values) Assert.Contains(label, decoded);
+        Assert.Contains("notification-project", html);
+        Assert.Contains("notification-status-open", html);
         Assert.Contains(ClientText.T("领取、释放与负责人变化"), decoded);
         if (language == "en") Assert.DoesNotContain("提醒设置", decoded);
         await WindowRenderTests.ExportPreview("notifications-" + theme + "-" + language, html);
@@ -32,7 +36,7 @@ public sealed class NotificationSettingsRenderTests
     [Fact]
     public async Task Signed_out_settings_do_not_expose_project_controls()
     {
-        var html = await WindowRenderTests.Render("light", DesktopViewKind.Settings, authenticated: false);
+        var html = await WindowRenderTests.Render("light", DesktopViewKind.Settings, authenticated: false, notificationComponent: true);
         Assert.DoesNotContain("id=\"notification-project\"", html);
         Assert.Contains(ClientText.T("登录在线工作区后，可以按项目配置提醒。本机工作区不会产生在线提醒。"), WebUtility.HtmlDecode(html));
     }

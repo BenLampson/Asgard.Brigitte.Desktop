@@ -39,7 +39,8 @@ public sealed class NotificationSettingsInteractionTests
             await renderer.MountAsync();
             await renderer.ChangeAsync("notification-enabled", false);
             Assert.False(preferences.Get("render-test").Enabled);
-            await renderer.ChangeAsync("notification-project", "p");
+            await renderer.ClickAsync("notification-project");
+            await renderer.ClickAsync("notification-project-p");
             Assert.True(renderer.IsChecked("notification-inherit"));
             Assert.False(renderer.IsChecked("notification-enabled"));
             await renderer.ChangeAsync("notification-inherit", false);
@@ -47,6 +48,7 @@ public sealed class NotificationSettingsInteractionTests
             await renderer.ChangeAsync("notification-enabled", true);
             foreach (var type in Enum.GetValues<NotificationChange>().Where(x => x is not (NotificationChange.None or NotificationChange.All or NotificationChange.Status)))
                 await renderer.ChangeAsync("notification-type-" + type, false);
+            await renderer.ClickAsync("notification-status-open");
             await renderer.ChangeAsync("notification-all-statuses", false);
             await renderer.ChangeAsync("notification-status-pending_regression", true);
             await renderer.ChangeAsync("notification-status-closed", true);
@@ -58,10 +60,12 @@ public sealed class NotificationSettingsInteractionTests
             await renderer.ChangeAsync("notification-status-processing", false);
             Assert.False(renderer.IsChecked("notification-status-processing"));
             Assert.True(renderer.IsChecked("notification-status-pending_regression"));
+            await renderer.ClickAsync("notification-back");
             await renderer.ChangeAsync("notification-inherit", true);
             Assert.False(preferences.HasOverride("render-test", "p"));
             Assert.False(renderer.IsChecked("notification-enabled"));
-            await renderer.ChangeAsync("notification-project", "");
+            await renderer.ClickAsync("notification-project");
+            await renderer.ClickAsync("notification-project-default");
             Directory.CreateDirectory(config + ".tmp");
             await renderer.ChangeAsync("notification-enabled", true);
             Assert.False(preferences.Get("render-test").Enabled);

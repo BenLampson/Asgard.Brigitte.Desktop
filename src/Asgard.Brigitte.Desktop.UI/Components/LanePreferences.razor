@@ -6,9 +6,11 @@
 @inject Microsoft.Extensions.Options.IOptions<ClientOptions> Options
 @inject IJSRuntime JS
 
-<main class="preferences-window lane-preferences">
-    <div class="lane-pref-back"><button class="link" @onclick="OnBack">← @ClientText.T("返回设置")</button><small>@ClientText.T("已保存在此设备")</small></div>
-    <header class="preferences-header"><div><h1>@ClientText.T("看板泳道")</h1><p class="muted">@ClientText.T("按项目设置看板中状态泳道的显示顺序。")</p></div></header>
+<main class="preferences-window lane-preferences @(Embedded ? "lane-preferences-embedded" : "")">
+    @if (!Embedded) {
+        <div class="lane-pref-back"><button class="link" @onclick="OnBack">← @ClientText.T("返回设置")</button><small>@ClientText.T("已保存在此设备")</small></div>
+        <header class="preferences-header"><div><h1>@ClientText.T("看板泳道")</h1><p class="muted">@ClientText.T("按项目设置看板中状态泳道的显示顺序。")</p></div></header>
+    }
     <section class="preferences-section lane-pref-project">
         <div class="lane-pref-section-heading"><strong>@ClientText.T("配置项目")</strong><small>@ClientText.T("每个项目单独保存")</small></div>
         @if (!Session.HasWorkspace) { <p class="muted">@ClientText.T("请先打开本机工作区或登录在线工作区。")</p> }
@@ -37,7 +39,7 @@
         </div>
     </section>
     @if (_error.Length > 0) { <p class="error" role="alert">@_error</p> }
-    <footer class="preferences-footer"><span class="muted">@ClientText.T("仅影响此设备当前账号的项目看板，不改变 BUG 状态。")</span><button @onclick="OnBack">@ClientText.T("返回设置")</button></footer>
+    @if (!Embedded) { <footer class="preferences-footer"><span class="muted">@ClientText.T("仅影响此设备当前账号的项目看板，不改变 BUG 状态。")</span><button @onclick="OnBack">@ClientText.T("返回设置")</button></footer> }
     @if (_copyOpen) {
         <div class="lane-pref-overlay" @onclick="CloseCopy">
             <div class="lane-pref-dialog" role="dialog" aria-modal="true" aria-labelledby="lane-copy-title" @onclick:stopPropagation="true">
@@ -56,6 +58,8 @@
 @code {
     /// <summary>回到普通设置。</summary>
     [Parameter] public EventCallback OnBack { get; set; }
+    /// <summary>嵌入设置内容区时使用父窗口导航与页脚。</summary>
+    [Parameter] public bool Embedded { get; set; }
     private string _projectId = "", _sourceId = "", _error = "";
     private string[] _order = [];
     private bool _copyOpen, _attached, _attaching, _disposed;

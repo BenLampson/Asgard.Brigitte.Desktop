@@ -4,6 +4,7 @@ using Asgard.Brigitte.Sync;
 using Asgard.Brigitte.Desktop.Core;
 using Asgard.Brigitte.Desktop.Core.Models;
 using Asgard.Brigitte.Desktop.UI;
+using Asgard.Brigitte.Desktop.UI.Components;
 using Asgard.Heimdall.Client;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -151,7 +152,7 @@ public sealed class WindowRenderTests
         var output = Path.Combine(root, "tests/Asgard.Brigitte.Desktop.Tests/obj/ui-validation"); Directory.CreateDirectory(output);
         await File.WriteAllTextAsync(Path.Combine(output, name + ".html"), "<!doctype html><html lang='" + ClientText.Language + "'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>" + css + "</style><body><div id='app'>" + html + "</div></body></html>", TestContext.Current.CancellationToken);
     }
-    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false, bool management = false, NotificationPreferenceStore? notifications = null)
+    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false, bool management = false, NotificationPreferenceStore? notifications = null, bool notificationComponent = false)
     {
         using var transport = new TestTransport(_ => throw new InvalidOperationException("渲染业务界面不得读取 REST"));
         using var local = new SyncTestWorkspace();
@@ -178,7 +179,10 @@ public sealed class WindowRenderTests
         using var provider = services.BuildServiceProvider(); await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
         // 原生宿主显示托盘前会先加载项目缓存，测试使用相同的准备顺序。
         if (kind == DesktopViewKind.Tray) await provider.GetRequiredService<WorkspaceStore>().LoadAsync();
-        return await renderer.Dispatcher.InvokeAsync(async () => { var view = await renderer.RenderComponentAsync<AppView>(ParameterView.FromDictionary(new Dictionary<string, object?> { { nameof(AppView.View), new DesktopView(kind, "bug", "project") } })); return view.ToHtmlString(); });
+        return await renderer.Dispatcher.InvokeAsync(async () => {
+            if (notificationComponent) { var notification = await renderer.RenderComponentAsync<NotificationPreferences>(); return notification.ToHtmlString(); }
+            var view = await renderer.RenderComponentAsync<AppView>(ParameterView.FromDictionary(new Dictionary<string, object?> { { nameof(AppView.View), new DesktopView(kind, "bug", "project") } })); return view.ToHtmlString();
+        });
     }
     private static HttpResponseMessage Response(Uri uri)
     {
