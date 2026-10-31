@@ -16,6 +16,6 @@
 @code {
     private bool _records;
     private BugComment[] _comments = [];
-    private async Task ShowRecords() { var project = (await Api.ProjectsAsync()).Single(item => item.Name == "示例项目 A"); var bug = (await Api.BugsAsync(project.Id)).Single(); _comments = (await Api.DetailAsync(bug.Id)).Comments; _records = true; }
+    private async Task ShowRecords() { var project = (await Api.ProjectsAsync()).Single(item => item.Name == "示例项目 A"); var bug = (await Api.BugsAsync(project.Id)).Single(); _comments = (await Api.DetailAsync(bug.Id)).Comments; var example = _comments.Single(item => item.Report is not null); example.AuthorType = "ai"; example.AuthorId = "sample-user"; _records = true; }
     private void ToggleTheme() => Host.SetTheme(Host.Theme == "dark" ? "light" : "dark");
 }

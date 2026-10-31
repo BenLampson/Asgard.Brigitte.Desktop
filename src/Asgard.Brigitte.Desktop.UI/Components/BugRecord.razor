@@ -1,24 +1,28 @@
 @using Asgard.Brigitte.Sync
 @inject WorkspaceStore Workspace
+@inject BrigitteApi Api
 
 <article class="bug-record" data-record-id="@Comment.Id">
     <header class="bug-record-header">
         <div class="bug-record-identity">
-            <span class="bug-record-avatar" aria-hidden="true">@(Comment.AuthorType == "ai" ? "AI" : Comment.AuthorType == "human" ? (ClientText.Language == "en" ? "P" : "人") : "?")</span>
+            <span class="bug-record-avatar" aria-hidden="true">@Avatar</span>
             <div>
-                <div class="bug-record-identity-line"><strong>@Origin</strong><span class="bug-record-kind">@Kind</span></div>
-                @if (!string.IsNullOrWhiteSpace(Comment.AuthorId)) {
-                    <small class="bug-record-author">@ClientText.T("关联账号：{0}", Author)</small>
-                } else { <small class="bug-record-author">@ClientText.T("记录来源")</small> }
+                <div class="bug-record-identity-line"><strong>@Author</strong><span class="bug-record-kind">@Kind</span></div>
+                <small class="bug-record-author">@Origin</small>
             </div>
         </div>
         <div class="bug-record-header-end">
             <div class="bug-record-time"><small>@ClientText.T("记录时间")</small><time datetime="@Comment.CreateTime.ToString("O")">@Comment.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</time></div>
-            <button class="bug-record-toggle" type="button" aria-expanded="@(_expanded ? "true" : "false")" aria-controls="@ContentId" @onclick="Toggle">@ClientText.T(_expanded ? "收起" : "展开") <span aria-hidden="true">@(_expanded ? "⌃" : "⌄")</span></button>
+            <button class="bug-record-toggle" type="button" aria-expanded="@(_expanded ? "true" : "false")" aria-controls="@ContentId" @onclick="Toggle">
+                <span>@ClientText.T(_expanded ? "收起" : "展开")</span>
+                <svg class="@(_expanded ? "bug-record-chevron is-expanded" : "bug-record-chevron")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
         </div>
     </header>
     @if (!_expanded && Report is not null) {
         <div class="bug-record-preview"><strong>@ClientText.T("处理摘要")</strong><span>@Report.Summary</span></div>
+    } else if (!_expanded && !string.IsNullOrWhiteSpace(Comment.Content)) {
+        <div class="bug-record-preview"><strong>@ClientText.T("内容预览")</strong><span>@Comment.Content</span></div>
     } else if (!_expanded) {
         <div class="bug-record-preview muted">@ClientText.T("记录已收起，展开可查看完整内容。")</div>
     }
@@ -47,12 +51,14 @@
 @code {
     /// <summary>同一条回复或处理记录；旧记录只保留 Markdown 正文。</summary>
     [Parameter, EditorRequired] public BugComment Comment { get; set; } = null!;
-    private bool _expanded = true;
+    private bool _expanded;
     private string ContentId => "bug-record-content-" + Comment.Id;
     private BugProcessReport? Report => Comment.Report is { Version: 1 } report && !string.IsNullOrWhiteSpace(report.Summary) ? report : null;
-    private string Origin => Comment.AuthorType switch { "ai" => ClientText.T("AI"), "human" => ClientText.T("人工"), _ => string.IsNullOrWhiteSpace(Comment.AuthorType) ? ClientText.T("未知来源") : Comment.AuthorType };
+    private string Origin => Comment.AuthorType switch { "ai" => ClientText.T("AI 标记"), "human" => ClientText.T("人工标记"), _ => string.IsNullOrWhiteSpace(Comment.AuthorType) ? ClientText.T("未知来源") : ClientText.T("来源标记：{0}", Comment.AuthorType) };
     private string Kind => Comment.CommentType switch { "comment" => ClientText.T("回复"), "process" or "resolution" => ClientText.T("处理记录"), "analysis" => ClientText.T("分析记录"), "fix" => ClientText.T("修复记录"), "verification" => ClientText.T("验证记录"), "regression" => ClientText.T("回归记录"), "progress" => ClientText.T("进度记录"), "question" => ClientText.T("补充问题"), _ => string.IsNullOrWhiteSpace(Comment.CommentType) ? ClientText.T("记录") : Comment.CommentType };
-    private string Author => Comment.AuthorId?.StartsWith("mcp:", StringComparison.Ordinal) == true ? ClientText.T("MCP 操作者") : Workspace.Assignee(Comment.AuthorId);
+    private string Author => string.IsNullOrWhiteSpace(Comment.AuthorId) ? ClientText.T(Api.IsLocal ? "本机用户" : "账号未知")
+        : Comment.AuthorId.StartsWith("mcp:", StringComparison.Ordinal) ? ClientText.T("MCP 操作者") : Workspace.Assignee(Comment.AuthorId);
+    private string Avatar => System.Globalization.StringInfo.GetNextTextElement(Author).ToUpperInvariant();
     private static IEnumerable<(string Title, string? Content)> Sections(BugProcessReport report) =>
         new (string, string?)[] { ("根因与修改", report.Changes), ("验证情况", report.Verification), ("提交与部署", report.Delivery), ("未完成事项", report.FollowUp), ("其他说明", report.Other) }
             .Where(section => !string.IsNullOrWhiteSpace(section.Item2));
