@@ -8,17 +8,7 @@ namespace Asgard.Brigitte.Desktop.Tests;
 public sealed class StructuredChangesTests
 {
     [Fact]
-    public void Project_is_completely_muted_only_when_no_event_can_notify()
-    {
-        Assert.False(new NotificationRule { Enabled = false }.HasAnyEnabledChange);
-        Assert.False(new NotificationRule { Changes = NotificationChange.None }.HasAnyEnabledChange);
-        Assert.False(new NotificationRule { Changes = NotificationChange.Status, Statuses = [] }.HasAnyEnabledChange);
-        Assert.True(new NotificationRule { Changes = NotificationChange.Status, Statuses = ["processing"] }.HasAnyEnabledChange);
-        Assert.True(new NotificationRule { Changes = NotificationChange.Comments, Statuses = [] }.HasAnyEnabledChange);
-    }
-
-    [Fact]
-    public async Task Tray_keeps_muted_project_as_an_entry_without_showing_its_counts()
+    public async Task Tray_keeps_bug_statistics_when_project_notifications_are_muted()
     {
         var folder = Directory.CreateTempSubdirectory("brigitte-tray-muted-");
         try
@@ -26,13 +16,13 @@ public sealed class StructuredChangesTests
             var preferences = new NotificationPreferenceStore(Path.Combine(folder.FullName, "notifications.json"));
             preferences.Set("render-test", "project", new NotificationRule { Enabled = false });
             var html = System.Net.WebUtility.HtmlDecode(await WindowRenderTests.Render("light", Asgard.Brigitte.Desktop.UI.DesktopViewKind.Tray, notifications: preferences));
-            var start = html.IndexOf("aria-label=\"Brigitte：提醒已关闭\"", StringComparison.Ordinal);
+            var start = html.IndexOf("aria-label=\"Brigitte，未解决 14，其中高优先级 14\"", StringComparison.Ordinal);
             Assert.True(start >= 0);
             var end = html.IndexOf("</button>", start, StringComparison.Ordinal);
             var row = html[start..end];
             Assert.Contains("Brigitte", row);
-            Assert.Equal(2, row.Split('—').Length - 1);
-            Assert.DoesNotContain("is-priority", row);
+            Assert.Contains("is-priority", row);
+            Assert.DoesNotContain("—", row);
         }
         finally { folder.Delete(true); }
     }

@@ -24,6 +24,5 @@
   "从项目复制": "Copy from",
   "来源顺序预览": "Source order preview",
   "复制后将替换目标项目当前顺序；来源项目不受影响。": "This replaces the target project's order. The source project is unchanged.",
-  "复制并保存": "Copy and save",
-  "{0}：提醒已关闭": "{0}: notifications are off"
+  "复制并保存": "Copy and save"
 }
