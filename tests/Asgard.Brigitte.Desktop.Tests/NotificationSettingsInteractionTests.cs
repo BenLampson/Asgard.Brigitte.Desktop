@@ -48,16 +48,16 @@ public sealed class NotificationSettingsInteractionTests
             foreach (var type in Enum.GetValues<NotificationChange>().Where(x => x is not (NotificationChange.None or NotificationChange.All or NotificationChange.Status)))
                 await renderer.ChangeAsync("notification-type-" + type, false);
             await renderer.ChangeAsync("notification-all-statuses", false);
-            await renderer.ChangeAsync("notification-status-fixed", true);
+            await renderer.ChangeAsync("notification-status-pending_regression", true);
             await renderer.ChangeAsync("notification-status-closed", true);
             Assert.Equal(NotificationChange.Status, preferences.Get("render-test", "p").Changes);
-            Assert.Equal(new[] { "closed", "fixed" }, preferences.Get("render-test", "p").Statuses!.Order().ToArray());
+            Assert.Equal(new[] { "closed", "pending_regression" }, preferences.Get("render-test", "p").Statuses!.Order().ToArray());
             Assert.True(preferences.Get("render-test", "p").Enabled);
             Assert.False(preferences.Get("render-test", "other-project").Enabled);
             await renderer.ChangeAsync("notification-status-processing", true);
             await renderer.ChangeAsync("notification-status-processing", false);
             Assert.False(renderer.IsChecked("notification-status-processing"));
-            Assert.True(renderer.IsChecked("notification-status-fixed"));
+            Assert.True(renderer.IsChecked("notification-status-pending_regression"));
             await renderer.ChangeAsync("notification-inherit", true);
             Assert.False(preferences.HasOverride("render-test", "p"));
             Assert.False(renderer.IsChecked("notification-enabled"));

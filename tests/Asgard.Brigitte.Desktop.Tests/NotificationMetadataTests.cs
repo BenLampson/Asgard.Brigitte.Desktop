@@ -16,9 +16,9 @@ public sealed class NotificationMetadataTests
         local.Replace(project, bug);
         IReadOnlyList<SyncNotice> notices = [];
         local.Database.Committed += commit => notices = commit.Notices;
-        var changed = SyncProtocol.Row("bug", "b", new { id = "b", projectId = "p", title = "新标题", status = "fixed", assigneeId = "u" });
+        var changed = SyncProtocol.Row("bug", "b", new { id = "b", projectId = "p", title = "新标题", status = "pending_regression", assigneeId = "u" });
         var history1 = SyncProtocol.Row("history", "h1", new { id = "h1", bugId = "b", fromStatus = "waiting", toStatus = "processing", createTime = "2026-10-01T00:00:00Z" });
-        var history2 = SyncProtocol.Row("history", "h2", new { id = "h2", bugId = "b", fromStatus = "processing", toStatus = "fixed", createTime = "2026-10-01T00:01:00Z" });
+        var history2 = SyncProtocol.Row("history", "h2", new { id = "h2", bugId = "b", fromStatus = "processing", toStatus = "pending_regression", createTime = "2026-10-01T00:01:00Z" });
         var comment = SyncProtocol.Row("comment", "c", new { id = "c", bugId = "b", content = "不在通知中展示", commentType = "fix" });
         var attachment = SyncProtocol.Row("attachment", "a", new { id = "a", bugId = "b", fileName = "test.txt" });
         local.Replace(project, changed, history1, history2, comment, attachment);
@@ -26,9 +26,9 @@ public sealed class NotificationMetadataTests
         Assert.Equal("p", notice.ProjectId);
         Assert.Equal(NotificationChange.Status | NotificationChange.Details | NotificationChange.Assignment |
             NotificationChange.Comments | NotificationChange.Attachments, notice.Changes);
-        Assert.Equal(new[] { "fixed", "processing" }, notice.TargetStatuses.Order().ToArray());
+        Assert.Equal(new[] { "pending_regression", "processing" }, notice.TargetStatuses.Order().ToArray());
         Assert.DoesNotContain("不在通知中展示", notice.Message);
-        using (ClientText.UseLanguage("en")) Assert.True(new NotificationRule { Changes = NotificationChange.Status, Statuses = ["fixed"] }.Allows(notice));
+        using (ClientText.UseLanguage("en")) Assert.True(new NotificationRule { Changes = NotificationChange.Status, Statuses = ["pending_regression"] }.Allows(notice));
         Assert.False(new NotificationRule { Enabled = false }.Allows(notice));
         Assert.Single(local.Database.Read<Core.Models.Bug>("bug"));
         Assert.Single(local.Database.Notices());

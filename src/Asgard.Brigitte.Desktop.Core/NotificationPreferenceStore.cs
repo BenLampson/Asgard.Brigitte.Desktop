@@ -93,5 +93,9 @@ public sealed class NotificationPreferenceStore
     private static string Key(string account, string? projectId) => SyncProtocol.Hash(account) +
         (projectId is null ? "/default" : "/project/" + projectId);
     /// <summary>数组必须复制，避免编辑草稿影响尚未保存的有效配置。</summary>
-    private static NotificationRule Copy(NotificationRule rule) => rule with { Statuses = rule.Statuses?.ToArray() };
+    private static NotificationRule Copy(NotificationRule rule) => rule with
+    {
+        // 已退役的状态不可再筛选；空列表仍表示不提醒，不能扩大用户的提醒范围。
+        Statuses = rule.Statuses?.Where(status => status is not ("fixed" or "regressed")).Distinct(StringComparer.Ordinal).ToArray()
+    };
 }

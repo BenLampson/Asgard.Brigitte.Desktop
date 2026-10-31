@@ -29,9 +29,7 @@
     [Parameter] public bool CanMoveBugs { get; set; }
     [Parameter] public EventCallback<BugCardDrop> BugDropped { get; set; }
     [Parameter, EditorRequired] public RenderFragment<string> ChildContent { get; set; } = null!;
-    // 迁移后的空历史泳道不再占位；本机仍有历史记录或显式选中时保持可见。
-    private IEnumerable<string> VisibleOrder => Order.Where(s => Selected.Count == 0 || Selected.Contains(s))
-        .Where(s => s is not ("fixed" or "regressed") || Counts.GetValueOrDefault(s) > 0 || Selected.Contains(s));
+    private IEnumerable<string> VisibleOrder => Order.Where(s => BugDisplay.Statuses.ContainsKey(s) && (Selected.Count == 0 || Selected.Contains(s)));
 
     /// <summary>指针拖拽在本地处理落点和边缘滚动，放下后才通过 .NET 保存完整顺序。</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)

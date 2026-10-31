@@ -86,11 +86,11 @@ public sealed class WindowRenderTests
         var html = await Render(theme, DesktopViewKind.Main, list: list);
         Assert.Contains("client " + theme, html);
         if (list) Assert.Equal(18, html.Split("class=\"bug-cell\"").Length - 1);
-        else Assert.Equal(18, html.Split("class=\"lane\"").Length - 1);
+        else Assert.Equal(16, html.Split("class=\"lane\"").Length - 1);
         // 已处理、已回归和最终结束状态的卡片在默认看板与列表中都不能丢失。
         var decoded = System.Net.WebUtility.HtmlDecode(html);
         for (var i = 1; i < 18; i++) Assert.Contains("状态更新后卡片及时显示 · " + i + "\"", decoded);
-        Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 18), decoded);
+        Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 16), decoded);
         Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }

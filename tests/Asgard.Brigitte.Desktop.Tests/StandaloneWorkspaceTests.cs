@@ -153,4 +153,35 @@ public sealed class StandaloneWorkspaceTests
         Assert.Equal(0L, command.ExecuteScalar());
         Assert.Equal(0, local.Transport.Count);
     }
+    /// <summary>旧本机状态迁入待确认，保留额外字段和审计，并且重启不重复迁移。</summary>
+    [Fact]
+    public void Retired_local_statuses_are_migrated_once_with_history()
+    {
+        using var local = new StandaloneTestWorkspace();
+        local.Database.Open();
+        local.Database.Dispose();
+        var path = Path.Combine(local.DirectoryPath, "local", "workspace.sqlite");
+        using (var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString()))
+        {
+            connection.Open();
+            using var insert = connection.CreateCommand();
+            insert.CommandText = "INSERT INTO records(kind,id,json) VALUES('bug','a',$first),('bug','b',$second)";
+            insert.Parameters.AddWithValue("$first", "{\"id\":\"a\",\"projectId\":\"p\",\"status\":\"fixed\",\"extra\":\"preserved\"}");
+            insert.Parameters.AddWithValue("$second", "{\"id\":\"b\",\"projectId\":\"p\",\"status\":\"regressed\"}");
+            insert.ExecuteNonQuery();
+        }
+        local.Database.Open();
+        Assert.All(local.Database.Read<Bug>("bug"), bug => Assert.Equal("need_info", bug.Status));
+        var histories = local.Database.Read<BugHistory>("history");
+        Assert.Equal(2, histories.Count);
+        Assert.Equal(new[] { "fixed", "regressed" }, histories.Select(item => item.FromStatus).Order().ToArray());
+        Assert.All(histories, item => { Assert.Equal("need_info", item.ToStatus); Assert.Equal("system", item.OperatorType); });
+        local.Database.Dispose();
+        local.Database.Open();
+        Assert.Equal(2, local.Database.Read<BugHistory>("history").Count);
+        using var inspect = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString());
+        inspect.Open();
+        using var query = inspect.CreateCommand(); query.CommandText = "SELECT json_extract(json,'$.extra') FROM records WHERE kind='bug' AND id='a'";
+        Assert.Equal("preserved", query.ExecuteScalar());
+    }
 }

@@ -17,8 +17,6 @@ public static class BugDisplay
         ["human_verified"] = "人工回归通过",
         ["blocked"] = "阻塞中",
         ["need_info"] = "待补充信息",
-        ["fixed"] = "历史已处理 · 部署待确认",
-        ["regressed"] = "历史回归通过 · 验收待确认",
         ["closed"] = "已关闭",
         ["wont_fix"] = "不处理",
         ["duplicate"] = "重复 BUG",
@@ -26,6 +24,16 @@ public static class BugDisplay
     };
     /// <summary>默认看板展示全部状态，结束状态也必须保留可见的泳道。</summary>
     public static readonly string[] BoardStatuses = StatusKeys.Keys.ToArray();
+    /// <summary>旧本机数据尚未确认部署时归入待补充信息；不改写原始记录。</summary>
+    public static string CurrentStatus(string status) => status is "fixed" or "regressed" ? "need_info" : status;
+    /// <summary>历史审计保留当时的原始状态，不把旧回归冒充人工验收。</summary>
+    public static string HistoryStatus(string? status) => status switch
+    {
+        null or "" => ClientText.T("初始"),
+        "fixed" => ClientText.T("历史已处理 · 部署待确认"),
+        "regressed" => ClientText.T("历史回归通过 · 验收待确认"),
+        _ => Statuses.GetValueOrDefault(status, status)
+    };
     /// <summary>交付、人工验收和历史待确认都仍需跟进，仅归档或明确终止后结束。</summary>
     public static bool IsUnresolved(string status) => status is not ("closed" or "wont_fix" or "duplicate" or "cannot_reproduce");
     /// <summary>批量修复只包含尚未完成修复的事项，不重复修改待交付与验收记录。</summary>

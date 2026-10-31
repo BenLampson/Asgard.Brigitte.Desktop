@@ -24,7 +24,7 @@ public sealed class NotificationPreferenceTests : IDisposable
     public void Defaults_keep_existing_notifications(NotificationChange type)
     {
         var store = new NotificationPreferenceStore(ConfigPath);
-        Assert.True(store.Allows(Account, Notice(type, statuses: "fixed")));
+        Assert.True(store.Allows(Account, Notice(type, statuses: "pending_regression")));
         Assert.False(File.Exists(ConfigPath));
     }
 
@@ -34,10 +34,10 @@ public sealed class NotificationPreferenceTests : IDisposable
     {
         var store = new NotificationPreferenceStore(ConfigPath);
         store.Set(Account, null, new() { Enabled = false });
-        store.Set(Account, "followed", new() { Changes = NotificationChange.Status, Statuses = ["fixed", "closed"] });
+        store.Set(Account, "followed", new() { Changes = NotificationChange.Status, Statuses = ["pending_regression", "closed"] });
         var restarted = new NotificationPreferenceStore(ConfigPath);
         Assert.False(restarted.Allows(Account, Notice(NotificationChange.Created, "new-project")));
-        Assert.True(restarted.Allows(Account, Notice(NotificationChange.Status, "followed", "fixed")));
+        Assert.True(restarted.Allows(Account, Notice(NotificationChange.Status, "followed", "pending_regression")));
         Assert.False(restarted.Allows(Account, Notice(NotificationChange.Status, "followed", "processing")));
         Assert.False(restarted.Allows(Account, Notice(NotificationChange.Comments, "followed")));
         Assert.True(restarted.HasOverride(Account, "followed"));
@@ -55,7 +55,7 @@ public sealed class NotificationPreferenceTests : IDisposable
     {
         var store = new NotificationPreferenceStore(ConfigPath);
         store.Set(Account, "quiet", new() { Enabled = false });
-        Assert.False(store.Allows(Account, Notice(NotificationChange.Status | NotificationChange.Comments, "quiet", "fixed")));
+        Assert.False(store.Allows(Account, Notice(NotificationChange.Status | NotificationChange.Comments, "quiet", "pending_regression")));
         Assert.True(store.Allows(Account, Notice(NotificationChange.Created, "other")));
         store.Set(Account, null, new() { Changes = NotificationChange.Status, Statuses = ["closed"] });
         Assert.False(store.Allows(Account, Notice(NotificationChange.Status, "quiet", "closed")));
@@ -82,16 +82,16 @@ public sealed class NotificationPreferenceTests : IDisposable
     [Fact]
     public void Status_filters_match_destinations_and_mixed_batches_match_any_selected_type()
     {
-        var rule = new NotificationRule { Changes = NotificationChange.Status, Statuses = ["fixed"] };
-        Assert.True(rule.Allows(Notice(NotificationChange.Status, "p", "processing", "fixed")));
+        var rule = new NotificationRule { Changes = NotificationChange.Status, Statuses = ["pending_regression"] };
+        Assert.True(rule.Allows(Notice(NotificationChange.Status, "p", "processing", "pending_regression")));
         Assert.False(rule.Allows(Notice(NotificationChange.Status, "p", "closed")));
-        Assert.False(rule.Allows(Notice(NotificationChange.Comments, "p", "fixed")));
+        Assert.False(rule.Allows(Notice(NotificationChange.Comments, "p", "pending_regression")));
         Assert.False(rule.Allows(Notice(NotificationChange.Status | NotificationChange.Comments, "p", "processing")));
         Assert.True((rule with { Changes = NotificationChange.Status | NotificationChange.Comments }).Allows(
             Notice(NotificationChange.Status | NotificationChange.Comments, "p", "processing")));
-        Assert.False((rule with { Statuses = [] }).Allows(Notice(NotificationChange.Status, "p", "fixed")));
+        Assert.False((rule with { Statuses = [] }).Allows(Notice(NotificationChange.Status, "p", "pending_regression")));
         Assert.True((rule with { Statuses = null }).Allows(Notice(NotificationChange.Status, "p", "future-status")));
-        Assert.False((rule with { Changes = NotificationChange.None }).Allows(Notice(NotificationChange.Status, "p", "fixed")));
+        Assert.False((rule with { Changes = NotificationChange.None }).Allows(Notice(NotificationChange.Status, "p", "pending_regression")));
     }
 
     /// <summary>读写草稿中的数组不能偷偷改变已保存规则。</summary>
@@ -99,13 +99,23 @@ public sealed class NotificationPreferenceTests : IDisposable
     public void Editing_rule_arrays_does_not_change_saved_preferences()
     {
         var store = new NotificationPreferenceStore(ConfigPath);
-        var draft = new NotificationRule { Statuses = ["fixed"] };
+        var draft = new NotificationRule { Statuses = ["pending_regression"] };
         store.Set(Account, "p", draft);
         draft.Statuses![0] = "processing";
         store.Get(Account, "p").Statuses![0] = "closed";
-        Assert.Equal(["fixed"], store.Get(Account, "p").Statuses!);
+        Assert.Equal(["pending_regression"], store.Get(Account, "p").Statuses!);
         store.Set(Account, null, new() { Statuses = [] });
         Assert.Empty(new NotificationPreferenceStore(ConfigPath).Get(Account).Statuses!);
+    }
+
+    [Fact]
+    public void Retired_status_filters_do_not_enable_additional_notifications()
+    {
+        var store = new NotificationPreferenceStore(ConfigPath);
+        store.Set(Account, "p", new NotificationRule { Changes = NotificationChange.Status, Statuses = ["fixed", "regressed"] });
+        var rule = store.Get(Account, "p");
+        Assert.Empty(rule.Statuses!);
+        Assert.False(rule.Allows(Notice(NotificationChange.Status, "p", "pending_regression")));
     }
 
     /// <summary>文件写失败不能显示为成功，也不能改变内存中的实际生效规则。</summary>

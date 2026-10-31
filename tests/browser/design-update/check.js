@@ -8,6 +8,7 @@ async (page) => {
   await page.getByRole('button', { name: '恢复默认' }).click();
   await page.waitForFunction(() => document.querySelector('.lane-pref-row')?.dataset.status === 'waiting');
   const before = await order();
+  assert(before.length === 16 && !before.includes('fixed') && !before.includes('regressed'), 'Retired lanes must not be configurable');
   const source = page.locator('[data-status="reproducing"] .lane-pref-grip');
   const target = page.locator('[data-status="confirmed"]');
   await source.scrollIntoViewIfNeeded();

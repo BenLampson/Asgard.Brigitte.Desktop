@@ -8,7 +8,9 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database, Standa
         ? (standalone ?? throw new InvalidOperationException(ClientText.T("本机工作区尚未打开。"))).Read<T>(kind)
         : database.Read<T>(kind);
     public List<Project> Projects() => Read<Project>("project").OrderBy(x => x.Name).ToList();
-    public List<Bug> Bugs(string? project = null) => Read<Bug>("bug").Where(x => project is null || x.ProjectId == project).OrderByDescending(x => x.CreateTime).ThenByDescending(x => x.Id).ToList();
+    public List<Bug> Bugs(string? project = null) => Read<Bug>("bug").Where(x => project is null || x.ProjectId == project)
+        .Select(x => { x.Status = BugDisplay.CurrentStatus(x.Status); return x; })
+        .OrderByDescending(x => x.CreateTime).ThenByDescending(x => x.Id).ToList();
     public BugDetail Detail(string id) => new()
     {
         Bug = Bugs().FirstOrDefault(x => x.Id == id) ?? throw new InvalidOperationException(ClientText.T("此 BUG 已删除或已无访问权限。")),

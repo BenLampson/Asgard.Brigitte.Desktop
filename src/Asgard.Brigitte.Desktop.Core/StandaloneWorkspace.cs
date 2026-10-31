@@ -35,10 +35,41 @@ public sealed partial class StandaloneWorkspace(string directory) : IDisposable
                 if (version > 1) throw new InvalidOperationException(ClientText.T("本机数据库来自更新版本，请升级客户端后再打开。"));
                 command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS records(kind TEXT NOT NULL,id TEXT NOT NULL,json TEXT NOT NULL,PRIMARY KEY(kind,id)); CREATE TABLE IF NOT EXISTS attachment_data(id TEXT PRIMARY KEY,content BLOB NOT NULL); PRAGMA user_version=1;";
                 command.ExecuteNonQuery();
+                MigrateRetiredStatuses(connection);
                 _connection = connection;
             }
             catch { connection.Dispose(); throw; }
         }
+    }
+
+    /// <summary>将旧本机状态转为待确认并追加真实历史；整个迁移可重复执行。</summary>
+    private static void MigrateRetiredStatuses(SqliteConnection connection)
+    {
+        using var transaction = connection.BeginTransaction();
+        var records = new List<(string Id, string Status)>();
+        using (var query = connection.CreateCommand())
+        {
+            query.Transaction = transaction;
+            query.CommandText = "SELECT id, json_extract(json,'$.status') FROM records WHERE kind='bug' AND CASE WHEN json_valid(json) THEN json_extract(json,'$.status') IN ('fixed','regressed') ELSE 0 END";
+            using var reader = query.ExecuteReader();
+            while (reader.Read()) records.Add((reader.GetString(0), reader.GetString(1)));
+        }
+        foreach (var (id, status) in records)
+        {
+            using var update = connection.CreateCommand();
+            update.Transaction = transaction;
+            update.CommandText = "UPDATE records SET json=json_set(json,'$.status','need_info') WHERE kind='bug' AND id=$id AND json_extract(json,'$.status')=$status";
+            update.Parameters.AddWithValue("$id", id); update.Parameters.AddWithValue("$status", status);
+            if (update.ExecuteNonQuery() != 1) throw new InvalidOperationException(ClientText.T("本机记录已变化，请重新打开工作区。"));
+            var history = new BugHistory { Id = NewId(), BugId = id, FromStatus = status, ToStatus = "need_info",
+                Reason = ClientText.T("旧状态已停用，需确认部署及验收情况。"), OperatorType = "system", CreateTime = DateTimeOffset.UtcNow };
+            using var insert = connection.CreateCommand();
+            insert.Transaction = transaction;
+            insert.CommandText = "INSERT INTO records(kind,id,json) VALUES('history',$id,$json)";
+            insert.Parameters.AddWithValue("$id", history.Id); insert.Parameters.AddWithValue("$json", JsonSerializer.Serialize(history, Json));
+            insert.ExecuteNonQuery();
+        }
+        transaction.Commit();
     }
 
     /// <summary>查询返回反序列化副本，编辑表单不会修改尚未提交的数据。</summary>

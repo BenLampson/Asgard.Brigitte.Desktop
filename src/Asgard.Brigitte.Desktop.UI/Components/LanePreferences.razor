@@ -32,11 +32,9 @@
                 <div class="lane-pref-row" data-status="@status" @key="status">
                     <button type="button" class="lane-pref-grip" aria-label="@ClientText.T("调整泳道顺序：{0}。拖动或按 Alt＋上下方向键。", BugDisplay.Statuses[status])" title="@ClientText.T("拖动调整顺序；也可按 Alt＋↑／↓ 移动")">⋮⋮</button>
                     <span class="lane-pref-index">@position.ToString("00")</span><span class="status-dot @status"></span><span>@BugDisplay.Statuses[status]</span>
-                    @if (status is "fixed" or "regressed") { <small class="lane-pref-history">@ClientText.T("历史状态")</small> }
                 </div>
             }
         </div>
-        <small class="muted">@ClientText.T("空的历史状态在看板中隐藏，设置中仍保留其顺序。")</small>
     </section>
     @if (_error.Length > 0) { <p class="error" role="alert">@_error</p> }
     <footer class="preferences-footer"><span class="muted">@ClientText.T("仅影响此设备当前账号的项目看板，不改变 BUG 状态。")</span><button @onclick="OnBack">@ClientText.T("返回设置")</button></footer>

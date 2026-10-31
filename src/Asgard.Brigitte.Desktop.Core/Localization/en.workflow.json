@@ -2,6 +2,8 @@
   "待部署": "Pending deployment",
   "待人工回归": "Pending human verification",
   "人工回归通过": "Human verified",
+  "旧状态已停用，需确认部署及验收情况。": "The old status was retired. Confirm deployment and acceptance.",
+  "本机记录已变化，请重新打开工作区。": "The local record changed. Reopen the workspace.",
   "历史已处理 · 部署待确认": "Legacy fixed · deployment unconfirmed",
   "历史回归通过 · 验收待确认": "Legacy regression · acceptance unconfirmed",
   "状态已变化或流转不允许，请重新打开窗口。": "The status has changed or this transition is not allowed. Please reopen this window.",
