@@ -33,7 +33,7 @@ Windows is the primary development platform and is built in CI using MAUI, WinUI
 
 ## Help, privacy, and language
 
-Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime is required. Local use needs no account or server. See the [1.0.11 release notes](docs/releases/v1.0.11.md) and [Store submission log](packaging/windows/store-submission.md) for current changes and distribution status.
+Download the Windows x64 portable build from [GitHub Releases](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/latest). Extract the full ZIP and run `Asgard.Brigitte.Desktop.exe`; WebView2 Runtime is required. Local use needs no account or server. See the [1.0.12 release notes](docs/releases/v1.0.12.md) and [Store submission log](packaging/windows/store-submission.md) for current changes and distribution status.
 
 Use [GitHub Issues](https://github.com/BenLampson/Asgard.Brigitte.Desktop/issues/new/choose) for bugs and feature requests; English and Chinese are welcome. See the [support guide](SUPPORT.md), [privacy policy](PRIVACY.md) ([简体中文](PRIVACY.zh-CN.md)), and [usage guide](docs/usage.en.md). Issues are public: remove private content and credentials. Privacy and account-deletion requests go to the email in the policy.
 
