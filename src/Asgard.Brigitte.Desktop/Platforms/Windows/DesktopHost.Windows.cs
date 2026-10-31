@@ -12,7 +12,13 @@ public sealed partial class DesktopHost
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(native);
         var appWindow = AppWindow.GetFromWindowId(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle));
         ApplyWindowTheme(window);
-        window.Created+=(_,_)=>ApplyWindowTheme(window);
+        // MAUI 和系统可能在窗口创建或激活后重设标题栏；排到下一轮同步两侧配色。
+        if (kind != DesktopViewKind.Tray)
+        {
+            window.Created += (_, _) => window.Dispatcher.Dispatch(() => ApplyWindowTheme(window));
+            window.Activated += (_, _) => window.Dispatcher.Dispatch(() => ApplyWindowTheme(window));
+            window.Deactivated += (_, _) => window.Dispatcher.Dispatch(() => ApplyWindowTheme(window));
+        }
         // 先记录 owner 边界，即使提交完成后源窗口立即关闭，也保留正确的居中基准。
         var placement = CaptureOwnerPlacement(owner);
         // 等 MAUI 完成原生尺寸设置后只居中一次；复用或从托盘恢复时保留用户移动的位置。
@@ -84,7 +90,8 @@ public sealed partial class DesktopHost
     private void ApplyWindowTheme(Window window)
     {
         if (window.Handler?.PlatformView is not Microsoft.UI.Xaml.Window native) return;
-        if (native.Content is Microsoft.UI.Xaml.FrameworkElement content) content.RequestedTheme = Theme == "dark" ? Microsoft.UI.Xaml.ElementTheme.Dark : Microsoft.UI.Xaml.ElementTheme.Light;
+        var requestedTheme = Theme == "dark" ? Microsoft.UI.Xaml.ElementTheme.Dark : Microsoft.UI.Xaml.ElementTheme.Light;
+        if (native.Content is Microsoft.UI.Xaml.FrameworkElement content && content.RequestedTheme != requestedTheme) content.RequestedTheme = requestedTheme;
         var app = AppWindow.GetFromWindowId(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(WinRT.Interop.WindowNative.GetWindowHandle(native)));
         var background = Theme == "dark" ? Windows.UI.Color.FromArgb(255, 20, 26, 32) : Windows.UI.Color.FromArgb(255, 238, 244, 249);
         var foreground = Theme == "dark" ? Windows.UI.Color.FromArgb(255, 238, 243, 248) : Windows.UI.Color.FromArgb(255, 36, 38, 40);

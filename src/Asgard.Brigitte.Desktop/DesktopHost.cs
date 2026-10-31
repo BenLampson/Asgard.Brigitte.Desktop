@@ -102,6 +102,13 @@ public sealed partial class DesktopHost : IClientHost
             ApplyTraySize(window);
             window.Deactivated += (_, _) => HidePopup();
         }
+#if WINDOWS
+        else
+        {
+            // 在原生窗口建立前提供标题栏，避免默认浅色栏与深色按钮先后覆盖。
+            window.TitleBar = new TitleBar { Title = window.Title ?? "Brigitte", HeightRequest = 32 };
+        }
+#endif
         _windows[view] = window;
         window.Activated += (_, _) => { _activeView = view; RefreshSystemLanguage(); };
         window.Deactivated += (_, _) => { if (_activeView == view) _activeView = null; };
