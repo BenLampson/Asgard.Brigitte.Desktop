@@ -1,5 +1,6 @@
 @inject IClientHost Host
 @implements IDisposable
+@if (_lanesOpen) { <LanePreferences OnBack="() => _lanesOpen = false" /> } else {
 <main class="preferences-window">
     <header class="preferences-header"><div><p class="preferences-eyebrow">BRIGITTE</p><h1>@ClientText.T("设置")</h1><p class="muted">@ClientText.T("让工作区按你的习惯运行。")</p></div></header>
     <section class="preferences-section" aria-labelledby="general-title">
@@ -20,6 +21,10 @@
             <select @key="_resetVersion" id="theme-preference" value="@Host.ThemePreference" @onchange="ChangeTheme"><option value="system">@ClientText.T("跟随系统")</option><option value="light">@ClientText.T("白天")</option><option value="dark">@ClientText.T("晚间")</option></select>
         </div>
     </section>
+    <section class="preferences-section lane-settings-entry">
+        <div><h2>@ClientText.T("看板泳道")</h2><p class="muted">@ClientText.T("按项目拖拽排序，或复制其他项目的配置。")</p></div>
+        <button @onclick="() => _lanesOpen = true">@ClientText.T("配置泳道")</button>
+    </section>
     <NotificationPreferences />
     <section class="preferences-section">
         <h2>@ClientText.T("应用更新") · @Host.AppVersion</h2>
@@ -32,9 +37,11 @@
     <div class="preferences-feedback" aria-live="polite">@if (_error.Length > 0) { <p class="error" role="alert">@ClientText.T(_error)</p> } else { <p class="muted">@ClientText.T(_message)</p> }</div>
     <footer class="preferences-footer"><span class="muted">@ClientText.T("偏好保存在此设备，重新启动后继续生效。")</span><button @onclick="() => Host.Close(new(DesktopViewKind.Settings))">@ClientText.T("完成")</button></footer>
 </main>
+}
 @code {
     private string _error = "", _message = "修改后自动保存。";
     private int _resetVersion;
+    private bool _lanesOpen;
     /// <summary>关闭对话框、设置窗口与侧栏主题共用实时偏好。</summary>
     protected override void OnInitialized() { Host.StatusChanged += Refresh; Host.Changed += Refresh; }
     private void ChangeCloseBehavior(ChangeEventArgs e) => Save(() => Host.SetCloseBehavior(e.Value?.ToString() ?? "ask"));
@@ -44,7 +51,7 @@
     private void Save(Action update)
     {
         try { update(); _error = ""; _message = "已保存。"; }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or Microsoft.Data.Sqlite.SqliteException)
         { _resetVersion++; _error = "设置暂时无法保存，请检查设备的存储空间和文件权限后重试。"; }
     }
     private void Refresh() => _ = InvokeAsync(StateHasChanged);

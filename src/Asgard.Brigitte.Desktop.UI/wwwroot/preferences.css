@@ -16,6 +16,39 @@
 .preferences-section { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:24px; }
 .preferences-section h2 { margin:0 0 24px; font-size:16px; }
 .preferences-section + .preferences-section { margin-top:20px; }
+.lane-settings-entry { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.lane-settings-entry h2 { margin:0 0 8px; }
+.lane-settings-entry p { margin:0; font-size:12px; }
+.lane-pref-back, .lane-pref-section-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.lane-pref-back { margin-bottom:22px; color:var(--muted); }
+.lane-pref-back .link { padding-left:0; }
+.lane-pref-project { margin-bottom:20px; }
+.lane-pref-section-heading { margin-bottom:12px; }
+.lane-pref-section-heading small { color:var(--muted); }
+.lane-pref-chooser { display:flex; gap:12px; }
+.lane-pref-chooser select { flex:1; min-width:0; }
+.lane-pref-count { display:inline-block; padding:2px 7px; border-radius:4px; background:var(--selected); color:var(--accent); font-size:12px; }
+.lane-pref-header, .lane-pref-row { display:grid; grid-template-columns:32px 42px 12px minmax(0,1fr) auto; align-items:center; gap:8px; }
+.lane-pref-header { padding:8px; border-radius:4px; background:var(--nav); color:var(--muted); font-size:11px; }
+.lane-pref-header span:last-child { grid-column:3 / 6; }
+.lane-pref-list { position:relative; max-height:min(55vh,700px); overflow-y:auto; overscroll-behavior:contain; }
+.lane-pref-row { position:relative; min-height:42px; padding:3px 8px; border-bottom:1px solid var(--line); }
+.lane-pref-row.dragging { opacity:.3; }
+.lane-pref-row.drop-before { box-shadow:inset 0 3px var(--accent); }
+.lane-pref-row.drop-after { box-shadow:inset 0 -3px var(--accent); }
+.lane-pref-grip { min-height:32px; padding:0; border-color:transparent; color:var(--muted); cursor:grab; touch-action:none; font-weight:700; }
+.is-reordering, .is-reordering .lane-pref-grip { cursor:grabbing; user-select:none; }
+.lane-pref-index { color:var(--muted); font-size:12px; }
+.lane-pref-history { color:var(--muted); }
+.lane-pref-ghost { position:fixed; z-index:10001; pointer-events:none; border:1px solid var(--accent); border-radius:5px; background:var(--selected); box-shadow:0 6px 18px #0004; }
+.lane-pref-section > small { display:block; margin-top:12px; }
+.lane-pref-overlay { position:fixed; inset:0; z-index:10010; display:grid; place-items:center; padding:24px; background:#0008; }
+.lane-pref-dialog { width:min(630px,100%); max-height:calc(100vh - 48px); overflow:auto; padding:24px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+.lane-pref-dialog h2 { margin:0; }
+.lane-pref-dialog label { display:flex; flex-direction:column; gap:7px; margin:16px 0; }
+.lane-pref-copy-preview { padding:14px; border:1px solid var(--line); border-radius:6px; background:var(--subtle); }
+.lane-pref-copy-preview ol { columns:2; max-height:180px; overflow:auto; margin-bottom:0; padding-left:24px; }
+.lane-pref-dialog-actions { display:flex; justify-content:flex-end; gap:10px; }
 /* 项目较多时使用搜索和单项目编辑，状态选项随窗口宽度换行。 */
 .notification-help { font-size:12px; line-height:1.8; margin:0 0 16px; }
 .notification-scope { display:grid; gap:8px; margin-bottom:16px; }

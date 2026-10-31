@@ -18,8 +18,8 @@ var bug=_detail.Bug;
 case "内容":
 <h3>@ClientText.T("问题描述")</h3><MarkdownView Value="@bug.Description" /><h3>@ClientText.T("问题内容")</h3><MarkdownView Value="@bug.Content" /> break;
 case "回复 / 处理记录":
-<div class="heading"><h3>@ClientText.T("回复和处理记录 · {0}", _detail.Comments.Length)</h3><div class="spacer"></div><button class="primary" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Comment,bug.Id,bug.ProjectId), View)">@ClientText.T("添加回复 / 处理记录")</button></div>
-@foreach(var comment in _detail.Comments) { <article class="record"><small>@comment.AuthorType · @comment.CommentType · @comment.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</small><MarkdownView Value="@comment.Content" /></article> } break;
+<div class="heading bug-record-list-heading"><h3>@ClientText.T("回复和处理记录") <span class="bug-record-count">@_detail.Comments.Length</span></h3><div class="spacer"></div><button class="primary" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Comment,bug.Id,bug.ProjectId), View)">@ClientText.T("添加回复 / 处理记录")</button></div>
+@foreach(var comment in _detail.Comments) { <BugRecord Comment="comment" @key="comment.Id" /> } break;
 case "状态历史":
 @foreach(var history in _detail.Histories) { <article class="record"><strong>@BugDisplay.Statuses.GetValueOrDefault(history.FromStatus??"",ClientText.T("初始")) → @BugDisplay.Statuses.GetValueOrDefault(history.ToStatus)</strong><small>@history.OperatorType · @history.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</small><MarkdownView Value="@history.Reason" /></article> } break;
 case "附件":

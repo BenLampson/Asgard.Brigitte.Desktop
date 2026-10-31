@@ -20,8 +20,11 @@ else
 {
     var unresolved = Workspace.Stats(p.Id)?.Unresolved ?? 0;
     var highPriority = Workspace.Stats(p.Id)?.UnresolvedHighPriority ?? 0;
-    <button class="tray-project" title="@p.Name" aria-label="@ClientText.T("{0}，未解决 {1}，其中高优先级 {2}", p.Name, unresolved, highPriority)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Main,ProjectId:p.Id))">
-        <span class="ellipsis">@p.Name</span><span class="tray-count @(unresolved == 0 ? "is-zero" : null)">@unresolved</span><span class="tray-count @(highPriority == 0 ? "is-zero" : "is-priority")">@highPriority</span>
+    var muted = !Session.IsLocal && !Host.GetNotificationRule(p.Id).HasAnyEnabledChange;
+    <button class="tray-project" title="@(muted ? ClientText.T("{0}：提醒已关闭", p.Name) : p.Name)" aria-label="@(muted ? ClientText.T("{0}：提醒已关闭", p.Name) : ClientText.T("{0}，未解决 {1}，其中高优先级 {2}", p.Name, unresolved, highPriority))" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Main,ProjectId:p.Id))">
+        <span class="ellipsis">@p.Name</span>
+        @if (muted) { <span class="tray-count is-zero" aria-hidden="true">—</span><span class="tray-count is-zero" aria-hidden="true">—</span> }
+        else { <span class="tray-count @(unresolved == 0 ? "is-zero" : null)">@unresolved</span><span class="tray-count @(highPriority == 0 ? "is-zero" : "is-priority")">@highPriority</span> }
     </button>
 }
 @if(Workspace.Projects.Count == 0) { <p class="tray-empty">@(Host.SyncReady ? ClientText.T("暂无可访问项目") : ClientText.T("正在同步项目…"))</p> }

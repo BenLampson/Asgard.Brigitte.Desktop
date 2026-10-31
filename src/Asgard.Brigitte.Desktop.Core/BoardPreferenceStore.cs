@@ -6,6 +6,7 @@ namespace Asgard.Brigitte.Desktop.Core;
 public sealed class BoardPreferenceStore
 {
     private readonly string _path;
+    private readonly LocalPreferenceDatabase? _database;
     private Dictionary<string, string[]> _orders = [];
 
     /// <summary>无法读取的偏好使用默认顺序，不影响工作区启动。</summary>
@@ -21,6 +22,31 @@ public sealed class BoardPreferenceStore
         catch (IOException) { /* 暂时不可读时恢复默认显示。 */ }
         catch (UnauthorizedAccessException) { /* 不阻断工作区。 */ }
     }
+    /// <summary>优先使用 SQLite；旧 board.json 仅导入一次并保留原文件。</summary>
+    public BoardPreferenceStore(LocalPreferenceDatabase database, string legacyPath)
+    {
+        _path = legacyPath; _database = database;
+        try
+        {
+            database.ImportLegacy("board", legacyPath, raw =>
+                (JsonSerializer.Deserialize<Dictionary<string, string[]?>>(raw) ?? [])
+                .Where(item => item.Value is not null)
+                .ToDictionary(item => "board/" + item.Key, item => JsonSerializer.Serialize(Normalize(item.Value!))));
+        }
+        catch (JsonException) { /* 旧偏好损坏时保留默认值，不删除原文件。 */ }
+        catch (IOException) { /* 暂时不可读时保留默认值。 */ }
+        catch (UnauthorizedAccessException) { /* 无权限时不阻断工作区。 */ }
+        catch (Microsoft.Data.Sqlite.SqliteException) { /* SQLite 不可用时保留默认值。 */ }
+        try
+        {
+            foreach (var item in database.ReadPrefix("board/"))
+                try { _orders[item.Key[6..]] = Normalize(JsonSerializer.Deserialize<string[]>(item.Value) ?? []); }
+                catch (JsonException) { /* 单个损坏项目不影响其他项目的顺序。 */ }
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (Microsoft.Data.Sqlite.SqliteException) { }
+    }
     /// <summary>过滤废弃项和重复项，升级后的新状态自动补入，不丢失泳道。</summary>
     public static string[] Normalize(IEnumerable<string> order) => order.Concat(BugDisplay.BoardStatuses)
         .Where(x => x is not null && BugDisplay.Statuses.ContainsKey(x)).Distinct(StringComparer.Ordinal).ToArray();
@@ -32,9 +58,13 @@ public sealed class BoardPreferenceStore
         ArgumentException.ThrowIfNullOrWhiteSpace(account);
         ArgumentException.ThrowIfNullOrWhiteSpace(project);
         var updated = new Dictionary<string, string[]>(_orders) { [Key(account, project)] = Normalize(order) };
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
-        File.WriteAllText(_path + ".tmp", JsonSerializer.Serialize(updated));
-        File.Move(_path + ".tmp", _path, true);
+        if (_database is not null) _database.Set("board/" + Key(account, project), JsonSerializer.Serialize(updated[Key(account, project)]));
+        else
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
+            File.WriteAllText(_path + ".tmp", JsonSerializer.Serialize(updated));
+            File.Move(_path + ".tmp", _path, true);
+        }
         _orders = updated;
     }
     /// <summary>不在偏好文件存放原始身份信息。</summary>

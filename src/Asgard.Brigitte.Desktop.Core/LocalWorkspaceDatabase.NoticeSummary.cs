@@ -11,8 +11,20 @@ public sealed partial class LocalWorkspaceDatabase
         SyncNotice[] chinese, english;
         using (ClientText.UseLanguage("zh-CN")) chinese = BuildNoticesCore(batchId);
         using (ClientText.UseLanguage("en")) english = BuildNoticesCore(batchId);
-        var translated = english.ToDictionary(x => x.Id, x => x.Message);
-        return chinese.Select(x => x with { EnglishMessage = translated.GetValueOrDefault(x.Id) }).ToArray();
+        var translated = english.ToDictionary(x => x.Id);
+        return chinese.Select(x =>
+        {
+            if (!translated.TryGetValue(x.Id, out var other)) return x;
+            // 只有逐项类型一致才合并翻译，避免不同语言的去重结果错配。
+            var matching = x.Parts.Length == other.Parts.Length && x.Parts.Zip(other.Parts)
+                .All(pair => pair.First.Change == pair.Second.Change && pair.First.TargetStatus == pair.Second.TargetStatus);
+            return x with
+            {
+                EnglishMessage = other.Message,
+                EnglishSubject = other.Subject,
+                Parts = matching ? x.Parts.Zip(other.Parts, (a, b) => a with { EnglishMessage = b.Message }).ToArray() : []
+            };
+        }).ToArray();
     }
     private SyncNotice[] BuildNoticesCore(string batchId)
     {
@@ -54,14 +66,26 @@ public sealed partial class LocalWorkspaceDatabase
             return NoticeLabel(Text(project, "name") is { Length: > 0 } name ? name :
                 Text(project, "code") is { Length: > 0 } code ? code : ClientText.T("项目 #") + BugDisplay.ShortId(id));
         }
-        var summaries = new Dictionary<string, List<string>>();
+        var summaries = new Dictionary<string, List<SyncNoticePart>>();
         var types = new Dictionary<string, NotificationChange>();
         var targetStatuses = new Dictionary<string, HashSet<string>>();
         // 类型与目标状态跟随摘要生成；不能解析翻译后的自然语言来判断提醒。
         void Add(string key, string message, NotificationChange type, string? targetStatus = null)
         {
+            if (noticePreferences is not null && _account is not null)
+            {
+                var projectId = key.StartsWith("bug/", StringComparison.Ordinal) ? Text(Record(key), "projectId") : key.StartsWith("project/", StringComparison.Ordinal) ? key[8..] : "";
+                var candidate = new SyncNotice("", "", DateTimeOffset.MinValue, false)
+                {
+                    ProjectId = string.IsNullOrWhiteSpace(projectId) ? null : projectId,
+                    Changes = type,
+                    TargetStatuses = targetStatus is null ? [] : [targetStatus]
+                };
+                if (!noticePreferences.Allows(_account, candidate)) return;
+            }
             if (!summaries.TryGetValue(key, out var messages)) summaries[key] = messages = [];
-            if (!messages.Contains(message)) messages.Add(message);
+            if (!messages.Any(item => item.Message == message && item.Change == type && item.TargetStatus == targetStatus))
+                messages.Add(new(message, type, targetStatus));
             types[key] = types.GetValueOrDefault(key) | type;
             if (targetStatus is not null)
             {
@@ -136,11 +160,13 @@ public sealed partial class LocalWorkspaceDatabase
             var record = Record(x.Key);
             var label = NoticeLabel(Text(record, isBug ? "title" : "name"));
             var subject = isBug ? $"【{ProjectLabel(record)}】BUG #{BugDisplay.ShortId(x.Key[4..])}" + (label.Length > 0 ? " · " + label : "") : ClientText.T("项目 {0}", label);
-            return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value), now, false)
+            return new SyncNotice(batchId + ":" + x.Key, subject.TrimEnd() + "\n" + string.Join("；", x.Value.Select(item => item.Message)), now, false)
             {
                 ProjectId = isBug ? Text(record, "projectId") : x.Key[8..],
                 Changes = types[x.Key],
-                TargetStatuses = targetStatuses.TryGetValue(x.Key, out var statuses) ? statuses.ToArray() : []
+                TargetStatuses = targetStatuses.TryGetValue(x.Key, out var statuses) ? statuses.ToArray() : [],
+                Subject = subject.TrimEnd(),
+                Parts = x.Value.ToArray()
             };
         }).ToArray();
     }

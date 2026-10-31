@@ -929,6 +929,41 @@ dd {
   display: block;
   margin-bottom: 10px;
 }
+.bug-record-list-heading h3 { display:flex; align-items:center; gap:8px; margin:0; }
+.bug-record-count { display:inline-flex; align-items:center; justify-content:center; min-width:23px; height:23px; padding:0 6px; border-radius:12px; background:var(--nav); color:var(--muted); font-size:12px; }
+.bug-record { margin-top:18px; border:1px solid var(--line); border-radius:8px; background:var(--subtle); overflow:hidden; }
+.bug-record-header { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px 22px; border-bottom:1px solid var(--line); }
+.bug-record-identity, .bug-record-identity-line, .bug-record-header-end { display:flex; align-items:center; gap:10px; min-width:0; }
+.bug-record-avatar { display:grid; place-items:center; flex:none; width:40px; height:40px; border-radius:50%; background:var(--selected); color:var(--accent); font-size:13px; font-weight:700; }
+.bug-record-identity-line { flex-wrap:wrap; }
+.bug-record-kind { padding:3px 8px; border-radius:4px; background:var(--selected); color:var(--accent); font-size:12px; font-weight:600; }
+.bug-record-author { display:block; margin-top:4px; color:var(--muted); overflow-wrap:anywhere; }
+.bug-record-time { display:flex; flex-direction:column; align-items:flex-end; gap:3px; color:var(--text); font-size:13px; white-space:nowrap; }
+.bug-record-time small { color:var(--muted); }
+.bug-record-toggle { flex:none; white-space:nowrap; }
+.bug-record-body { padding:22px; }
+.bug-record-summary { padding:15px 18px; border-left:3px solid var(--accent); border-radius:5px; background:var(--selected); }
+.bug-record-summary > strong { color:var(--accent); font-size:13px; }
+.bug-record-summary .markdown { margin-top:8px; }
+.bug-record-summary .markdown > :last-child, .bug-record-section .markdown > :last-child, .bug-record-legacy .markdown > :last-child { margin-bottom:0; }
+.bug-record-handover { margin-top:24px; }
+.bug-record-handover-heading h4 { margin:0 0 5px; font-size:16px; }
+.bug-record-handover-heading small { color:var(--muted); }
+.bug-record-section { display:grid; grid-template-columns:112px minmax(0,1fr); gap:16px; padding:17px 0; border-bottom:1px solid var(--line); }
+.bug-record-section:last-child { padding-bottom:0; border-bottom:0; }
+.bug-record-section h5 { margin:2px 0 0; font-size:13px; }
+.bug-record-section .markdown > :first-child { margin-top:0; }
+.bug-record-preview { display:flex; gap:14px; padding:16px 22px; font-size:13px; }
+.bug-record-preview strong { flex:none; color:var(--accent); }
+.bug-record-preview span { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; white-space:pre-wrap; }
+.bug-record-original { margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
+.bug-record-original summary { color:var(--accent); }
+.bug-record-original .markdown { margin-top:12px; }
+@media (max-width:650px) {
+  .bug-record-header { align-items:flex-start; }
+  .bug-record-header-end { align-items:flex-end; flex-direction:column-reverse; gap:8px; }
+  .bug-record-section { grid-template-columns:minmax(0,1fr); gap:8px; }
+}
 .attachment {
   display: flex;
   align-items: center;
@@ -1360,6 +1395,10 @@ body:has(.tray-client.dark) {
   flex: 1;
   min-height: 150px;
 }
+.process-fields { display:flex; flex-direction:column; gap:16px; flex-shrink:0; }
+.process-fields > p { margin:0; }
+.process-fields > label { display:block; }
+.process-fields .markdown-editor textarea { min-height:78px; resize:vertical; }
 .action-content .markdown-editor {
   display: flex;
   flex-direction: column;

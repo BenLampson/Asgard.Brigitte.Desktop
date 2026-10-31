@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using Asgard.Brigitte.Sync;
 
 namespace Asgard.Brigitte.Desktop.Core;
 
@@ -109,7 +110,15 @@ public sealed partial class StandaloneWorkspace
     {
         var type = Property(input, "commentType") ?? "comment";
         if (type is not ("comment" or "process")) throw new ArgumentException(ClientText.T("记录类型无效。"));
-        var comment = new BugComment { Id = NewId(), BugId = bug.Id, Content = Text(Property(input, "content"), 1_000_000, true),
+        BugProcessReport? report = null;
+        if (input.TryGetProperty("report", out var reportElement) && reportElement.ValueKind is not JsonValueKind.Null)
+        {
+            if (type != "process") throw new ArgumentException(ClientText.T("结构化内容仅适用于处理记录。"));
+            report = reportElement.Deserialize<BugProcessReport>(Json) ?? throw new ArgumentException(ClientText.T("处理记录无效。"));
+            report.Validate();
+        }
+        var content = report?.ToLegacyMarkdown() ?? Text(Property(input, "content"), 1_000_000, true);
+        var comment = new BugComment { Id = NewId(), BugId = bug.Id, Content = content, Report = report,
             CommentType = type, AuthorType = "human", CreateTime = DateTimeOffset.UtcNow };
         Save("comment", comment.Id, comment, transaction);
         return comment;

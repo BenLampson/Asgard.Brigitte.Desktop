@@ -96,8 +96,8 @@ public sealed partial class BrigitteApi(IHttpClientFactory factory, IClientSessi
     /// <summary>仅释放本客户端的锁。</summary>
     public Task<Bug> ReleaseAsync(string id, string workerId) => WriteAsync<Bug>("bugs/" + E(id) + "/release-lock", new { workerId });
     /// <summary>新增现有评论或处理记录。</summary>
-    public Task<BugComment> CommentAsync(string id, string content, string commentType, string authorType, string? workerId)
-        => WriteAsync<BugComment>("bugs/" + E(id) + "/comments", new { content, commentType, authorType, workerId });
+    public Task<BugComment> CommentAsync(string id, string content, string commentType, string authorType, string? workerId, Asgard.Brigitte.Sync.BugProcessReport? report = null)
+        => WriteAsync<BugComment>("bugs/" + E(id) + "/comments", new { content, commentType, authorType, workerId, report });
     /// <summary>保留旧客户端契约；服务端和本机工作区会拒绝未备份的删除。</summary>
     public Task<JsonElement> DeleteBugAsync(string id)
         => WriteAsync<JsonElement>("bugs/" + E(id) + "?" + Query(("hardDelete", true), ("confirmBugId", id)), null, "DELETE");

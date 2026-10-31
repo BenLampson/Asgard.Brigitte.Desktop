@@ -8,7 +8,7 @@ internal sealed class SyncTestWorkspace : IDisposable
 {
     public string DirectoryPath { get; } = Directory.CreateTempSubdirectory("brigitte-sync-test-").FullName;
     public LocalWorkspaceDatabase Database { get; }
-    public SyncTestWorkspace() { Database = new(DirectoryPath); Database.OpenAccount("test"); }
+    public SyncTestWorkspace(NotificationPreferenceStore? preferences = null) { Database = new(DirectoryPath, preferences); Database.OpenAccount("test"); }
     public SyncFrame Begin(params SyncRow[] rows)
     {
         var previous = Database.Manifest();

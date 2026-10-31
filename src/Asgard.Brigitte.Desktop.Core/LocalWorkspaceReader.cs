@@ -12,7 +12,7 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database, Standa
     public BugDetail Detail(string id) => new()
     {
         Bug = Bugs().FirstOrDefault(x => x.Id == id) ?? throw new InvalidOperationException(ClientText.T("此 BUG 已删除或已无访问权限。")),
-        Comments = Read<BugComment>("comment").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray(),
+        Comments = Read<BugComment>("comment").Where(x => x.BugId == id).OrderByDescending(x => x.CreateTime).ThenByDescending(x => x.Id, StringComparer.Ordinal).ToArray(),
         Histories = Read<BugHistory>("history").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray(),
         Attachments = Read<BugAttachment>("attachment").Where(x => x.BugId == id).OrderBy(x => x.CreateTime).ToArray()
     };

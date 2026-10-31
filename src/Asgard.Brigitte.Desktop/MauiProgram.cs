@@ -23,25 +23,27 @@ public static class MauiProgram
         builder.Services.AddSingleton<SessionService>();
         builder.Services.AddSingleton<SessionMaintenance>();
         builder.Services.AddSingleton<DesktopRealtime>();
-        builder.Services.AddSingleton(_ => new LocalWorkspaceDatabase(Path.Combine(FileSystem.AppDataDirectory, "workspace")));
+        builder.Services.AddSingleton(sp => new LocalWorkspaceDatabase(Path.Combine(FileSystem.AppDataDirectory, "workspace"), sp.GetRequiredService<NotificationPreferenceStore>()));
         builder.Services.AddSingleton(_ => new StandaloneWorkspace(Path.Combine(FileSystem.AppDataDirectory, "local-workspace")));
         builder.Services.AddSingleton<LocalWorkspaceReader>();
         builder.Services.AddSingleton<IWorkspaceSync>(sp => sp.GetRequiredService<DesktopRealtime>());
         builder.Services.AddSingleton<IClientSession>(sp => sp.GetRequiredService<SessionService>());
         builder.Services.AddSingleton<BrigitteApi>();
         builder.Services.AddSingleton<WorkspaceStore>();
-        builder.Services.AddSingleton(_ => new BoardPreferenceStore(
+        builder.Services.AddSingleton(_ => new LocalPreferenceDatabase(
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "preferences.sqlite")));
+        builder.Services.AddSingleton(sp => new BoardPreferenceStore(sp.GetRequiredService<LocalPreferenceDatabase>(),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "board.json")));
-        builder.Services.AddSingleton(_ => new ThemePreferenceStore(
+        builder.Services.AddSingleton(sp => new ThemePreferenceStore(sp.GetRequiredService<LocalPreferenceDatabase>(),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "theme.json"),
             () => Preferences.Default.Get("brigitte.theme", "system")));
         builder.Services.AddSingleton<DesktopHost>();
-        builder.Services.AddSingleton(_ => new NotificationPreferenceStore(
+        builder.Services.AddSingleton(sp => new NotificationPreferenceStore(sp.GetRequiredService<LocalPreferenceDatabase>(),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "notifications.json")));
-        builder.Services.AddSingleton(_ => new LanguagePreferenceStore(
+        builder.Services.AddSingleton(sp => new LanguagePreferenceStore(sp.GetRequiredService<LocalPreferenceDatabase>(),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "language.json"),
             DesktopHost.SystemLanguage));
-        builder.Services.AddSingleton(_ => new ClosePreferenceStore(
+        builder.Services.AddSingleton(sp => new ClosePreferenceStore(sp.GetRequiredService<LocalPreferenceDatabase>(),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Asgard", "Brigitte", "close-behavior.json")));
         builder.Services.AddSingleton<IClientHost>(sp => sp.GetRequiredService<DesktopHost>());
         return builder.Build();

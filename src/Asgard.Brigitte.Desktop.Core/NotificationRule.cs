@@ -10,6 +10,12 @@ public sealed record NotificationRule
     /// <summary>只筛选状态变化的目标状态，不影响新建、回复等其它类型。</summary>
     public string[]? Statuses { get; init; }
 
+    /// <summary>所有类型均关闭或状态列表为空且只开启状态时，项目完全静默。</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasAnyEnabledChange => Enabled &&
+        ((Changes & ~NotificationChange.Status) != 0 ||
+         (Changes & NotificationChange.Status) != 0 && (Statuses is null || Statuses.Length > 0));
+
     /// <summary>混合变更按任一匹配处理，状态只能由明确的状态事件命中。</summary>
     public bool Allows(SyncNotice notice) => Enabled &&
         ((Changes & notice.Changes & ~NotificationChange.Status) != 0 ||

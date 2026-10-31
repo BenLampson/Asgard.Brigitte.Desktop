@@ -113,7 +113,7 @@
         // 会话变化先刷新项目上下文，不能把旧窗口排队的事件写入另一个账号。
         if (_identity != Session.IdentityVersion || !Session.IsAuthenticated || !Host.SyncReady) { Reload(); return; }
         try { Host.SetNotificationRule(ProjectId, rule); _error = ""; _message = "已保存。"; }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or Microsoft.Data.Sqlite.SqliteException)
         { _resetVersion++; _error = "设置暂时无法保存，请检查设备的存储空间和文件权限后重试。"; }
     }
     public void Dispose() { Host.Changed -= Reload; Host.StatusChanged -= Refresh; }

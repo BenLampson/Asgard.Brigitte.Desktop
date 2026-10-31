@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 namespace Asgard.Brigitte.Desktop.Core;
 
 /// <summary>服务端数据的 SQLite 只读投影；暂存批次不可见，数据和校验游标在同一事务提交。</summary>
-public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposable
+public sealed partial class LocalWorkspaceDatabase(string directory, NotificationPreferenceStore? noticePreferences = null) : IDisposable
 {
     private readonly object _gate = new();
     private SqliteConnection? _connection;
@@ -30,6 +30,15 @@ public sealed partial class LocalWorkspaceDatabase(string directory) : IDisposab
             _connection.Open();
             Execute("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS records (key TEXT PRIMARY KEY, hash TEXT NOT NULL, json TEXT NOT NULL); CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS staging (key TEXT PRIMARY KEY, hash TEXT NOT NULL, json TEXT); DELETE FROM staging;");
             Execute("CREATE TABLE IF NOT EXISTS notices (id TEXT PRIMARY KEY, message TEXT NOT NULL, time TEXT NOT NULL, seen INTEGER NOT NULL DEFAULT 0)");
+            using (var columns = Connection.CreateCommand())
+            {
+                columns.CommandText = "PRAGMA table_info(notices)";
+                using var reader = columns.ExecuteReader();
+                var hasMetadata = false;
+                while (reader.Read()) if (reader.GetString(1) == "notice_json") hasMetadata = true;
+                reader.Close();
+                if (!hasMetadata) Execute("ALTER TABLE notices ADD COLUMN notice_json TEXT NULL");
+            }
             // 兼容旧客户端留下的已读标记，升级后不再保留这些通知行。
             Execute("DELETE FROM notices WHERE seen<>0");
             _account = account;

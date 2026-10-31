@@ -1,0 +1,21 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Asgard.Brigitte.Desktop.Core
+@using Asgard.Brigitte.Desktop.Core.Models
+@using Asgard.Brigitte.Desktop.UI.Components
+@using BugCardDragPreview
+@rendermode InteractiveServer
+@inject PreviewHost Host
+@inject BrigitteApi Api
+<div id="app"><div class="client @Host.Theme">
+    <nav style="display:flex;gap:8px;padding:12px"><button @onclick="() => _records = false">泳道设置</button><button @onclick="ShowRecords">处理记录</button><button @onclick="ToggleTheme">切换日夜模式</button></nav>
+    @if (_records) { <main class="detail-content" style="max-width:1000px;margin:auto">@foreach (var comment in _comments) { <BugRecord Comment="comment" @key="comment.Id" /> }</main> }
+    else { <LanePreferences /> }
+</div></div>
+@code {
+    private bool _records;
+    private BugComment[] _comments = [];
+    private async Task ShowRecords() { var project = (await Api.ProjectsAsync()).Single(item => item.Name == "示例项目 A"); var bug = (await Api.BugsAsync(project.Id)).Single(); _comments = (await Api.DetailAsync(bug.Id)).Comments; _records = true; }
+    private void ToggleTheme() => Host.SetTheme(Host.Theme == "dark" ? "light" : "dark");
+}

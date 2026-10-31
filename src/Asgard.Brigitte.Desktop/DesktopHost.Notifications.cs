@@ -30,14 +30,17 @@ public sealed partial class DesktopHost
     private string NotificationAccount => _options.ApiBaseUrl.TrimEnd('/') + "\n" + _options.TenantId + "\n" + _session.SubjectId;
     public NotificationRule GetNotificationRule(string? projectId = null) => _notificationPreferences.Get(NotificationAccount, projectId);
     public bool HasNotificationOverride(string projectId) => _notificationPreferences.HasOverride(NotificationAccount, projectId);
-    /// <summary>规则立即作用于等待合并和正在显示的提示，未读动态仍然完整保留。</summary>
+    /// <summary>规则立即作用于等待合并、正在显示的提示和未读列表。</summary>
     public void SetNotificationRule(string? projectId, NotificationRule? rule)
     {
         if (!_session.IsAuthenticated) return;
         _notificationPreferences.Set(NotificationAccount, projectId, rule);
-        _pendingNotices.RemoveAll(x => !_notificationPreferences.Allows(NotificationAccount, x));
-        _visibleNotices = _visibleNotices.Where(x => _notificationPreferences.Allows(NotificationAccount, x)).ToArray();
-        StatusChanged?.Invoke();
+        var current = RecentChanges.ToDictionary(item => item.Id, StringComparer.Ordinal);
+        for (var i = _pendingNotices.Count - 1; i >= 0; i--)
+            if (current.TryGetValue(_pendingNotices[i].Id, out var filtered)) _pendingNotices[i] = filtered;
+            else _pendingNotices.RemoveAt(i);
+        _visibleNotices = _visibleNotices.Select(item => current.GetValueOrDefault(item.Id)).OfType<SyncNotice>().ToArray();
+        RefreshNotices();
     }
     private void NotifyCommitted(IReadOnlyList<SyncNotice> notices)
     {
@@ -54,8 +57,8 @@ public sealed partial class DesktopHost
             if (identity != _session.IdentityVersion) return;
             _notificationScheduled = false;
             // 合并期间已经点过已读的通知不再弹出；系统横幅消失本身不等于用户已读。
-            var unread = RecentChanges.Select(x => x.Id).ToHashSet();
-            var current = _pendingNotices.Where(x => unread.Contains(x.Id) && _notificationPreferences.Allows(NotificationAccount, x)).DistinctBy(x => x.Id).ToArray();
+            var unread = RecentChanges.ToDictionary(item => item.Id, StringComparer.Ordinal);
+            var current = _pendingNotices.Select(item => unread.GetValueOrDefault(item.Id)).OfType<SyncNotice>().DistinctBy(item => item.Id).ToArray();
             _pendingNotices.Clear();
             if (current.Length == 0) return;
             _visibleNotices = current;

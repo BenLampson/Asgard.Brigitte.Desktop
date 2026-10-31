@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><RootNamespace>DesignUpdatePreview</RootNamespace></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Asgard.Brigitte.Desktop.UI/Asgard.Brigitte.Desktop.UI.csproj" />
+    <Compile Include="../bug-card-drag/PreviewHost.cs" Link="PreviewHost.cs" />
+  </ItemGroup>
+</Project>

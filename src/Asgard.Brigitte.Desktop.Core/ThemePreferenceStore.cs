@@ -4,6 +4,7 @@ namespace Asgard.Brigitte.Desktop.Core;
 public sealed class ThemePreferenceStore
 {
     private readonly string _path;
+    private readonly LocalPreferenceDatabase? _database;
     /// <summary>保留用户选择的模式，而不是将“跟随系统”保存成当前有效颜色。</summary>
     public string Mode { get; private set; }
 
@@ -22,15 +23,39 @@ public sealed class ThemePreferenceStore
         Mode = Normalize(readLegacy?.Invoke());
         if (Mode != "system") Set(Mode);
     }
+    /// <summary>迁移设备主题至 SQLite，保留旧文件作为备份。</summary>
+    public ThemePreferenceStore(LocalPreferenceDatabase database, string legacyPath, Func<string>? readLegacy = null)
+    {
+        _path = legacyPath; _database = database; Mode = "system";
+        try { database.ImportLegacy("theme", legacyPath, raw => new Dictionary<string, string> { ["theme/mode"] = JsonSerializer.Serialize(Normalize(JsonSerializer.Deserialize<string>(raw))) }); }
+        catch (JsonException) { }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (Microsoft.Data.Sqlite.SqliteException) { }
+        try
+        {
+            var values = database.ReadPrefix("theme/");
+            if (values.TryGetValue("theme/mode", out var raw)) Mode = Normalize(JsonSerializer.Deserialize<string>(raw));
+            else if (!File.Exists(legacyPath) && Normalize(readLegacy?.Invoke()) is { } legacy && legacy != "system") { database.Set("theme/mode", JsonSerializer.Serialize(legacy)); Mode = legacy; }
+        }
+        catch (JsonException) { }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (Microsoft.Data.Sqlite.SqliteException) { }
+    }
 
     /// <summary>先落盘再更新内存，保存失败不假装切换成功。</summary>
     public void Set(string mode)
     {
         if (mode is not ("light" or "dark" or "system")) throw new ArgumentException(ClientText.T("主题模式无效。"), nameof(mode));
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
-        var temporary = _path + ".tmp";
-        File.WriteAllText(temporary, JsonSerializer.Serialize(mode));
-        File.Move(temporary, _path, true);
+        if (_database is not null) _database.Set("theme/mode", JsonSerializer.Serialize(mode));
+        else
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
+            var temporary = _path + ".tmp";
+            File.WriteAllText(temporary, JsonSerializer.Serialize(mode));
+            File.Move(temporary, _path, true);
+        }
         Mode = mode;
     }
     /// <summary>拒绝旧配置中未知的主题值。</summary>
