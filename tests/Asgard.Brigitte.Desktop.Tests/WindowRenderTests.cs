@@ -65,6 +65,22 @@ public sealed class WindowRenderTests
         Assert.DoesNotContain("<p>bug.", html);
     }
 
+    /// <summary>列表和详情显示本地化名称，编辑器继续使用可无损保存的原值。</summary>
+    [Theory]
+    [InlineData("zh-CN", "前端", "后端")]
+    [InlineData("en", "Frontend", "Backend")]
+    public async Task Affected_services_are_readable_without_changing_the_editor_values(string language, string frontend, string backend)
+    {
+        using var scope = ClientText.UseLanguage(language);
+        var list = System.Net.WebUtility.HtmlDecode(await Render("light", DesktopViewKind.Main, list: true));
+        var detail = System.Net.WebUtility.HtmlDecode(await Render("light", DesktopViewKind.Detail));
+        var editor = System.Net.WebUtility.HtmlDecode(await Render("light", DesktopViewKind.Edit));
+
+        Assert.Contains($"title=\"{frontend}、{backend}、frontend-api\">{frontend}、{backend}、frontend-api</span>", list);
+        Assert.Contains($"<p>{frontend} · {backend} · frontend-api</p>", detail);
+        Assert.Contains("value=\"frontend, backend, frontend-api\"", editor);
+    }
+
     /// <summary>失败不能误导为没有项目权限。</summary>
     [Theory]
     [InlineData("light")]
@@ -189,6 +205,7 @@ public sealed class WindowRenderTests
         object data; var paged = false; var total = 1; var path = uri.AbsolutePath;
         var project = new Project { Id = "project", Name = "Brigitte", Code = "brigitte", Status = "active", OwnerId = "owner", MemberUserIds = ["owner"] };
         var bugs = Enumerable.Range(0, 18).Select(i => new Bug { Id = i == 0 ? "bug" : "bug-" + i, ProjectId = "project", Title = i == 0 ? "刷新列表后筛选条件被重置" : "状态更新后卡片及时显示 · " + i, Description = "问题描述", Content = "## 复现步骤\n1. 打开看板\n2. 点击刷新", Status = "processing", Priority = "high", AssigneeId = "raw-owner-id-very-long", LockOwnerId = i == 0 ? "worker-7" : null, LockOwnerName = i == 0 ? "AI-Worker-7" : null, LockOwnerUserId = i == 0 ? "owner" : null, LockExpireTime = DateTimeOffset.UtcNow.AddHours(1), CreateTime = DateTimeOffset.UtcNow }).ToList();
+        bugs[0].AffectedServices = ["frontend", "backend", "frontend-api"];
         bugs[1].AssigneeId = null;
         // 六条完成记录必须与处理中记录一起显示，覆盖之前缺失的四个最终状态。
         var completed = new[] { "fixed", "regressed", "closed", "wont_fix", "duplicate", "cannot_reproduce" };

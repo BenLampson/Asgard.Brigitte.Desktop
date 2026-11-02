@@ -1,0 +1,8 @@
+{
+  "前端": "Frontend",
+  "后端": "Backend",
+  "数据库": "Database",
+  "配置": "Configuration",
+  "定时任务": "Scheduled job",
+  "消息队列": "Message queue"
+}

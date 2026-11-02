@@ -44,7 +44,7 @@ else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <butto
 <button disabled="@_busy" @onclick="Reload">@ClientText.T("↻ 刷新")</button></div>
 @if(!CanWrite) { <small class="warning">@ClientText.T("他人持锁期间可阅读、下载和复制，暂时无法修改。")</small> }
 <dl><dt>@ClientText.T("优先级")</dt><dd><span class="priority @bug.Priority">@BugDisplay.Priorities.GetValueOrDefault(bug.Priority)</span></dd><dt>@ClientText.T("来源")</dt><dd class="ellipsis" title="@bug.Source">@bug.Source</dd><dt>@ClientText.T("创建时间")</dt><dd>@bug.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</dd><dt>@ClientText.T("更新时间")</dt><dd>@bug.UpdateTime?.ToLocalTime().ToString("g", ClientText.Culture)</dd></dl>
-<h4>@ClientText.T("涉及服务 / 组件")</h4><p>@string.Join(" · ",bug.AffectedServices)</p><h4>@ClientText.T("部署 / 变更说明")</h4><MarkdownView Value="@bug.DeploymentNotes" />
+<h4>@ClientText.T("涉及服务 / 组件")</h4><p>@string.Join(" · ",bug.AffectedServices.Select(AffectedServiceDisplay.Label))</p><h4>@ClientText.T("部署 / 变更说明")</h4><MarkdownView Value="@bug.DeploymentNotes" />
 @if(!string.IsNullOrEmpty(bug.SourceRef)) { <h4>@ClientText.T("来源引用")</h4><p class="break-word">@bug.SourceRef</p> }
 </aside></div>
 <footer class="window-footer"><span role="status">@_toast</span><div class="spacer"></div><button @onclick="() => Host.Close(View)">@ClientText.T("关闭")</button></footer></div>
