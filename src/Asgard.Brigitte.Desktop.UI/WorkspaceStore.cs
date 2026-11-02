@@ -35,6 +35,8 @@ public sealed class WorkspaceStore(BrigitteApi api, SessionService session)
     }
     /// <summary>完整名称只用于显示，找不到也不猜测 AI 身份。</summary>
     public string Assignee(string? id) => BugDisplay.Assignee(id, Users);
+    /// <summary>详情中保留用户名称与完整 ID。</summary>
+    public string IdentityWithId(string? id) => BugDisplay.IdentityWithId(id, Users);
     /// <summary>项目计数不能将加载失败视为零。</summary>
     public ProjectStatistics? Stats(string id) => Statistics.FirstOrDefault(x => x.ProjectId == id);
 }

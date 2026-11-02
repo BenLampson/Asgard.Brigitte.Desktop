@@ -19,7 +19,7 @@ case "内容":
 <h3>@ClientText.T("问题描述")</h3><MarkdownView Value="@bug.Description" /><h3>@ClientText.T("问题内容")</h3><MarkdownView Value="@bug.Content" /> break;
 case "回复 / 处理记录":
 <div class="heading bug-record-list-heading"><h3>@ClientText.T("回复和处理记录") <span class="bug-record-count">@_detail.Comments.Length</span></h3><div class="spacer"></div><button class="primary" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Comment,bug.Id,bug.ProjectId), View)">@ClientText.T("添加回复 / 处理记录")</button></div>
-@foreach(var comment in _detail.Comments) { <BugRecord Comment="comment" @key="comment.Id" /> } break;
+@foreach(var comment in _detail.Comments) { <BugRecord Comment="comment" RelatedBugs="_projectBugs" @key="comment.Id" /> } break;
 case "状态历史":
 @foreach(var history in _detail.Histories) { <article class="record"><strong>@BugDisplay.HistoryStatus(history.FromStatus) → @BugDisplay.HistoryStatus(history.ToStatus)</strong><small>@history.OperatorType · @history.CreateTime.ToLocalTime().ToString("g", ClientText.Culture)</small><MarkdownView Value="@history.Reason" /></article> } break;
 case "附件":
@@ -33,9 +33,9 @@ case "附件":
 <aside class="attributes"><h3>@ClientText.T("BUG 属性")</h3><dl>
 <dt>@ClientText.T("项目")</dt><dd class="ellipsis" title="@bug.ProjectId">@Workspace.Projects.FirstOrDefault(p=>p.Id==bug.ProjectId)?.Name</dd>
 <dt>@ClientText.T("状态")</dt><dd><button class="link" disabled="@(!CanWrite)" @onclick="() => Host.OpenAsync(new(DesktopViewKind.Status,bug.Id,bug.ProjectId), View)">@BugDisplay.Statuses.GetValueOrDefault(bug.Status)</button></dd>
-<dt>@ClientText.T("负责人")</dt><dd class="ellipsis" tabindex="0" title="@(ClientText.T("负责人：")+Workspace.Assignee(bug.AssigneeId)+ClientText.T("\n标识：")+bug.AssigneeId)">@Workspace.Assignee(bug.AssigneeId)</dd>
+<dt>@ClientText.T("负责人")</dt><dd class="ellipsis" tabindex="0" title="@Workspace.IdentityWithId(bug.AssigneeId)">@Workspace.IdentityWithId(bug.AssigneeId)</dd>
 <dt>@ClientText.T("处理锁")</dt><dd>@(BugDisplay.HasLock(bug) ? BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId) ? ClientText.T("我已领取") : ClientText.T("他人持有") : ClientText.T("未锁定"))</dd>
-<dt>@ClientText.T("领取者")</dt><dd class="ellipsis" tabindex="0" title="@(ClientText.T("领取者：")+BugDisplay.Claimant(bug, Workspace.Users)+"\nWorker ID："+bug.LockOwnerId)">@BugDisplay.Claimant(bug, Workspace.Users)</dd>
+<dt>@ClientText.T("领取者")</dt><dd class="ellipsis" tabindex="0" title="@(ClaimantIdentity(bug)+"\nWorker ID："+bug.LockOwnerId)">@ClaimantIdentity(bug)</dd>
 </dl>
 @if (BugDisplay.HasLock(bug)) { <small>@ClientText.T("{0} 到期", bug.LockExpireTime?.ToLocalTime().ToString("g", ClientText.Culture))</small> }
 <div class="row-actions">
@@ -53,6 +53,7 @@ else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <butto
     /// <summary>只读详情的独立窗口参数。</summary>
     [Parameter] public DesktopView View { get; set; } = null!;
     private BugDetail? _detail;
+    private List<Bug> _projectBugs = [];
     private List<PromptAction> _actions=[];
     private string _error="", _toast="", _tab="内容";
     private bool _busy;
@@ -60,7 +61,8 @@ else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <butto
     private string? Worker => _detail is not null && BugDisplay.HasLock(_detail.Bug) ? Host.WorkerId : null;
     protected override async Task OnInitializedAsync() { Host.Changed+=Changed; await Reload(); }
     private void Changed() => _=InvokeAsync(async()=> {await Reload();StateHasChanged();});
-    private async Task Reload() { try { _detail=await Api.DetailAsync(View.Id!); _actions=await Api.ActionsAsync(_detail.Bug.Status); _error=""; } catch(Exception ex) { _detail=null; _actions=[]; _error=AppView.SafeError(ex); } }
+    private async Task Reload() { try { _detail=await Api.DetailAsync(View.Id!); _projectBugs=await Api.BugsAsync(_detail.Bug.ProjectId); _actions=await Api.ActionsAsync(_detail.Bug.Status); _error=""; } catch(Exception ex) { _detail=null; _projectBugs=[]; _actions=[]; _error=AppView.SafeError(ex); } }
+    private string ClaimantIdentity(Bug bug) => BugDisplay.HasLock(bug) && !string.IsNullOrWhiteSpace(bug.LockOwnerUserId) ? Workspace.IdentityWithId(bug.LockOwnerUserId) : BugDisplay.Claimant(bug, Workspace.Users);
     private async Task Execute(Func<Task> action) { _busy=true; try { await action(); Host.PublishChange(); await Reload(); } catch(Exception ex) { _error=AppView.SafeError(ex); } finally { _busy=false; } }
     private Task Claim() => Execute(async()=>await Api.ClaimAsync(View.Id!,Host.WorkerId));
     private Task Release() => Execute(async()=>await Api.ReleaseAsync(View.Id!,Host.WorkerId));

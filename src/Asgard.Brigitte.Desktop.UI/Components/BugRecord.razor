@@ -45,20 +45,28 @@
         } else if (_expanded) {
             <div class="bug-record-body bug-record-legacy"><MarkdownView Value="@Comment.Content" /></div>
         }
+        @if (_expanded && References.Count > 0) {
+            <div class="bug-record-body"><strong>@ClientText.T("关联反馈")</strong><ul>
+                @foreach (var related in References) { <li>@related.Title <code>@related.Id</code></li> }
+            </ul></div>
+        }
     </div>
 </article>
 
 @code {
     /// <summary>同一条回复或处理记录；旧记录只保留 Markdown 正文。</summary>
     [Parameter, EditorRequired] public BugComment Comment { get; set; } = null!;
+    /// <summary>当前项目内已同步的反馈，只用于识别记录中真实存在的引用。</summary>
+    [Parameter] public IReadOnlyList<Bug> RelatedBugs { get; set; } = [];
     private bool _expanded;
     private string ContentId => "bug-record-content-" + Comment.Id;
     private BugProcessReport? Report => Comment.Report is { Version: 1 } report && !string.IsNullOrWhiteSpace(report.Summary) ? report : null;
     private string Origin => Comment.AuthorType switch { "ai" => ClientText.T("AI 标记"), "human" => ClientText.T("人工标记"), _ => string.IsNullOrWhiteSpace(Comment.AuthorType) ? ClientText.T("未知来源") : ClientText.T("来源标记：{0}", Comment.AuthorType) };
     private string Kind => Comment.CommentType switch { "comment" => ClientText.T("回复"), "process" or "resolution" => ClientText.T("处理记录"), "analysis" => ClientText.T("分析记录"), "fix" => ClientText.T("修复记录"), "verification" => ClientText.T("验证记录"), "regression" => ClientText.T("回归记录"), "progress" => ClientText.T("进度记录"), "question" => ClientText.T("补充问题"), _ => string.IsNullOrWhiteSpace(Comment.CommentType) ? ClientText.T("记录") : Comment.CommentType };
     private string Author => string.IsNullOrWhiteSpace(Comment.AuthorId) ? ClientText.T(Api.IsLocal ? "本机用户" : "账号未知")
-        : Comment.AuthorId.StartsWith("mcp:", StringComparison.Ordinal) ? ClientText.T("MCP 操作者") : Workspace.Assignee(Comment.AuthorId);
-    private string Avatar => System.Globalization.StringInfo.GetNextTextElement(Author).ToUpperInvariant();
+        : Comment.AuthorId.StartsWith("mcp:", StringComparison.Ordinal) ? $"{ClientText.T("MCP 操作者")}（{ClientText.T("ID：{0}", Comment.AuthorId)}）" : Workspace.IdentityWithId(Comment.AuthorId);
+    private IReadOnlyList<Bug> References => BugReferenceResolver.Resolve(Comment.Content, RelatedBugs, Comment.BugId);
+    private string Avatar => System.Globalization.StringInfo.GetNextTextElement(!string.IsNullOrWhiteSpace(Comment.AuthorId) && !Comment.AuthorId.StartsWith("mcp:", StringComparison.Ordinal) && !Workspace.Users.Any(user => user.Id == Comment.AuthorId) ? Comment.AuthorId : Author).ToUpperInvariant();
     private static IEnumerable<(string Title, string? Content)> Sections(BugProcessReport report) =>
         new (string, string?)[] { ("根因与修改", report.Changes), ("验证情况", report.Verification), ("提交与部署", report.Delivery), ("未完成事项", report.FollowUp), ("其他说明", report.Other) }
             .Where(section => !string.IsNullOrWhiteSpace(section.Item2));

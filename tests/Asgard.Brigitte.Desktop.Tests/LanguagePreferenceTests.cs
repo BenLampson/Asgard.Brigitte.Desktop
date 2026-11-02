@@ -81,8 +81,8 @@ public sealed class LanguagePreferenceTests
             await Task.Yield();
             return (ClientText.T("设置"), BugDisplay.Statuses["processing"], BugDisplay.Assignee("原始账号", []));
         }));
-        Assert.Equal(("Settings", "In progress", "原始账号"), results[0]);
-        Assert.Equal(("设置", "处理中", "原始账号"), results[1]);
+        Assert.Equal(("Settings", "In progress", "User name unavailable（ID: 原始账号）"), results[0]);
+        Assert.Equal(("设置", "处理中", "用户名称不可用（ID：原始账号）"), results[1]);
         Assert.Equal("设置", ClientText.T("设置"));
     }
     private static void WithPath(Action<string> action)

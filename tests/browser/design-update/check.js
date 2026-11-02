@@ -72,6 +72,8 @@ async (page) => {
   await cards.nth(1).getByRole('button', { name: '展开' }).click();
   await cards.nth(1).getByRole('button', { name: '收起' }).waitFor();
   assert((await cards.nth(1).innerText()).includes('调整菜单入口'), 'Expanded structured field not displayed');
+  assert((await cards.nth(1).innerText()).includes('关联反馈') && (await cards.nth(1).innerText()).includes('示例菜单管理反馈') && (await cards.nth(1).innerText()).includes('11111111-abcd-4abc-8def-555555555555'), 'Related bug title and ID should be displayed together');
+  assert((await cards.nth(1).innerText()).includes('用户名称不可用') && (await cards.nth(1).innerText()).includes('ID：sample-user'), 'Unknown account should keep its ID and an explanatory label');
   assert(await cards.first().getByRole('button', { name: '展开' }).count() === 1, 'Expanding one changed another');
   await cards.nth(1).getByRole('button', { name: '收起' }).click();
   await page.screenshot({ path: 'output/playwright/design-update/records-light.png', fullPage: true });

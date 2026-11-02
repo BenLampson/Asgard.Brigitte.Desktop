@@ -932,6 +932,7 @@ dd {
 .bug-record-identity, .bug-record-identity-line, .bug-record-header-end { display:flex; align-items:center; gap:10px; min-width:0; }
 .bug-record-avatar { display:grid; place-items:center; flex:none; width:40px; height:40px; border-radius:50%; background:var(--selected); color:var(--accent); font-size:13px; font-weight:700; }
 .bug-record-identity-line { flex-wrap:wrap; }
+.bug-record-identity-line strong { min-width:0; overflow-wrap:anywhere; }
 .bug-record-kind { padding:3px 8px; border-radius:4px; background:var(--selected); color:var(--accent); font-size:12px; font-weight:600; }
 .bug-record-author { display:block; margin-top:4px; color:var(--muted); overflow-wrap:anywhere; }
 .bug-record-time { display:flex; flex-direction:column; align-items:flex-end; gap:3px; color:var(--text); font-size:13px; white-space:nowrap; }

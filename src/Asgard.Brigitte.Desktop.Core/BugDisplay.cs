@@ -47,14 +47,26 @@ public static class BugDisplay
     /// <summary>两种语言各缓存一次标签，语言切换不创建每张卡片的重复字典。</summary>
     public static IReadOnlyDictionary<string, string> Statuses => ClientText.Language == "en" ? EnglishStatuses : StatusKeys;
     public static IReadOnlyDictionary<string, string> Priorities => ClientText.Language == "en" ? EnglishPriorities : PriorityKeys;
-    /// <summary>目录未匹配保留原始标识，空值才显示未指派。</summary>
+    /// <summary>目录未匹配时标明名称不可用并保留原始标识，空值才显示未指派。</summary>
     public static string Assignee(string? id, IEnumerable<IdentityUser> users)
     {
         if (string.IsNullOrWhiteSpace(id)) return ClientText.T("未指派");
-        var user = users.FirstOrDefault(x => x.Id == id);
-        if (user is null) return id;
-        var name = string.IsNullOrEmpty(user.DisplayName) ? user.Username : user.DisplayName;
-        return !string.IsNullOrEmpty(user.Username) && user.Username != name ? $"{name}（{user.Username}）" : name;
+        var name = IdentityName(users.FirstOrDefault(x => x.Id == id));
+        return name ?? $"{ClientText.T("用户名称不可用")}（{ClientText.T("ID：{0}", id)}）";
+    }
+    /// <summary>同时显示已核实的用户名称和完整标识；无法解析时不猜测身份。</summary>
+    public static string IdentityWithId(string? id, IEnumerable<IdentityUser> users)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return ClientText.T("未指派");
+        var name = IdentityName(users.FirstOrDefault(x => x.Id == id)) ?? ClientText.T("用户名称不可用");
+        return $"{name}（{ClientText.T("ID：{0}", id)}）";
+    }
+    private static string? IdentityName(IdentityUser? user)
+    {
+        if (user is null) return null;
+        var name = string.IsNullOrWhiteSpace(user.DisplayName) ? user.Username : user.DisplayName;
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        return !string.IsNullOrWhiteSpace(user.Username) && user.Username != name ? $"{name}（{user.Username}）" : name;
     }
     /// <summary>领取人仅取已验证的用户并匹配目录；Worker 名称不能作为用户身份。</summary>
     public static string Claimant(Bug bug, IEnumerable<IdentityUser>? users = null) => !HasLock(bug) ? ClientText.T("未领取")
