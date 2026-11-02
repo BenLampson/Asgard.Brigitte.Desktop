@@ -183,6 +183,19 @@ h2 small {
   display: flex;
   height: 100%;
 }
+/* 顶部更新或警告提示占用的高度从工作区扣除，避免底部被窗口裁切。 */
+.client:has(> .workspace) {
+  display: flex;
+  flex-direction: column;
+}
+.client > .workspace {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+.client:has(> .workspace) > .notice {
+  flex: none;
+}
 .sidebar {
   width: var(--sidebar-width, 196px);
   flex: 0 0 var(--sidebar-width, 196px);
@@ -583,14 +596,15 @@ summary::-webkit-details-marker {
   margin-right: -2px;
   overscroll-behavior-y: contain;
 }
-.lanes::-webkit-scrollbar,
+.lanes::-webkit-scrollbar {
+  height: 20px;
+}
 .lane-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
 }
 .lanes::-webkit-scrollbar-thumb,
 .lane-scroll::-webkit-scrollbar-thumb {
-  border: 0;
+  border: 2px solid var(--track);
 }
 .bug-card {
   border: 1px solid var(--line);

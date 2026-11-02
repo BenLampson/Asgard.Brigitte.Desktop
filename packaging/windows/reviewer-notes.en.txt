@@ -1,6 +1,6 @@
-Asgard Brigitte 1.0.16.0 — restore saved online sessions at startup
+Asgard Brigitte 1.0.17.0 — easier board scrolling
 
-This update restores a saved Heimdall session automatically when the app starts, followed by the normal online workspace synchronization. Local use remains complete and requires no credentials or internet connection. Existing private online reviewer credentials remain unchanged.
+This update makes the board's horizontal scrollbar easier to drag and keeps it visible when an update reminder or warning appears. Local use remains complete and requires no credentials or internet connection. Existing private online reviewer credentials remain unchanged.
 
 The prior review could not reach the credential form because Heimdall discovery returned discovery_unavailable. The new package makes the primary bug-tracking workflow fully available without signing in, without internet access, and without deploying a server. This change does not assert that the prior review machine's network issue has been repaired.
 
