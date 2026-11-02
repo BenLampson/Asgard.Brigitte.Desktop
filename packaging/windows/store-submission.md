@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 2, 2026 — 1.0.16 submitted
+
+Version `1.0.16.0` restores saved online sessions automatically at startup. Partner Center confirmed Submission 15 (`1.0.15`) is published. The x64 MSIX for this update was accepted as **Validated** and formally submitted as Submission 16 (`1152921505702297602`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.16 is not yet confirmed.
+
+English and Simplified Chinese release notes and the corresponding welcome-page descriptions were saved. Automatic removal of 1.0.15 was cancelled, retaining the earlier packages; existing pricing, availability, screenshots, age ratings and private reviewer information were preserved. The existing `runFullTrust` warning remains subject to Microsoft certification, and its explanation was updated for this release. Local evidence: `publish/store/1.0.16.0/store-submitted.jpg`.
+
+The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.16) provides the Windows x64 portable ZIP, unsigned Store-upload MSIX, checksums and source manifest. Both artifacts were built locally from clean, pushed commit `9112b1bbb24e463e6b763ba960e815a273ee9969`; the MSIX is 121367545 bytes with SHA-256 `46f790d57c7b5b64a480f5ca170af6be34443c724c4ac34db480980f8b88e23e`. Identity, version and matching packaged UI/Core assemblies were checked, and GitHub's artifact digests match. All 289 local Core/UI tests and the [Windows/Linux CI tests and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41464072290) passed. Store-signed installation/upgrade, Windows App Certification Kit and live online login were not tested; the optional symbol package was not generated because `mspdbcmf.exe` was unavailable. See the [release notes](../../docs/releases/v1.0.16.md).
+
 ## November 2, 2026 — 1.0.15 submitted
 
 Version `1.0.15.0` fixes status-history ordering. Its locally built x64 MSIX was checked for the registered identity and matching portable Core assembly; SHA-256 `5a475bfcfe7c25707f9161aaa50267ab0d8b356647f0d257a88a2dd7cc0d2aeb`. The [portable release, Store-upload package, checksums and source manifest](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.15) are built from clean, pushed commit `850540efbee730589ef9673ee009468d602f87bd`; local Core/UI tests and Windows/Linux CI passed.
