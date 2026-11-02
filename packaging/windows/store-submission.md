@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 2, 2026 — 1.0.13 submitted
+
+Partner Center confirms Submission 12 (`1.0.12`) is published. Version `1.0.13.0` was accepted as **Validated** and formally submitted as Submission 13 (`1152921505702292747`). The status is **In certification / pre-processing**; the page says publication starts immediately after certification. Store availability of 1.0.13 is not yet confirmed.
+
+English and Simplified Chinese release notes were saved. Automatic removal of the previous package was cancelled, preserving the historical packages. Existing screenshots, price and availability, age ratings, and private reviewer information were retained. The existing `runFullTrust` warning remains subject to Microsoft certification; no new capability was added. Local evidence: `publish/store/1.0.13.0/store-submitted.jpg`.
+
+The x64 Store MSIX was built locally from clean, pushed commit `f5bef81259e20c26a4b10d9f043dc2ca409322a1`, tagged `v1.0.13`; it is 121365478 bytes with SHA-256 `004430fce9c1d66a3795ad3cde211ab5475b291a61f91ac04853abc6e52f7a54`. Its package identity, publisher and version were checked. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.13) includes the portable ZIP, unsigned MSIX, checksums and source manifest. All 272 local Core/UI tests, local Windows builds, a browser-based component check and [Windows/Linux CI](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41383176509) passed. Store-signed installation or upgrade, WACK and native desktop acceptance were not performed; the optional symbol package was not generated because `mspdbcmf.exe` was unavailable. See the [release notes](../../docs/releases/v1.0.13.md).
+
 ## October 31, 2026 — 1.0.12 submitted
 
 Partner Center confirms Submission 11 (`1.0.11`) is published. Version `1.0.12.0` was submitted as Submission 12 (`1152921505702285062`), with pre-processing in progress and publication set to begin after certification. Store availability of 1.0.12 has not yet been established.
