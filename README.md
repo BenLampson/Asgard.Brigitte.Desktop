@@ -12,7 +12,7 @@
 
 <p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
-Brigitte connects issue discovery, assignment, fixes, and verification in a project workspace. The current source defaults to local use: every launch offers **Use on this computer** first, without an account or network. Projects, bugs, replies, history, and attachment bodies stay in a separate local SQLite database. Online collaboration retains the existing sign-in and authenticated WebSocket synchronization.
+Brigitte connects issue discovery, assignment, fixes, and verification in a project workspace. When no online session is saved, the welcome page offers **Use on this computer** first, without an account or network. The app automatically tries to restore a saved online session at launch. Projects, bugs, replies, history, and attachment bodies stay in a separate local SQLite database. Online collaboration uses authenticated WebSocket synchronization.
 
 This repository publishes the desktop client, shared synchronization contracts, bundled application resources, and tests under Apache-2.0. The Brigitte backend, web administration application, and production deployment are maintained separately in a private repository. Only online mode requires compatible Brigitte and Heimdall services. Local mode runs inside the desktop process, opens no service port, and does not upload or merge records with online workspaces. LAN sharing is not supported.
 

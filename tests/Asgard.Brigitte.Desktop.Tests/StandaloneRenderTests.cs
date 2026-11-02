@@ -13,19 +13,21 @@ namespace Asgard.Brigitte.Desktop.Tests;
 /// <summary>真实 Razor 组件验证默认入口、本机各业务窗口和在线能力的可见边界。</summary>
 public sealed class StandaloneRenderTests
 {
-    /// <summary>即使保存了在线凭据，每次启动先显示入口且不读取凭据或等待网络。</summary>
+    /// <summary>没有已保存的在线凭据时，启动页保留无需联网的本机入口。</summary>
     [Theory]
     [InlineData("zh-CN", "本机使用", "使用 Heimdall 登录")]
     [InlineData("en", "Use on this computer", "Sign in with Heimdall")]
-    public async Task Startup_always_offers_local_first_without_restoring_online_credentials(string language, string localLabel, string onlineLabel)
+    public async Task Startup_without_saved_credentials_offers_local_first_without_network(string language, string localLabel, string onlineLabel)
     {
         using var scope = ClientText.UseLanguage(language);
         using var local = new StandaloneTestWorkspace();
+        local.Credentials.Value = null;
         var html = await Render(local, DesktopViewKind.Main);
+        Assert.Contains(localLabel, html); Assert.Contains(onlineLabel, html);
         Assert.True(html.IndexOf(localLabel, StringComparison.Ordinal) < html.IndexOf(onlineLabel, StringComparison.Ordinal));
         Assert.Contains("brand-login brand-login-secondary", html);
         Assert.False(local.Session.HasWorkspace); Assert.False(local.Database.Ready);
-        Assert.Equal(0, local.Credentials.Reads); Assert.Equal(0, local.Transport.Count);
+        Assert.Equal(1, local.Credentials.Reads); Assert.Equal(0, local.Transport.Count);
         await WindowRenderTests.ExportPreview("local-entry-" + language, "<div class='client light'>" + html + "</div>");
     }
 
@@ -56,11 +58,14 @@ public sealed class StandaloneRenderTests
             if (kind == DesktopViewKind.Detail) Assert.Contains("断网操作步骤", html);
         }
         await local.Session.LogoutAsync();
+        Assert.Equal("untouched-online-credentials", local.Credentials.Value);
+        // 下面重新创建主组件模拟另一次启动，提供空凭据而不改变前面本机流程的验证。
+        local.Credentials.Value = null;
         var welcome = await Render(local, DesktopViewKind.Main);
         Assert.Contains(ClientText.T("使用 Heimdall 登录"), welcome); Assert.DoesNotContain("本机问题", welcome);
         await local.EnterAsync();
         Assert.Contains("本机问题", await Render(local, DesktopViewKind.Main));
-        Assert.Equal(0, local.Transport.Count); Assert.Equal(0, local.Credentials.Reads);
+        Assert.Equal(0, local.Transport.Count); Assert.Equal(1, local.Credentials.Reads);
     }
 
     /// <summary>使用正式 DI 关系，确认本机与在线读取器按会话选择而不是依赖测试替身。</summary>

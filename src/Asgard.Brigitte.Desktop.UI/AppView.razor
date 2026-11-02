@@ -48,10 +48,15 @@ else if (!Session.HasWorkspace) {
     [Parameter] public DesktopView View { get; set; } = new(DesktopViewKind.Main);
     private bool _ready, _busy, _restoring;
     private string _error = "";
-    /// <summary>每次启动显示使用入口；选择在线服务后才恢复凭据，离线启动不等待网络。</summary>
-    protected override void OnInitialized()
+    /// <summary>仅主窗口在启动时恢复已保存的在线会话，其他窗口共用恢复结果。</summary>
+    protected override async Task OnInitializedAsync()
     {
         Session.Changed += Changed; Host.Changed += Changed; Host.StatusChanged += Changed;
+        if (View.Kind == DesktopViewKind.Main)
+        {
+            try { await Session.InitializeAsync(); }
+            catch (Exception ex) { _error = SafeError(ex); }
+        }
         _ready = true;
     }
     /// <summary>数据库打开失败留在欢迎页，不清空本机记录。</summary>

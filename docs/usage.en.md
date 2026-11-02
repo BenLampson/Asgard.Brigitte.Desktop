@@ -4,13 +4,13 @@ English · [简体中文](usage.md)
 
 ## Use locally by default
 
-Every launch shows the welcome page with **Use on this computer** as its primary action and online sign-in below. Local mode needs no account or network. Create and edit projects and bugs, search and filter, change status, add replies and work logs, claim locks, add and preview or download attachments, delete bugs, and copy repair prompts. Records and attachment bodies persist in local SQLite.
+When no online session is saved, the welcome page offers **Use on this computer** as its primary action and online sign-in below. Local mode needs no account or network. Create and edit projects and bugs, search and filter, change status, add replies and work logs, claim locks, add and preview or download attachments, delete bugs, and copy repair prompts. Records and attachment bodies persist in local SQLite.
 
 Choose **Back to welcome** from the **Local user** menu to return to the sign-in entry without deleting local data. Local and online workspaces stay separate; nothing is automatically uploaded or merged. Invitations, online account management, remote MCP keys, and LAN sharing are unavailable locally. Local prompts contain issue snapshots without directing tools to an online MCP service.
 
 ## Online sign-in and projects
 
-Select **Sign in with Heimdall** to restore saved online credentials or sign in through your system browser and return through a local callback. If the service offers registration, **Create an account** opens its registration page. Online mode needs network access and an account on the configured service.
+The app automatically attempts to restore a saved online session at launch. When no session is available, select **Sign in with Heimdall** to sign in through your system browser and return through a local callback. If the service is temporarily unavailable, the welcome page offers a retry and local use while retaining saved credentials. If the service offers registration, **Create an account** opens its registration page. Online mode needs network access and an account on the configured service.
 
 If sign-in reports a difference between your computer's clock and the sign-in service, enable automatic date and time in your system settings, synchronize the clock, and sign in again. Desktop checks the validity time of sign-in credentials, so it may fail even when web sign-in works. If the problem remains after synchronization, ask your service administrator to check the sign-in service's clock. When the service time cannot be measured, the app asks you to check your clock without claiming a specific difference.
 

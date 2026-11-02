@@ -12,13 +12,13 @@ Track bugs offline without signing in, with project boards, Markdown, and attach
 
 ## Description
 
-Asgard Brigitte is a desktop workspace for reporting, tracking, and resolving software bugs. Choose “Use on this computer” at launch to work without registering, signing in, connecting to the internet, or deploying a server. Local projects, bugs, replies, work logs, status history, and attachment bodies are saved on your computer and remain available after restarting.
+Asgard Brigitte is a desktop workspace for reporting, tracking, and resolving software bugs. Choose “Use on this computer” on the welcome page to work without registering, signing in, connecting to the internet, or deploying a server. Local projects, bugs, replies, work logs, status history, and attachment bodies are saved on your computer and remain available after restarting.
 
 Keep projects and bugs in one place. Move between board and list views, search by title or content, filter by status and priority, and open details or editors in separate windows. Record descriptions, replies, work logs, status changes, and attachments so your team can follow a fix from discovery to regression checks.
 
 Online team collaboration is optional and requires an account, internet access, a compatible Brigitte service, and Heimdall sign-in. In online mode, create your own projects or join a team through an invitation link. Project owners can manage members and create invitations with optional passwords and expiration. Access follows the service's permissions. Local and online workspaces are separate: local records are not automatically uploaded or merged. LAN sharing is not included.
 
-Local mode supports reading and writing while offline. In online mode, live synchronization, unread activity, and the system tray help you follow team changes; an interruption leaves already synchronized online content read-only. You can choose whether closing the main window quits the application or keeps it running in the tray. Each launch keeps both the local-use and online sign-in entries available.
+Local mode supports reading and writing while offline. In online mode, live synchronization, unread activity, and the system tray help you follow team changes; an interruption leaves already synchronized online content read-only. You can choose whether closing the main window quits the application or keeps it running in the tray. The welcome page offers both local use and online sign-in when no online session is restored.
 
 Copy repair prompts containing local issue snapshots, or use server-provided prompts in online mode. Copying does not automatically send data to an AI provider. Scoped MCP keys for compatible external clients are an online-only feature. External AI tools are configured separately; the app does not include an AI model.
 
