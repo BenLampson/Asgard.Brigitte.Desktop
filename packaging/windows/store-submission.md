@@ -1,10 +1,10 @@
 # Microsoft Store submission for Asgard Brigitte
 
-## November 2, 2026 — 1.0.15 prepared, Store submission pending
+## November 2, 2026 — 1.0.15 submitted
 
 Version `1.0.15.0` fixes status-history ordering. Its locally built x64 MSIX was checked for the registered identity and matching portable Core assembly; SHA-256 `5a475bfcfe7c25707f9161aaa50267ab0d8b356647f0d257a88a2dd7cc0d2aeb`. The [portable release, Store-upload package, checksums and source manifest](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.15) are built from clean, pushed commit `850540efbee730589ef9673ee009468d602f87bd`; local Core/UI tests and Windows/Linux CI passed.
 
-Partner Center still showed Submission 14 (1.0.14) in pre-processing, with its package and listing read-only. That certification was not cancelled. Version 1.0.15 was not submitted to Microsoft Store and is not confirmed available there. See the [1.0.15 release notes](../../docs/releases/v1.0.15.md).
+Partner Center confirmed Submission 14 (1.0.14) is published. Version 1.0.15.0 was accepted as Validated and formally submitted as Submission 15 (1152921505702296769). The status is In certification / pre-processing, with publication set to begin immediately after certification; Store availability of 1.0.15 is not yet confirmed. English and Simplified Chinese release notes were saved, automatic removal of 1.0.14 was cancelled, and all historical packages and existing listing details were retained. The existing runFullTrust warning remains subject to certification; no capability was added. Local evidence: `publish/store/1.0.15.0/store-submitted.jpg`. See the [1.0.15 release notes](../../docs/releases/v1.0.15.md).
 
 ## November 2, 2026 — 1.0.14 submitted
 
