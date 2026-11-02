@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 2, 2026 — 1.0.14 submitted
+
+Partner Center confirms Submission 13 (`1.0.13`) is published. Version `1.0.14.0` was accepted as **Validated** and formally submitted as Submission 14 (`1152921505702294496`). The status is **In certification / pre-processing**; the page says publication starts immediately after certification. Store availability of 1.0.14 is not yet confirmed.
+
+English and Simplified Chinese release notes were saved. Automatic removal of the previous package was cancelled, preserving the historical packages. Existing screenshots, price and availability, age ratings, and private reviewer information were retained. The existing `runFullTrust` warning remains subject to Microsoft certification; no new capability was added. Local evidence: `publish/store/1.0.14.0/store-submitted.jpg`.
+
+The x64 Store MSIX was built locally from clean, pushed commit `03c386772f87cb27ca040cce36ca93d4b24e14bc`, tagged `v1.0.14`; it is 121366853 bytes with SHA-256 `f1aad44f23f8adc56b88829f618344bd6a0d5d552ca763749dd079574bb658cf`. Its package identity, publisher and version were checked. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.14) includes the portable ZIP, unsigned MSIX, checksums and source manifest. All 284 local Core/UI tests and the local Windows Store and portable builds passed; [source CI](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41406916450) contains the Windows and Linux test results. Store-signed installation or upgrade, WACK and native desktop acceptance were not performed; the optional symbol package was not generated because `mspdbcmf.exe` was unavailable. See the [release notes](../../docs/releases/v1.0.14.md).
+
 ## November 2, 2026 — 1.0.13 submitted
 
 Partner Center confirms Submission 12 (`1.0.12`) is published. Version `1.0.13.0` was accepted as **Validated** and formally submitted as Submission 13 (`1152921505702292747`). The status is **In certification / pre-processing**; the page says publication starts immediately after certification. Store availability of 1.0.13 is not yet confirmed.
