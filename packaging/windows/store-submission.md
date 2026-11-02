@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 3, 2026 — 1.0.17 submitted
+
+Version `1.0.17.0` enlarges the board scrollbar and keeps the bottom of the workspace visible when update reminders or warnings appear. Partner Center showed Submission 16 was published. The x64 MSIX for this update was accepted as **Validated** and formally submitted as Submission 17 (`1152921505702300983`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.17 is not yet confirmed. Partner Center displays the submission's last-modified date as November 2.
+
+English and Simplified Chinese release notes and the existing `runFullTrust` explanation were updated. Automatic removal of 1.0.16 was cancelled, preserving the historical packages; other listing details, availability, age ratings and private reviewer information were retained. The existing `runFullTrust` warning remains subject to Microsoft certification; no capability was added. Local evidence: `publish/store/1.0.17.0/store-submitted.jpg`.
+
+The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.17) provides the Windows x64 portable ZIP, unsigned Store-upload MSIX, checksums and source manifest. Both artifacts were built locally from clean, pushed commit `ff82d4a4f2b577a29550551d2d5bc5355799a5b6`; the MSIX is 121367714 bytes with SHA-256 `f42c525b9523345e5b53a30c5aee95edbc24354660695ab4448ff4c07cb04e80`. Identity, version and matching packaged CSS/UI/Core assemblies were checked, and GitHub's artifact digests match. All 289 local Core/UI tests, real-mouse browser checks, and the [Windows/Linux CI tests and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41548505717) passed. Store-signed installation/upgrade, Windows App Certification Kit and native desktop acceptance were not tested; the optional symbol package was not generated because `mspdbcmf.exe` was unavailable. See the [release notes](../../docs/releases/v1.0.17.md).
+
 ## November 2, 2026 — 1.0.16 submitted
 
 Version `1.0.16.0` restores saved online sessions automatically at startup. Partner Center confirmed Submission 15 (`1.0.15`) is published. The x64 MSIX for this update was accepted as **Validated** and formally submitted as Submission 16 (`1152921505702297602`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.16 is not yet confirmed.
