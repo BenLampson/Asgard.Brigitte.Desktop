@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 3, 2026 — 1.0.18 submitted
+
+Version `1.0.18.0` fixes board lanes at 240 CSS pixels, so resizing a window reveals more lanes without widening them. Partner Center showed Submission 17 was published. The new x64 MSIX was accepted as **Validated** and formally submitted as Submission 18 (`1152921505702306917`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.18 is not yet confirmed.
+
+English and Simplified Chinese release notes and the existing `runFullTrust` explanation were updated. Automatic removal of 1.0.17 was cancelled, preserving the historical packages; existing listing details, availability, age ratings and private reviewer information were retained. The existing `runFullTrust` warning remains subject to Microsoft certification; no capability was added. Local evidence: `publish/store/1.0.18.0/store-submitted.jpg`.
+
+The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.18) provides the Windows x64 portable ZIP, unsigned Store-upload MSIX, checksums and source manifest. Both artifacts were built locally from clean, pushed commit `0157decdd2d48177a6302073d4169d94d169a07e`; the MSIX is 121367679 bytes with SHA-256 `3957d445e42966cf9319b16bfa065f3119ba64cbc84a85aae8f3c8da5d4f8940`. Identity, version and matching packaged CSS/UI/Core assemblies were checked. All 289 local Core/UI tests, browser checks for resizing, single-status filtering, lane dragging and the scrollbar, and the [Windows/Linux CI tests and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41664196493) passed. Store-signed installation/upgrade, Windows App Certification Kit and native desktop acceptance were not tested; the optional symbol package was not generated because `mspdbcmf.exe` was unavailable. See the [release notes](../../docs/releases/v1.0.18.md).
+
 ## November 3, 2026 — 1.0.17 submitted
 
 Version `1.0.17.0` enlarges the board scrollbar and keeps the bottom of the workspace visible when update reminders or warnings appear. Partner Center showed Submission 16 was published. The x64 MSIX for this update was accepted as **Validated** and formally submitted as Submission 17 (`1152921505702300983`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.17 is not yet confirmed. Partner Center displays the submission's last-modified date as November 2.
