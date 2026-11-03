@@ -551,8 +551,7 @@ summary::-webkit-details-marker {
   padding-bottom: 14px;
 }
 .lane {
-  flex: 0 0 calc((100% - 42px) / 4);
-  min-width: 240px;
+  flex: 0 0 240px;
   background: var(--subtle);
   border-radius: 6px;
   display: flex;

@@ -1,6 +1,8 @@
 // Run with playwright-cli against the isolated lane-drag preview host.
 async (page) => {
   const assert = (value, message) => { if (!value) throw new Error(message); };
+  // Start with all statuses visible, even when the preceding drag check filtered them.
+  await page.reload();
   await page.waitForFunction(() => document.querySelector('.statusbar')?.dataset.ready === 'ready');
 
   for (const scenario of [
