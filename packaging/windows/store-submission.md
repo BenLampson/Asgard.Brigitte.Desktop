@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 4, 2026 — 1.0.19 submitted
+
+Version `1.0.19.0` opens PNG, JPEG, GIF and WebP attachment previews in the system default application. Partner Center confirmed Submission 18 was published. The new x64 MSIX was accepted as **Validated** and submitted as Submission 19 (`1152921505702315739`). The status is **In certification / pre-processing**; publication is set to begin immediately after certification. This does not yet confirm that 1.0.19 is available to customers.
+
+The English and Simplified Chinese release notes, `runFullTrust` explanation and private reviewer instructions were updated. Automatic removal of 1.0.18 was cancelled, retaining historical packages. The existing `runFullTrust` warning remains subject to Microsoft certification; no capability was added.
+
+The Store package was built locally from clean, pushed commit `ce27b0ad6f2e20fb9ff33ca0f40d033501af070e`, tag `v1.0.19`. `Asgard.Brigitte.Desktop_1.0.19.0_x64.msix` is 121372915 bytes with SHA-256 `a2fc3cc94eedfd5dcf50cea38ad4c91ca07da730a2b9a4ccf90a69535eb3afb3`. The package identity, version, architecture, languages and matching published assemblies were checked. All 301 local Core/UI tests and [Windows/Linux CI tests and the Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/41859787967) passed. Store-signed installation and upgrade, Windows App Certification Kit, actual default-app launch, and macOS build/runtime were not tested. The optional symbol package was not generated because `mspdbcmf.exe` was unavailable.
+
 ## November 3, 2026 — 1.0.18 submitted
 
 Version `1.0.18.0` fixes board lanes at 240 CSS pixels, so resizing a window reveals more lanes without widening them. Partner Center showed Submission 17 was published. The new x64 MSIX was accepted as **Validated** and formally submitted as Submission 18 (`1152921505702306917`). The status is **In certification / pre-processing**, with publication set to begin immediately after certification; customer availability of 1.0.18 is not yet confirmed.
