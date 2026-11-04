@@ -2,7 +2,7 @@
 
 English · [简体中文](PRIVACY.zh-CN.md)
 
-Effective date: October 20, 2026
+Effective date: November 4, 2026
 
 Operator: **benlampson**
 
@@ -30,7 +30,7 @@ The application uses HTTPS and authenticated connections to its configured servi
 ## Storage, retention, and security
 
 - **Credentials:** the desktop uses the platform's secure storage for session credentials. Credentials are not written into the business SQLite database or JavaScript browser storage. Temporary authorization state and one-time integration results are held in memory for the relevant operation.
-- **Workspace cache:** authorized projects, bugs, replies, history, attachment metadata, and unread update summaries are saved in a local SQLite database, separated by service, tenant, and verified account. Attachment bodies are retrieved when you preview or download them; files you save remain in the location you choose. Workspace cache is not represented as an encrypted vault, so protect access to your device and its backups.
+- **Workspace cache:** authorized projects, bugs, replies, history, attachment metadata, and unread update summaries are saved in a local SQLite database, separated by service, tenant, and verified account. Attachment bodies are retrieved when you preview or download them. Image previews write a temporary copy to the app cache and pass it to the system's default app; the app attempts to remove copies older than seven days the next time you preview an image. Files you save remain in the location you choose. Workspace cache is not represented as an encrypted vault, so protect access to your device and its backups.
 - **Preferences and WebView data:** theme, language, and close behavior are saved on the device. The application also uses WebView cache. Preferences can remain across updates and account changes. Exact file locations depend on the operating system and installation type; implementation details are in [data handling notes](docs/data.md).
 - **Retention:** service data is kept while needed to provide collaboration, maintain security and auditability, resolve requests, or meet applicable obligations. Retention can depend on the workspace and deployment. Local cache can remain until removed through application-data management. Read updates are removed from the local unread list. Files you saved yourself remain until you remove them.
 

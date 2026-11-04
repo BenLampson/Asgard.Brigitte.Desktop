@@ -1,0 +1,5 @@
+{
+  "不支持预览此附件。": "This attachment cannot be previewed.",
+  "无法使用系统默认程序打开图片。请检查此图片类型的默认应用后重试。": "The image could not be opened with the system's default app. Check the default app for this image type and try again.",
+  "预览图片会将临时副本交给系统默认程序，并保存在本机应用缓存中；下次预览时会尝试清理超过七天的副本。": "Previewing an image gives a temporary copy to the system's default app and stores it in the local app cache. The app attempts to remove copies older than seven days the next time you preview an image."
+}

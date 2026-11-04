@@ -10,4 +10,6 @@ public sealed partial class DesktopHost
         window.Created+=(_,_)=>MainThread.BeginInvokeOnMainThread(()=>MacTray.Attach(window.Title,kind==DesktopViewKind.Main));
     }
     private partial Task<bool> SavePlatformAsync(string fileName,byte[] bytes)=>MainThread.InvokeOnMainThreadAsync(()=>MacTray.Save(fileName,bytes));
+    /// <summary>Catalyst 的文件启动器会显示选择菜单，改用 AppKit 默认文件关联。</summary>
+    private partial Task<bool> OpenAttachmentPlatformAsync(string path)=>Task.FromResult(MacTray.OpenFile(path));
 }

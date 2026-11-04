@@ -8,7 +8,7 @@
 | 登录凭据 | 平台 SecureStorage，供会话恢复及刷新；不写入业务 SQLite 或 JavaScript 存储 |
 | 已授权项目、BUG、回复、历史与附件元数据 | 平台 AppDataDirectory 下的 `workspace` SQLite，按服务、租户及已验证用户隔离 |
 | 未读动态 | 同一本地数据库；标记已读后删除相应通知记录 |
-| 附件正文 | 按用户预览或下载操作请求；用户可另存到所选位置 |
+| 附件正文 | 按用户预览或下载操作请求；预览图片时将副本写入平台 CacheDirectory 的 `attachment-previews` 并交给系统默认程序，下次预览时尽力清理超过七天的副本；用户可另存到所选位置 |
 | 主题、语言和关闭偏好 | Windows 通常为 `%LOCALAPPDATA%/Asgard/Brigitte/` 下的 JSON 文件 |
 | WebView 数据 | 平台应用数据目录中的 WebView 缓存；Windows 使用 `WebView2` 子目录 |
 | 邀请令牌、邀请密码、一次性 MCP Key | 按操作短暂保留在内存中，不进入工作区同步投影 |

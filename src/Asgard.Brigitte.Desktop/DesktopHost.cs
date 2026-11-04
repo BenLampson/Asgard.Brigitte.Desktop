@@ -168,6 +168,10 @@ public sealed partial class DesktopHost : IClientHost
     }
     /// <summary>保存通过原生平台的另存为对话框完成。</summary>
     public Task<bool> SaveAsync(string fileName, byte[] bytes) => SavePlatformAsync(Path.GetFileName(fileName), bytes);
+    /// <summary>使用系统文件关联打开缓存中的图片副本。</summary>
+    public Task OpenAttachmentAsync(string fileName, string contentType, byte[] content) => AttachmentPreview.OpenAsync(
+        FileSystem.CacheDirectory, fileName, contentType, content,
+        path => MainThread.InvokeOnMainThreadAsync(() => OpenAttachmentPlatformAsync(path)));
     /// <summary>只允许外部系统浏览器打开 HTTP(S)。</summary>
     public async Task OpenExternalAsync(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http") await Launcher.Default.OpenAsync(uri); }
     private void SessionChanged() => MainThread.BeginInvokeOnMainThread(() =>
@@ -175,7 +179,7 @@ public sealed partial class DesktopHost : IClientHost
         if (!_session.HasWorkspace)
         {
             ClearNotifications();
-            _workspace.Clear(); ImagePreviewStore.Clear(); KeyResultStore.Clear(); RequestedProjectId = null;
+            _workspace.Clear(); KeyResultStore.Clear(); RequestedProjectId = null;
             foreach (var pair in _windows.Where(p => p.Key.Kind is not (DesktopViewKind.Main or DesktopViewKind.Settings or DesktopViewKind.About or DesktopViewKind.Privacy)).ToArray()) Application.Current!.CloseWindow(pair.Value);
             if (_main is not null) Show(_main, true);
         }
@@ -217,6 +221,7 @@ public sealed partial class DesktopHost : IClientHost
     private partial IPlatformTray CreateTray();
     private partial void AttachPlatformWindow(Window window, DesktopViewKind kind, Window? owner);
     private partial Task<bool> SavePlatformAsync(string fileName, byte[] bytes);
+    private partial Task<bool> OpenAttachmentPlatformAsync(string path);
     private partial void ApplyPlatformTheme();
     private partial void PositionPopup(Window window, double x, double y);
 }

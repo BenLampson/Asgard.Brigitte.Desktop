@@ -32,6 +32,7 @@ public sealed class SettingsHost(NotificationPreferenceStore preferences) : ICli
     public Task<bool> ConfirmAsync(string title, string message) => Task.FromResult(false);
     public Task<IReadOnlyList<PickedFile>> PickFilesAsync() => Task.FromResult<IReadOnlyList<PickedFile>>([]);
     public Task<bool> SaveAsync(string name, byte[] bytes) => Task.FromResult(false);
+    public Task OpenAttachmentAsync(string name, string contentType, byte[] content) => throw new InvalidOperationException("Preview cannot open attachments");
     public Task OpenExternalAsync(string url) => throw new InvalidOperationException("Preview cannot open external links");
     public void Quit() { }
     public Task<string?> ReadAsync() => throw new InvalidOperationException("Preview cannot read credentials");

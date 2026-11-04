@@ -73,6 +73,8 @@ public interface IClientHost
     Task<IReadOnlyList<PickedFile>> PickFilesAsync();
     /// <summary>将用户选择的附件保存到指定位置。</summary>
     Task<bool> SaveAsync(string fileName, byte[] content);
+    /// <summary>交给系统默认程序打开图片附件。</summary>
+    Task OpenAttachmentAsync(string fileName, string contentType, byte[] content);
     /// <summary>在系统浏览器打开明确的外链。</summary>
     Task OpenExternalAsync(string url);
     /// <summary>退出整个客户端。</summary>

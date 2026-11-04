@@ -26,7 +26,7 @@ case "附件":
 <div class="heading"><h3>@ClientText.T("附件 · {0}", _detail.Attachments.Length)</h3><div class="spacer"></div><button disabled="@(!CanWrite || _busy)" @onclick="Upload">@ClientText.T("添加附件")</button></div>
 @foreach(var file in _detail.Attachments) {
 <article class="attachment"><div><strong class="ellipsis" title="@file.FileName">@file.FileName</strong><small>@file.ContentType · @((file.SizeBytes/1024d).ToString("0.0")) KB</small></div><div class="spacer"></div>
-@if(file.ContentType.StartsWith("image/") && IsSafeImage(file.ContentType)) { <button @onclick="() => Preview(file)">@ClientText.T("预览")</button> }
+@if(AttachmentPreview.CanPreview(file.ContentType)) { <button @onclick="() => Preview(file)">@ClientText.T("预览")</button> }
 <button @onclick="() => Download(file)">@ClientText.T("下载")</button><button class="danger" disabled="@(!CanWrite || _busy)" @onclick="() => DeleteAttachment(file)">@ClientText.T("删除")</button></article> } break;
 }
 </section>
@@ -76,7 +76,6 @@ else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <butto
     private Task Upload() => Execute(async()=> { foreach(var f in await Host.PickFilesAsync()) await Api.UploadAsync(View.Id!,f.FileName,f.ContentType,f.Bytes,Worker); });
     private async Task DeleteAttachment(BugAttachment file) { if(await Host.ConfirmAsync(ClientText.T("确认删除附件？"),file.FileName)) await Execute(async()=>await Api.DeleteAttachmentAsync(View.Id!,file.Id,Worker)); }
     private async Task Download(BugAttachment file) { try { var downloaded=await Api.DownloadAsync(View.Id!,file.Id); await Host.SaveAsync(downloaded.FileName,Convert.FromBase64String(downloaded.Base64Content)); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
-    private static bool IsSafeImage(string type) => type is "image/png" or "image/jpeg" or "image/gif" or "image/webp";
-    private async Task Preview(BugAttachment file) { try { var downloaded=await Api.DownloadAsync(View.Id!,file.Id); ImagePreviewStore.Put(downloaded); await Host.OpenAsync(new(DesktopViewKind.Image,file.Id), View); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
+    private async Task Preview(BugAttachment file) { try { _error=""; var downloaded=await Api.DownloadAsync(View.Id!,file.Id); await Host.OpenAttachmentAsync(downloaded.FileName,downloaded.ContentType,Convert.FromBase64String(downloaded.Base64Content)); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
     public void Dispose() { Host.Changed-=Changed; }
 }

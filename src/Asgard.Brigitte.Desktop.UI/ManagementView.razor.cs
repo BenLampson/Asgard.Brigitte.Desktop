@@ -13,12 +13,10 @@ public partial class ManagementView
     private List<McpKey> _keys = [];
     private List<Bug> _projectBugs = [];
     private CreatedMcpKey? _result;
-    private BugAttachment? _image;
     private string _error = "", _keyName = "", _setupPrompt = "";
     private bool _busy;
     private int _page = 1;
-    private string Title => View.Kind switch { DesktopViewKind.Projects => ClientText.T("我的项目"), DesktopViewKind.Project => ClientText.T("项目详情"), DesktopViewKind.ProjectEdit => ClientText.T("编辑项目"), DesktopViewKind.ProjectCreate => ClientText.T("创建项目"), DesktopViewKind.Keys => "MCP Key", DesktopViewKind.KeyCreate => ClientText.T("创建 MCP Key"), DesktopViewKind.KeyResult => ClientText.T("保存 MCP Key"), DesktopViewKind.Users => ClientText.T("用户目录"), _ => ClientText.T("附件预览") };
-    private string ImageSource => _image is null ? "" : "data:" + _image.ContentType + ";base64," + _image.Base64Content;
+    private string Title => View.Kind switch { DesktopViewKind.Projects => ClientText.T("我的项目"), DesktopViewKind.Project => ClientText.T("项目详情"), DesktopViewKind.ProjectEdit => ClientText.T("编辑项目"), DesktopViewKind.ProjectCreate => ClientText.T("创建项目"), DesktopViewKind.Keys => "MCP Key", DesktopViewKind.KeyCreate => ClientText.T("创建 MCP Key"), DesktopViewKind.KeyResult => ClientText.T("保存 MCP Key"), DesktopViewKind.Users => ClientText.T("用户目录"), _ => "" };
     /// <summary>项目负责人和租户管理员可编辑；成员仅有协作访问权。</summary>
     private bool CanManage(Project? project) => project is not null
         && (Workspace.Access.IsTenantAdmin || project.OwnerId == Workspace.Access.UserId);
@@ -26,7 +24,6 @@ public partial class ManagementView
     protected override async Task OnInitializedAsync()
     {
         if (View.Kind == DesktopViewKind.KeyResult) { _result = KeyResultStore.Take(View.Id ?? ""); if (_result is not null) await BuildSetupPrompt(); return; }
-        if (View.Kind == DesktopViewKind.Image) { _image = ImagePreviewStore.Take(View.Id ?? ""); return; }
         await Load();
         if (View.Kind is DesktopViewKind.Projects or DesktopViewKind.Project or DesktopViewKind.Keys or DesktopViewKind.Users) Host.Changed += Changed;
     }
@@ -83,6 +80,6 @@ public partial class ManagementView
         // 模板暂未同步时仍给出真实连接步骤，不冒充已获取服务端操作指南。
         if (string.IsNullOrWhiteSpace(_setupPrompt)) _setupPrompt = ClientText.T("请帮我把 Brigitte MCP 接入当前使用的 MCP Client。\n\n服务地址：") + endpoint + "\nAPI Key：" + _result!.PlainKey + ClientText.T("\n\n配置示例：\n") + System.Text.Json.JsonSerializer.Serialize(new { mcpServers = new { brigitte = new { url = endpoint, headers = new Dictionary<string, string> { ["X-Api-Key"] = _result.PlainKey } } } }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + ClientText.T("\n请完成配置后验证工具能够正常列出，不要在日志、代码仓库或聊天中泄露这个 Key。") + "\n" + ClientText.T("服务端模板暂未同步，此处仅是连接配置。重新连接后读取 MCP 初始化 instructions 和工具参数 schema；若看不到 Brigitte 工具就停止并报告。领取和续锁均调用 bug_claim，复用同一 workerId；必须确认领取成功才写入。超时先读取核查，不盲目重放。完整流程以服务端最新说明为准，不猜工具名称或参数。");
     }
-    /// <summary>关闭后不保留密钥或预览图片。</summary>
-    public void Dispose() { Host.Changed -= Changed; _result = null; _setupPrompt = ""; _image = null; }
+    /// <summary>关闭后不保留密钥。</summary>
+    public void Dispose() { Host.Changed -= Changed; _result = null; _setupPrompt = ""; }
 }

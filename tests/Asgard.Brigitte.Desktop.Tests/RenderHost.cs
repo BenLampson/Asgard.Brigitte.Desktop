@@ -30,17 +30,23 @@ internal sealed class RenderHost(string theme) : IClientHost
     public int ConfirmationCount { get; private set; }
     public int SaveCount { get; private set; }
     public byte[]? SavedContent { get; private set; }
+    public string? OpenedAttachmentName { get; private set; }
+    public string? OpenedAttachmentType { get; private set; }
+    public byte[]? OpenedAttachmentContent { get; private set; }
+    public Exception? AttachmentOpenError { get; set; }
+    public int OpenedWindowCount { get; private set; }
     public event Action? Changed { add { } remove { } }
     public event Action? StatusChanged;
     public void PublishStatus() => StatusChanged?.Invoke();
     public void SetTheme(string theme) { }
-    public Task OpenAsync(DesktopView view) => Task.CompletedTask;
+    public Task OpenAsync(DesktopView view) { OpenedWindowCount++; return Task.CompletedTask; }
     public void Close(DesktopView view) { }
     public void PublishChange() { }
     public Task CopyAsync(string value) => Task.CompletedTask;
     public Task<bool> ConfirmAsync(string title, string message) { ConfirmationCount++; return Task.FromResult(ConfirmResult); }
     public Task<IReadOnlyList<PickedFile>> PickFilesAsync() => Task.FromResult<IReadOnlyList<PickedFile>>([]);
     public Task<bool> SaveAsync(string name, byte[] bytes) { SaveCount++; SavedContent = bytes; return Task.FromResult(SaveResult); }
+    public Task OpenAttachmentAsync(string name, string contentType, byte[] content) { if (AttachmentOpenError is not null) throw AttachmentOpenError; OpenedAttachmentName = name; OpenedAttachmentType = contentType; OpenedAttachmentContent = content; return Task.CompletedTask; }
     public Task OpenExternalAsync(string url) => Task.CompletedTask;
     public void Quit() { }
 }

@@ -1219,13 +1219,6 @@ fieldset {
   background: var(--subtle);
   padding: 14px;
 }
-.attachment-preview {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  margin: auto;
-  display: block;
-}
 .tray-client {
   border-radius: 8px;
   overflow: hidden;

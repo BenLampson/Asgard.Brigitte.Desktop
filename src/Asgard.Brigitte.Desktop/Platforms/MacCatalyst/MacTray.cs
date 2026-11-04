@@ -12,6 +12,7 @@ internal sealed class MacTray : IPlatformTray
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]private delegate void AttachWindow([MarshalAs(UnmanagedType.LPUTF8Str)]string title,int main);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]private delegate void Stop();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]private delegate int SaveFile([MarshalAs(UnmanagedType.LPUTF8Str)]string name,byte[] bytes,nuint size);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]private delegate int OpenDefaultFile([MarshalAs(UnmanagedType.LPUTF8Str)]string path);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]private delegate int ChooseClose(int canUseTray);
     private static nint _library;
     private readonly DesktopHost _host;
@@ -53,6 +54,8 @@ internal sealed class MacTray : IPlatformTray
     public void Show(Window window,bool visible){if(IsAvailable)Function<ShowWindow>("BrigitteTrayShowWindow")(window.Title,visible?1:0);else if(visible)Application.Current!.ActivateWindow(window);}
     internal static void Attach(string title,bool main){if(_library!=0)Function<AttachWindow>("BrigitteTrayAttachWindow")(title,main?1:0);}
     internal static bool Save(string name,byte[] bytes){if(_library==0)throw new InvalidOperationException(ClientText.T("macOS 文件保存扩展未加载。"));return Function<SaveFile>("BrigitteTraySaveFile")(name,bytes,(nuint)bytes.Length)==1;}
+    /// <summary>直接由 macOS 默认程序打开附件副本。</summary>
+    internal static bool OpenFile(string path){if(_library==0)return false;return Function<OpenDefaultFile>("BrigitteTrayOpenFile")(path)==1;}
     /// <summary>最低两位为动作，第三位为记住选择，取消永不写入偏好。</summary>
     internal static (string Action,bool Remember) PromptClose(bool canUseTray)
     {

@@ -140,4 +140,6 @@ public sealed partial class DesktopHost
         await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);
         return true;
     }
+    /// <summary>使用 Windows 的默认文件关联，不显示自定义预览窗口。</summary>
+    private partial Task<bool> OpenAttachmentPlatformAsync(string path) => Launcher.Default.OpenAsync(new OpenFileRequest { File = new ReadOnlyFile(path) });
 }

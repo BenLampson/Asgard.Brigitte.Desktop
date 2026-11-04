@@ -82,6 +82,11 @@ __attribute__((visibility("default"))) int BrigitteTraySaveFile(const char *name
     if([panel runModal]!=NSModalResponseOK)return 0;
     NSData *data=[NSData dataWithBytes:bytes length:count];return [data writeToURL:panel.URL options:NSDataWritingAtomic error:nil] ? 1 : 0;
 }
+// 交给系统配置的默认应用，而不是展示 Catalyst 的“打开方式”菜单。
+__attribute__((visibility("default"))) int BrigitteTrayOpenFile(const char *path) {
+    NSString *file=[NSString stringWithUTF8String:path];
+    return [NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:file]] ? 1 : 0;
+}
 // 与 Windows 共用关闭策略，原生对话框仅返回选择和“不再提示”标志。
 __attribute__((visibility("default"))) int BrigitteTrayChooseClose(int canUseTray) {
     NSAlert *alert=[NSAlert new];alert.messageText=BrigitteLabel(@"closeTitle",@"Close Asgard Brigitte");
