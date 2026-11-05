@@ -123,6 +123,8 @@ public sealed class WindowRenderTests
         Assert.Contains("aria-label=\"" + withAttachments + "\"", html);
         Assert.Contains("aria-label=\"" + withoutAttachments + "\"", html);
         Assert.DoesNotContain("owner-group", html);
+        foreach (var priority in new[] { "low", "medium", "high", "critical" })
+            Assert.Contains("class=\"card-priority " + priority + "\" role=\"img\"", html);
         foreach (var priority in language == "en" ? new[] { "High", "Medium", "Low", "Critical" } : new[] { "高", "中", "低", "紧急" })
             Assert.Contains("aria-label=\"" + (language == "en" ? "Priority: " : "优先级：") + priority + "\"", html);
     }
