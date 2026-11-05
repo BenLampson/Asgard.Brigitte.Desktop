@@ -11,6 +11,9 @@ public sealed class LocalWorkspaceReader(LocalWorkspaceDatabase database, Standa
     public List<Bug> Bugs(string? project = null) => Read<Bug>("bug").Where(x => project is null || x.ProjectId == project)
         .Select(x => { x.Status = BugDisplay.CurrentStatus(x.Status); return x; })
         .OrderByDescending(x => x.CreateTime).ThenByDescending(x => x.Id).ToList();
+    /// <summary>一次读取附件元数据并按 BUG 统计，不加载附件正文。</summary>
+    public Dictionary<string, int> AttachmentCounts() => Read<BugAttachment>("attachment")
+        .GroupBy(x => x.BugId, StringComparer.Ordinal).ToDictionary(x => x.Key, x => x.Count(), StringComparer.Ordinal);
     public BugDetail Detail(string id) => new()
     {
         Bug = Bugs().FirstOrDefault(x => x.Id == id) ?? throw new InvalidOperationException(ClientText.T("此 BUG 已删除或已无访问权限。")),

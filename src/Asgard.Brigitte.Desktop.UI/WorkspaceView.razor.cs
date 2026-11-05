@@ -11,6 +11,7 @@ public partial class WorkspaceView
     /// <summary>可信的站点外链配置。</summary>
     [Inject] public IOptions<ClientOptions> Options { get; set; } = null!;
     private List<Bug> _bugs = [];
+    private Dictionary<string, int> _attachmentCounts = new(StringComparer.Ordinal);
     private Dictionary<string, List<PromptAction>> _actions = [];
     private string _projectSearch = "", _selected = "", _keyword = "", _priority = "", _assignee = "", _source = "", _error = "", _toast = "", _lastRefresh = "—";
     /// <summary>本机项目泳道偏好，不写入服务端。</summary>
@@ -80,6 +81,7 @@ public partial class WorkspaceView
             var selected = !string.IsNullOrEmpty(requested) && Workspace.Projects.Any(p => p.Id == requested) ? requested : _selected;
             if (!Workspace.Projects.Any(p => p.Id == selected)) selected = Workspace.Projects.FirstOrDefault()?.Id ?? "";
             var bugs = selected == "" ? [] : await Api.BugsAsync(selected);
+            var attachmentCounts = selected == "" ? new Dictionary<string, int>(StringComparer.Ordinal) : await Api.AttachmentCountsAsync();
             var actions = new Dictionary<string, List<PromptAction>>();
             foreach (var status in bugs.Select(b => b.Status).Distinct()) actions[status] = await Api.ActionsAsync(status);
             if (version != _loadVersion) return;
@@ -87,7 +89,7 @@ public partial class WorkspaceView
             if (_selected != selected) { _page = 1; _selectedBugIds.Clear(); _pendingMove = null; _moveError = ""; }
             _selected = selected;
             _laneOrder = BoardPreferences.Get(BoardAccount, selected);
-            _bugs = bugs; _actions = actions; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
+            _bugs = bugs; _attachmentCounts = attachmentCounts; _actions = actions; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
             _selectedBugIds.IntersectWith(bugs.Where(b => b.Status == "closed" && !BugDisplay.HasLock(b)).Select(b => b.Id));
             _page = Math.Clamp(_page, 1, Math.Max(1, (int)Math.Ceiling((double)Displayed.Count / _size)));
         }

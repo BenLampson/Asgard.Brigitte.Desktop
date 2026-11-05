@@ -11,6 +11,21 @@ namespace Asgard.Brigitte.Desktop.Tests;
 /// <summary>使用专用临时 SQLite 验证本机完整业务、重启持久化及在线隔离。</summary>
 public sealed class StandaloneWorkspaceTests
 {
+    /// <summary>本机附件新增和删除后，卡片统计读取当前元数据。</summary>
+    [Fact]
+    public async Task Local_attachment_counts_follow_additions_and_deletions()
+    {
+        using var local = new StandaloneTestWorkspace();
+        await local.EnterAsync();
+        var project = await local.ProjectAsync();
+        var bug = await local.Api.CreateBugAsync(new BugInput { ProjectId = project.Id, Title = "附件测试", Priority = "medium" });
+        Assert.Equal(0, (await local.Api.AttachmentCountsAsync()).GetValueOrDefault(bug.Id));
+        var first = await local.Api.UploadAsync(bug.Id, "one.txt", "text/plain", [1], null);
+        await local.Api.UploadAsync(bug.Id, "two.txt", "text/plain", [2], null);
+        Assert.Equal(2, (await local.Api.AttachmentCountsAsync())[bug.Id]);
+        await local.Api.DeleteAttachmentAsync(bug.Id, first.Id, null);
+        Assert.Equal(1, (await local.Api.AttachmentCountsAsync())[bug.Id]);
+    }
     /// <summary>注册本机能力后，在线命令仍走原 HTTP 和同步屏障，不写入本机事实库。</summary>
     [Fact]
     public async Task Online_commands_keep_existing_transport_and_barrier_with_local_store_registered()

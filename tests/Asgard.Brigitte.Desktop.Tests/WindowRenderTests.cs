@@ -108,18 +108,23 @@ public sealed class WindowRenderTests
         var decoded = System.Net.WebUtility.HtmlDecode(html);
         for (var i = 1; i < 18; i++) Assert.Contains("状态更新后卡片及时显示 · " + i + "\"", decoded);
         Assert.Contains(ClientText.T("{0} 条 BUG · {1} 个状态", 18, 16), decoded);
-        Assert.Contains("raw-owner-id-very-long", html); Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
+        if (list) Assert.Contains("raw-owner-id-very-long", html);
+        Assert.Contains("测试用户", decoded); Assert.DoesNotContain("AI-Worker-7", html); Assert.DoesNotContain("还有 3 条", html);
         await ExportPreview(list ? "list-" + theme : theme, html);
     }
-    /// <summary>未指派负责人时，中英文卡片都将标签和值放在一起。</summary>
+    /// <summary>卡片显示本地附件数量，且不再显示负责人。</summary>
     [Theory]
-    [InlineData("zh-CN", "负责人：无")]
-    [InlineData("en", "Assignee: None")]
-    public async Task Unassigned_card_shows_a_localized_adjacent_owner(string language, string expected)
+    [InlineData("zh-CN", "附件 · 2", "附件 · 0")]
+    [InlineData("en", "Attachments · 2", "Attachments · 0")]
+    public async Task Card_shows_localized_attachment_counts_without_assignee(string language, string withAttachments, string withoutAttachments)
     {
         using var scope = ClientText.UseLanguage(language);
         var html = System.Net.WebUtility.HtmlDecode(await Render("dark", DesktopViewKind.Main));
-        Assert.Contains("title=\"" + expected + "\"", html);
+        Assert.Contains("aria-label=\"" + withAttachments + "\"", html);
+        Assert.Contains("aria-label=\"" + withoutAttachments + "\"", html);
+        Assert.DoesNotContain("owner-group", html);
+        foreach (var priority in language == "en" ? new[] { "High", "Medium", "Low", "Critical" } : new[] { "高", "中", "低", "紧急" })
+            Assert.Contains("aria-label=\"" + (language == "en" ? "Priority: " : "优先级：") + priority + "\"", html);
     }
     [Fact]
     public async Task Management_view_displays_the_closed_bug_and_export_actions()
@@ -175,11 +180,13 @@ public sealed class WindowRenderTests
         var rows = new List<SyncRow>();
         foreach (var (path, kindName) in new[] { ("projects", "project"), ("bugs", "bug"), ("identity/users", "user") })
         {
-            using var response = Response(new Uri("https://local.test/api/brigitte/" + path));
+            using var response = Response(new Uri("https://local.test/api/brigitte/" + path), kind);
             using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             foreach (var item in payload.RootElement.GetProperty("data").EnumerateArray()) rows.Add(SyncProtocol.Row(kindName, item.GetProperty("id").GetString()!, item));
         }
         rows.Add(SyncProtocol.Row("access", "current", new CurrentAccess { IsTenantAdmin = true }));
+        rows.Add(SyncProtocol.Row("attachment", "a1", new BugAttachment { Id = "a1", BugId = "bug" }));
+        rows.Add(SyncProtocol.Row("attachment", "a2", new BugAttachment { Id = "a2", BugId = "bug" }));
         rows.Add(SyncProtocol.Row("prompt", "fix", new LocalPromptTemplate { Key = "fix", ActionLabel = "复制修复", Category = "bug", Enabled = true, ApplicableStatuses = ["processing"], PrimaryStatuses = ["processing"] }));
         if (kind == DesktopViewKind.Tray)
             foreach (var name in new[] { "客服系统", "我的项目", "CAD", "SCM 供应链" })
@@ -200,13 +207,14 @@ public sealed class WindowRenderTests
             var view = await renderer.RenderComponentAsync<AppView>(ParameterView.FromDictionary(new Dictionary<string, object?> { { nameof(AppView.View), new DesktopView(kind, "bug", "project") } })); return view.ToHtmlString();
         });
     }
-    private static HttpResponseMessage Response(Uri uri)
+    private static HttpResponseMessage Response(Uri uri, DesktopViewKind kind)
     {
         object data; var paged = false; var total = 1; var path = uri.AbsolutePath;
         var project = new Project { Id = "project", Name = "Brigitte", Code = "brigitte", Status = "active", OwnerId = "owner", MemberUserIds = ["owner"] };
         var bugs = Enumerable.Range(0, 18).Select(i => new Bug { Id = i == 0 ? "bug" : "bug-" + i, ProjectId = "project", Title = i == 0 ? "刷新列表后筛选条件被重置" : "状态更新后卡片及时显示 · " + i, Description = "问题描述", Content = "## 复现步骤\n1. 打开看板\n2. 点击刷新", Status = "processing", Priority = "high", AssigneeId = "raw-owner-id-very-long", LockOwnerId = i == 0 ? "worker-7" : null, LockOwnerName = i == 0 ? "AI-Worker-7" : null, LockOwnerUserId = i == 0 ? "owner" : null, LockExpireTime = DateTimeOffset.UtcNow.AddHours(1), CreateTime = DateTimeOffset.UtcNow }).ToList();
         bugs[0].AffectedServices = ["frontend", "backend", "frontend-api"];
         bugs[1].AssigneeId = null;
+        if (kind == DesktopViewKind.Main) { bugs[1].Priority = "medium"; bugs[2].Priority = "low"; bugs[3].Priority = "critical"; }
         // 六条完成记录必须与处理中记录一起显示，覆盖之前缺失的四个最终状态。
         var completed = new[] { "fixed", "regressed", "closed", "wont_fix", "duplicate", "cannot_reproduce" };
         for (var i = 0; i < completed.Length; i++) bugs[12 + i].Status = completed[i];

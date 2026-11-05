@@ -7,6 +7,23 @@ namespace Asgard.Brigitte.Desktop.Tests;
 /// <summary>验证用户看到的数据只来自已提交的线上同步，覆盖中断、校验失败和账号切换。</summary>
 public sealed class WorkspaceSyncTests
 {
+    /// <summary>在线附件计数只反映已提交的同步投影。</summary>
+    [Fact]
+    public void Attachment_counts_follow_committed_online_metadata()
+    {
+        using var fixture = new SyncTestWorkspace();
+        var reader = new LocalWorkspaceReader(fixture.Database);
+        fixture.Replace(Bug("附件测试"));
+        Assert.Equal(0, reader.AttachmentCounts().GetValueOrDefault("b"));
+        var rows = new[] { Bug("附件测试"),
+            SyncProtocol.Row("attachment", "a1", new BugAttachment { Id = "a1", BugId = "b" }),
+            SyncProtocol.Row("attachment", "a2", new BugAttachment { Id = "a2", BugId = "b" }) };
+        var frame = fixture.Begin(rows);
+        fixture.Database.Apply(frame with { Phase = "rows", Rows = rows[1..] });
+        Assert.Equal(0, reader.AttachmentCounts().GetValueOrDefault("b"));
+        fixture.Database.Apply(frame with { Phase = "commit" });
+        Assert.Equal(2, reader.AttachmentCounts()["b"]);
+    }
     private static SyncRow Bug(string title) => SyncProtocol.Row("bug", "b", new Bug { Id = "b", ProjectId = "p", Title = title });
     /// <summary>托盘只统计未解决事项，已处理的高优先级 BUG 不再制造待办数量。</summary>
     [Fact]

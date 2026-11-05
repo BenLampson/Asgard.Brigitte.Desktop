@@ -670,12 +670,11 @@ summary::-webkit-details-marker {
   margin-top: auto;
   padding-top: 12px;
 }
-.owner-label {
-  color: var(--muted);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.owner-group { display:block; flex:1; min-width:0; }
+.attachment-count { display:inline-flex; align-items:center; gap:4px; flex:1; min-width:0; color:var(--muted); font-variant-numeric:tabular-nums; }
+.attachment-count svg { width:14px; height:14px; flex:none; }
+.card-priority { display:inline-flex; align-items:center; color:#299a68; }
+.dark .card-priority { color:#66c993; }
+.card-priority svg { width:18px; height:16px; }
 .card-bottom .priority {
   flex-shrink: 0;
 }

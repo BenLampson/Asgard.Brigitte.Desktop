@@ -74,6 +74,8 @@ public sealed partial class BrigitteApi(IHttpClientFactory factory, IClientSessi
     public Task<List<Project>> ProjectsAsync(CancellationToken token = default) => AllAsync<Project>("projects", token);
     /// <summary>项目中的完整 BUG 集合。</summary>
     public Task<List<Bug>> BugsAsync(string projectId, CancellationToken token = default) => AllAsync<Bug>("bugs?projectId=" + E(projectId), token);
+    /// <summary>从当前工作区的附件元数据获取各 BUG 附件数量。</summary>
+    public Task<Dictionary<string, int>> AttachmentCountsAsync() => Task.FromResult(local.AttachmentCounts());
     /// <summary>默认只读详情。</summary>
     public Task<BugDetail> DetailAsync(string id) => Task.FromResult(local.Detail(id));
     /// <summary>按服务器当前状态返回提示词动作。</summary>
