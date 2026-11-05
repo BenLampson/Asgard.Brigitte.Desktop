@@ -1,5 +1,11 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 5, 2026 — 1.0.20 submitted
+
+Version `1.0.20.0` updates BUG board cards with a paperclip attachment count, removes the assignee, and uses a green priority icon. Submission 20 (`1152921505702324284`) has been submitted and is in certification pre-processing. Publication is configured after certification; Store availability is not yet confirmed.
+
+The MSIX was built from commit `6ff877c292b52ce857044eaffddad0e09bc02aa6` with SHA-256 `79754930d5b7f2493cef12ae8f9a8673a6028dc104c2553aa2aa833de350595d`. All 303 local tests and the [Windows/Linux CI tests and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/42037083995) passed. Windows App Certification Kit and Store installation and upgrade were not tested. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.20) contains the portable ZIP, unsigned Store upload package, checksums and source manifest; the uploaded artifact digests match the local files. See the [release notes](../../docs/releases/v1.0.20.md).
+
 ## November 4, 2026 — 1.0.19 submitted
 
 Version `1.0.19.0` opens PNG, JPEG, GIF and WebP attachment previews in the system default application. Partner Center confirmed Submission 18 was published. The new x64 MSIX was accepted as **Validated** and submitted as Submission 19 (`1152921505702315739`). The status is **In certification / pre-processing**; publication is set to begin immediately after certification. This does not yet confirm that 1.0.19 is available to customers.
