@@ -61,7 +61,7 @@
                 _createdId=saved.Id; Host.PublishChange();
             }
             foreach(var f in _files.ToArray()) {
-                await Api.UploadAsync(_createdId,f.FileName,f.ContentType,f.Bytes,_input.WorkerId); _files.Remove(f);
+                await Api.UploadAsync(_createdId,f.FileName,f.ContentType,f.Bytes,_input.WorkerId); _files.Remove(f); Host.PublishChange();
             }
             Host.PublishChange(); Host.Close(View);
         } catch(Exception ex) { _error=(_createdId is null?"":ClientText.T("BUG 已保存，附件尚未全部上传。"))+AppView.SafeError(ex); } finally { _saving=false; }

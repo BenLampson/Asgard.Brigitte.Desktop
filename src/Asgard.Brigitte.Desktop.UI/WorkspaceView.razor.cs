@@ -11,6 +11,7 @@ public partial class WorkspaceView
     /// <summary>可信的站点外链配置。</summary>
     [Inject] public IOptions<ClientOptions> Options { get; set; } = null!;
     private List<Bug> _bugs = [];
+    private ProjectStorage? _storage;
     private Dictionary<string, int> _attachmentCounts = new(StringComparer.Ordinal);
     private Dictionary<string, List<PromptAction>> _actions = [];
     private string _projectSearch = "", _selected = "", _keyword = "", _priority = "", _assignee = "", _source = "", _error = "", _toast = "", _lastRefresh = "—";
@@ -82,6 +83,13 @@ public partial class WorkspaceView
             if (!Workspace.Projects.Any(p => p.Id == selected)) selected = Workspace.Projects.FirstOrDefault()?.Id ?? "";
             var bugs = selected == "" ? [] : await Api.BugsAsync(selected);
             var attachmentCounts = selected == "" ? new Dictionary<string, int>(StringComparer.Ordinal) : await Api.AttachmentCountsAsync();
+            ProjectStorage? storage = null;
+            if (!Api.IsLocal && selected != "")
+            {
+                // 用量读取失败不影响看板，且不能沿用旧项目的额度。
+                try { storage = await Api.ProjectStorageAsync(selected); }
+                catch (Exception) { storage = null; }
+            }
             var actions = new Dictionary<string, List<PromptAction>>();
             foreach (var status in bugs.Select(b => b.Status).Distinct()) actions[status] = await Api.ActionsAsync(status);
             if (version != _loadVersion) return;
@@ -89,7 +97,7 @@ public partial class WorkspaceView
             if (_selected != selected) { _page = 1; _selectedBugIds.Clear(); _pendingMove = null; _moveError = ""; }
             _selected = selected;
             _laneOrder = BoardPreferences.Get(BoardAccount, selected);
-            _bugs = bugs; _attachmentCounts = attachmentCounts; _actions = actions; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
+            _bugs = bugs; _attachmentCounts = attachmentCounts; _actions = actions; _storage = storage; _lastRefresh = DateTimeOffset.UtcNow.ToLocalTime().ToString("HH:mm");
             _selectedBugIds.IntersectWith(bugs.Where(b => b.Status == "closed" && !BugDisplay.HasLock(b)).Select(b => b.Id));
             _page = Math.Clamp(_page, 1, Math.Max(1, (int)Math.Ceiling((double)Displayed.Count / _size)));
         }
@@ -97,6 +105,8 @@ public partial class WorkspaceView
         finally { if (version == _loadVersion) { _busy = false; StateHasChanged(); } }
     }
     private Task SelectProject(string id) => Host.OpenAsync(new(DesktopViewKind.Main, ProjectId: id), View);
+    private static string FormatBytes(long bytes) => bytes >= 1073741824
+        ? $"{bytes / 1073741824d:0.##} GB" : $"{bytes / 1048576d:0.##} MB";
     private Task OpenBug(Bug bug) => Host.OpenAsync(new(DesktopViewKind.Detail, bug.Id, bug.ProjectId), View);
     private Task OpenProject() => Project is null ? Task.CompletedTask : Host.OpenAsync(new(DesktopViewKind.Project, Project.Id, Project.Id), View);
     private void ResetPage() => _page = 1;
