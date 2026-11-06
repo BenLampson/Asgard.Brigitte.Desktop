@@ -5,6 +5,18 @@ namespace Asgard.Brigitte.Desktop.Tests;
 /// <summary>认证失效、并发响应和分页是桌面客户端的主要接口边界。</summary>
 public sealed class ApiSessionTests
 {
+    [Theory]
+    [InlineData("\"123\"", "\"104857600\"")]
+    [InlineData("123", "104857600")]
+    public async Task Team_storage_accepts_string_and_number_fields(string used, string quota)
+    {
+        using var transport = new TestTransport(_ => Task.FromResult(TestTransport.Json($"{{\"code\":200,\"data\":{{\"usedBytes\":{used},\"quotaBytes\":{quota},\"planName\":\"Free\"}}}}")));
+        var storage = await TestWorkspaceSync.Api(transport, new TestSession()).ProjectStorageAsync("project-1");
+        Assert.Equal(123, storage.UsedBytes);
+        Assert.Equal(104857600, storage.QuotaBytes);
+        Assert.Equal("Free", storage.PlanName);
+        Assert.Equal(1, transport.Count);
+    }
     [Fact]
     public async Task Unauthenticated_does_not_send_business_request()
     {

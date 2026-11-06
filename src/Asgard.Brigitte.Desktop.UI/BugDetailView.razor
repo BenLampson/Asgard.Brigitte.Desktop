@@ -73,8 +73,8 @@ else if(BugDisplay.OwnsLock(bug,Host.WorkerId,Workspace.Access.UserId)) { <butto
             await Copy(await Api.PromptAsync(action.Key,new(){["bugId"]=bug.Id,["bugTitle"]=bug.Title,["projectId"]=bug.ProjectId,["projectName"]=p?.Name,["projectCode"]=p?.Code,["mcpEndpoint"]=Options.Value.ApiBaseUrl.TrimEnd('/')+"/api/mcp"}));
         } catch(Exception ex) { _error=AppView.SafeError(ex); }
     }
-    private Task Upload() => Execute(async()=> { foreach(var f in await Host.PickFilesAsync()) await Api.UploadAsync(View.Id!,f.FileName,f.ContentType,f.Bytes,Worker); });
-    private async Task DeleteAttachment(BugAttachment file) { if(await Host.ConfirmAsync(ClientText.T("确认删除附件？"),file.FileName)) await Execute(async()=>await Api.DeleteAttachmentAsync(View.Id!,file.Id,Worker)); }
+    private Task Upload() => Execute(async()=> { foreach(var f in await Host.PickFilesAsync()) { await Api.UploadAsync(View.Id!,f.FileName,f.ContentType,f.Bytes,Worker); Host.PublishChange(); } });
+    private async Task DeleteAttachment(BugAttachment file) { var message=file.FileName+"\n\n"+ClientText.T(Api.IsLocal ? "附件将被永久删除，无法恢复。" : "附件将被永久删除，无法恢复；删除后会释放项目空间额度。"); if(await Host.ConfirmAsync(ClientText.T("确认删除附件？"),message)) await Execute(async()=>await Api.DeleteAttachmentAsync(View.Id!,file.Id,Worker)); }
     private async Task Download(BugAttachment file) { try { var downloaded=await Api.DownloadAsync(View.Id!,file.Id); await Host.SaveAsync(downloaded.FileName,Convert.FromBase64String(downloaded.Base64Content)); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
     private async Task Preview(BugAttachment file) { try { _error=""; var downloaded=await Api.DownloadAsync(View.Id!,file.Id); await Host.OpenAttachmentAsync(downloaded.FileName,downloaded.ContentType,Convert.FromBase64String(downloaded.Base64Content)); } catch(Exception ex) { _error=AppView.SafeError(ex); } }
     public void Dispose() { Host.Changed-=Changed; }

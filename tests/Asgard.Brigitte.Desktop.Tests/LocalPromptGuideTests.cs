@@ -20,6 +20,21 @@ public sealed class LocalPromptGuideTests
             Assert.Contains("AI 自测不能代表人工通过", prompt);
             Assert.Contains(bug.Id, prompt);
         }
+        var localBatch = await local.Api.PromptAsync("projectBatchFixPrompt", new() { ["projectId"] = project.Id });
+        Assert.Contains("不中途向用户提问或等待回复", localBatch);
+        Assert.Contains("继续处理其他 BUG", localBatch);
+        Assert.Contains("信息不足建议 need_info", localBatch);
+        Assert.Contains("阻塞建议 blocked", localBatch);
+        Assert.DoesNotContain("向用户索取", localBatch);
+
+        using (ClientText.UseLanguage("en"))
+        {
+            var englishBatch = await local.Api.PromptAsync("projectBatchFixPrompt", new() { ["projectId"] = project.Id });
+            Assert.Contains("do not pause to ask the user", englishBatch);
+            Assert.Contains("recommend need_info", englishBatch);
+            Assert.Contains("blocked", englishBatch);
+        }
+
         await local.Api.StatusAsync(bug.Id, "pending_deployment", "修复已验证", null);
         var batch = await local.Api.PromptAsync("projectBatchFixPrompt", new() { ["projectId"] = project.Id });
         Assert.DoesNotContain(bug.Id, batch);
