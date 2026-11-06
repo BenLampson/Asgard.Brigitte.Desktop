@@ -18,8 +18,8 @@ public partial class ManagementView
     private int _page = 1;
     private string Title => View.Kind switch { DesktopViewKind.Projects => ClientText.T("我的项目"), DesktopViewKind.Project => ClientText.T("项目详情"), DesktopViewKind.ProjectEdit => ClientText.T("编辑项目"), DesktopViewKind.ProjectCreate => ClientText.T("创建项目"), DesktopViewKind.Keys => "MCP Key", DesktopViewKind.KeyCreate => ClientText.T("创建 MCP Key"), DesktopViewKind.KeyResult => ClientText.T("保存 MCP Key"), DesktopViewKind.Users => ClientText.T("用户目录"), _ => "" };
     /// <summary>项目负责人和租户管理员可编辑；成员仅有协作访问权。</summary>
-    private bool CanManage(Project? project) => project is not null
-        && (Workspace.Access.IsTenantAdmin || project.OwnerId == Workspace.Access.UserId);
+    private bool CanManage(Project? project) => ProjectAccess.CanManage(project, Workspace.Access);
+    private bool CanCreateProject => ProjectAccess.CanCreate(Api.IsLocal, Workspace.Access);
     /// <summary>一次性结果不随刷新重复消费。</summary>
     protected override async Task OnInitializedAsync()
     {
@@ -51,6 +51,8 @@ public partial class ManagementView
     private async Task Run(Func<Task> action) { _busy = true; _error = ""; try { await action(); } catch (Exception ex) { _error = AppView.SafeError(ex); } finally { _busy = false; } }
     private Task SaveProject() => Run(async () =>
     {
+        if (View.Kind == DesktopViewKind.ProjectCreate && !CanCreateProject)
+            throw new InvalidOperationException(ClientText.T("仅租户管理员可以创建在线项目。"));
         if (View.Kind != DesktopViewKind.ProjectCreate && !CanManage(_project)) throw new InvalidOperationException(ClientText.T("没有项目管理权限。"));
         if (string.IsNullOrWhiteSpace(_input.Name)) throw new InvalidOperationException(ClientText.T("请填写项目名称。"));
         _input.MemberUserIds = _members.ToArray();

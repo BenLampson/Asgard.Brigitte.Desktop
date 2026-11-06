@@ -175,7 +175,7 @@ public sealed class WindowRenderTests
         var output = Path.Combine(root, "tests/Asgard.Brigitte.Desktop.Tests/obj/ui-validation"); Directory.CreateDirectory(output);
         await File.WriteAllTextAsync(Path.Combine(output, name + ".html"), "<!doctype html><html lang='" + ClientText.Language + "'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>" + css + "</style><body><div id='app'>" + html + "</div></body></html>", TestContext.Current.CancellationToken);
     }
-    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false, bool management = false, NotificationPreferenceStore? notifications = null, bool notificationComponent = false)
+    internal static async Task<string> Render(string theme, DesktopViewKind kind, bool failProjects = false, bool authenticated = true, bool list = false, bool management = false, NotificationPreferenceStore? notifications = null, bool notificationComponent = false, bool isTenantAdmin = true, string userId = "user", bool emptyProjects = false)
     {
         using var transport = new TestTransport(_ => throw new InvalidOperationException("渲染业务界面不得读取 REST"));
         using var local = new SyncTestWorkspace();
@@ -184,9 +184,10 @@ public sealed class WindowRenderTests
         {
             using var response = Response(new Uri("https://local.test/api/brigitte/" + path), kind);
             using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (emptyProjects && path == "projects") continue;
             foreach (var item in payload.RootElement.GetProperty("data").EnumerateArray()) rows.Add(SyncProtocol.Row(kindName, item.GetProperty("id").GetString()!, item));
         }
-        rows.Add(SyncProtocol.Row("access", "current", new CurrentAccess { IsTenantAdmin = true }));
+        rows.Add(SyncProtocol.Row("access", "current", new CurrentAccess { IsTenantAdmin = isTenantAdmin, UserId = userId }));
         rows.Add(SyncProtocol.Row("attachment", "a1", new BugAttachment { Id = "a1", BugId = "bug" }));
         rows.Add(SyncProtocol.Row("attachment", "a2", new BugAttachment { Id = "a2", BugId = "bug" }));
         rows.Add(SyncProtocol.Row("prompt", "fix", new LocalPromptTemplate { Key = "fix", ActionLabel = "复制修复", Category = "bug", Enabled = true, ApplicableStatuses = ["processing"], PrimaryStatuses = ["processing"] }));

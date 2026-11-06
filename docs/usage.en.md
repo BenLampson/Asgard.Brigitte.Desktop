@@ -14,7 +14,7 @@ The app automatically attempts to restore a saved online session at launch. When
 
 If sign-in reports a difference between your computer's clock and the sign-in service, enable automatic date and time in your system settings, synchronize the clock, and sign in again. Desktop checks the validity time of sign-in credentials, so it may fail even when web sign-in works. If the problem remains after synchronization, ask your service administrator to check the sign-in service's clock. When the service time cannot be measured, the app asks you to check your clock without claiming a specific difference.
 
-After sign-in, wait for workspace sync to finish. Create a project from the empty workspace or project management window, or use **Join with invitation** and paste the full link shared by its owner. Enter an invitation password if requested. Joining a project gives collaboration access according to server permissions; it does not make you an administrator.
+After sign-in, wait for workspace sync to finish. Tenant administrators create online projects, assign owners, and can add members directly. An owner can manage their own project, remove members, and invite people. To join, use **Join with invitation** and paste the full link, entering a password if requested, or contact a tenant administrator. Local projects can still be created without an online account.
 
 ## Work with bugs
 

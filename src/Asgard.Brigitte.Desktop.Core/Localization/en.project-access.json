@@ -1,0 +1,8 @@
+{
+  "仅租户管理员可以创建在线项目。": "Only tenant administrators can create online projects.",
+  "暂无项目": "No projects yet",
+  "请通过邀请链接加入项目，或联系租户管理员。": "Join a project with an invitation link, or contact a tenant administrator.",
+  "将在浏览器中安全登录，完成后自动返回。登录后可访问获授权项目或通过邀请加入。": "Sign in securely in your browser and return automatically. You can then access authorized projects or join with an invitation.",
+  "开放注册时，你在注册页提交的用户名、邮箱、显示名称及密码会经 Brigitte 服务发送给 Heimdall 创建账号；Brigitte 不保存注册密码。注册不代表已验证邮箱。在线项目由租户管理员创建，成员通过有效邀请或管理员分配加入。": "When registration is open, the username, email, display name, and password you submit are sent through Brigitte to Heimdall to create an account; Brigitte does not store your registration password. Registration does not verify your email. Tenant administrators create online projects, and members join through a valid invitation or administrator assignment.",
+  "租户管理员可管理所有项目和成员；项目负责人可管理所负责的项目，生成带可选密码的邀请链接并移除成员。邀请链接的随机凭据只在创建时展示；服务器保存凭据摘要和可选口令哈希。你提交的项目、BUG、回复、处理记录及附件会发送到 Brigitte 服务，并按项目权限与其他成员共享。": "Tenant administrators can manage all projects and members. Project owners can manage their own projects, create invitation links with optional passwords, and remove members. The random invitation credential is shown only when created; the server stores its digest and an optional password hash. Projects, bugs, replies, work records, and attachments you submit are sent to Brigitte and shared according to project permissions."
+}

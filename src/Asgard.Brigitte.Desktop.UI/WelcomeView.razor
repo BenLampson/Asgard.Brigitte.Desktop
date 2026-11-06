@@ -29,7 +29,7 @@
                     @if (Busy && !Restoring) { <span class="brand-spinner" aria-hidden="true"></span> }
                     <span>@(Busy && !Restoring ? ClientText.T("等待浏览器完成登录…") : RestorePending ? ClientText.T("重新登录") : ClientText.T("使用 Heimdall 登录"))</span><span aria-hidden="true">↗</span>
                 </button>
-                <p class="brand-login-help">@ClientText.T("将在浏览器中安全登录，完成后自动返回。登录后可创建项目或通过邀请加入。")</p>
+                <p class="brand-login-help">@ClientText.T("将在浏览器中安全登录，完成后自动返回。登录后可访问获授权项目或通过邀请加入。")</p>
                 <button class="brand-register" disabled="@Busy" @onclick="Register">@ClientText.T("没有账号？注册新账号 ↗")</button>
                 <div class="brand-entry-note"><span aria-hidden="true">✦</span><p>@ClientText.T("专注创造，安心交付。")<small>@ClientText.T("从发现到修复，让团队的每一步都清晰可见。")</small></p></div>
             }
