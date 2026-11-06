@@ -677,9 +677,15 @@ summary::-webkit-details-marker {
 }
 .attachment-count { display:inline-flex; align-items:center; gap:4px; flex:1; min-width:0; color:var(--muted); font-variant-numeric:tabular-nums; }
 .attachment-count svg { width:14px; height:14px; flex:none; }
-.card-priority { display:inline-flex; align-items:center; color:#299a68; }
-.dark .card-priority { color:#66c993; }
-.card-priority svg { width:18px; height:16px; }
+.card-priority { display:inline-flex; align-items:center; color:#66717d; }
+.card-priority.medium { color:#a56b00; }
+.card-priority.high { color:#c45712; }
+.card-priority.critical { color:#c32f36; }
+.dark .card-priority { color:#aab2bd; }
+.dark .card-priority.medium { color:#f1cb44; }
+.dark .card-priority.high { color:#f2994a; }
+.dark .card-priority.critical { color:#f16b70; }
+.card-priority svg { width:18px; height:18px; }
 .card-bottom .priority {
   flex-shrink: 0;
 }
