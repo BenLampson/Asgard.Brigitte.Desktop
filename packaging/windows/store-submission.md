@@ -1,5 +1,15 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 6, 2026 — 1.0.22 submitted
+
+Version `1.0.22.0` combines the colored priority arrows with the existing card attachment count, project storage usage and permanent attachment deletion. Microsoft Store Submission 22 (`1152921505702334521`) was formally submitted and is in certification pre-processing. Publication is configured to begin immediately after certification; Store availability has not yet been confirmed. Version 1.0.21 and all historical packages were retained.
+
+The x64 Store upload package was built locally from clean, pushed source `f48175fa9cc2783d862dfff907f6e2fa9e933d77`; SHA-256 `e731bb4ed7bb9808ec749d09eb9630d81f4abc6a8483d6818171dcf5c18d1971`. All 305 local tests and [Windows/Linux CI and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/42236402623) passed. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.22) provides the unsigned Store upload package, portable ZIP, checksums and source manifest; remote digests match local assets. Store-signed installation and upgrade, Windows App Certification Kit, and native visual acceptance were not performed.
+
+## November 6, 2026 — 1.0.21 submitted
+
+Version `1.0.21.0` added online project storage usage, quota display and permanent attachment deletion confirmation. Submission 21 (`1152921505702328897`) was formally submitted and subsequently confirmed published. The x64 Store upload package was built from source `d46c91f0d99d3773f54fc5d4e94898eac1f3a7b5`, with SHA-256 `66c1b52531825810a787cfe25e673b263a6f9b6f5fde45e8fe7118a2f339e7ef`. All 305 local tests and [Windows/Linux CI and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/42150615479) passed. The [GitHub release](https://github.com/BenLampson/Asgard.Brigitte.Desktop/releases/tag/v1.0.21) includes the portable ZIP, unsigned Store upload package, checksums and source manifest. Store-signed installation and upgrade, Windows App Certification Kit, and native visual acceptance were not performed.
+
 ## November 5, 2026 — 1.0.20 submitted
 
 Version `1.0.20.0` updates BUG board cards with a paperclip attachment count, removes the assignee, and uses a green priority icon. Submission 20 (`1152921505702324284`) has been submitted and is in certification pre-processing. Publication is configured after certification; Store availability is not yet confirmed.
