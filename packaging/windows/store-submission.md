@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 12, 2026 — 1.0.23 submitted
+
+Version `1.0.23.0` adds pagination and interactive status, priority, component, reporter, and daily submission charts to the offline HTML bug report. Report timestamps and daily counts use the exporting device's local time zone. The online workspace also shows project creation and invitation actions according to account permissions.
+
+Partner Center confirmed Submission 22 was published. The new x64 MSIX was accepted as **Validated**, and Submission 23 (`1152921505702384662`) is **In certification / pre-processing**. Publication is configured to begin after certification. The English and Simplified Chinese release notes and the existing `runFullTrust` explanation were updated. Version 1.0.22 and earlier packages were retained.
+
+The x64 MSIX was built locally from [source tagged v1.0.23](https://github.com/BenLampson/Asgard.Brigitte.Desktop/tree/v1.0.23), commit `d0c2dc483eeae31115a441754836abe8d74c81e6`, and its SHA-256 is `44a6031117f12d12de1b12b052585a6a8e61b26307d38eb11e3629f842f0ad2e`. All 315 local Release tests and [Windows/Linux CI and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/43178276478) passed. Pagination, chart filters, and local date grouping were exercised in Edge with network access disabled. Store-signed installation and upgrade and Windows App Certification Kit were not performed. Local evidence: `publish/store/1.0.23.0/store-submitted.jpg`.
+
 ## November 6, 2026 — 1.0.22 submitted
 
 Version `1.0.22.0` combines the colored priority arrows with the existing card attachment count, project storage usage and permanent attachment deletion. Microsoft Store Submission 22 (`1152921505702334521`) was formally submitted and is in certification pre-processing. Publication is configured to begin immediately after certification; Store availability has not yet been confirmed. Version 1.0.21 and all historical packages were retained.
