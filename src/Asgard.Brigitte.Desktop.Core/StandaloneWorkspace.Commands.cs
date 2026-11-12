@@ -70,7 +70,7 @@ public sealed partial class StandaloneWorkspace
     private Bug SaveBug(string? id, JsonElement input, SqliteTransaction transaction)
     {
         var value = input.Deserialize<BugInput>(Json) ?? throw new ArgumentException(ClientText.T("缺少 BUG 内容。"));
-        var bug = id is null ? new Bug { Id = NewId(), Status = "waiting", CreateTime = DateTimeOffset.UtcNow } : RequireBug(id);
+        var bug = id is null ? new Bug { Id = NewId(), Status = "waiting", CreateTime = DateTimeOffset.UtcNow, CreatedBy = UserId } : RequireBug(id);
         if (id is not null) RequireWritable(bug, value.WorkerId);
         var project = Read<Project>("project").SingleOrDefault(x => x.Id == value.ProjectId)
             ?? throw new ArgumentException(ClientText.T("项目不存在。"));

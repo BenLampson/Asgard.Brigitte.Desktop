@@ -39,6 +39,8 @@ public sealed class Bug
     public DateTimeOffset? LockExpireTime { get; set; }
     /// <summary>接口字段 CreateTime。</summary>
     public DateTimeOffset CreateTime { get; set; }
+    /// <summary>同步投影提供的创建人审计标识，旧记录可能没有此字段。</summary>
+    public string? CreatedBy { get; set; }
     /// <summary>接口字段 UpdateTime。</summary>
     public DateTimeOffset? UpdateTime { get; set; }
 }

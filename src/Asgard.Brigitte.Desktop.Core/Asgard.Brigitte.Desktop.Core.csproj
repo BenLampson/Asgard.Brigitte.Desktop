@@ -2,6 +2,7 @@
   <PropertyGroup><LangVersion>14</LangVersion></PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization/en.*.json" />
+    <EmbeddedResource Include="BugReport/report.css;BugReport/report.js" />
     <ProjectReference Include="../Asgard.Brigitte.Sync/Asgard.Brigitte.Sync.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="DocumentFormat.OpenXml" />

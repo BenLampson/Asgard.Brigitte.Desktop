@@ -1,0 +1,22 @@
+{
+  "点击图表或图例筛选明细；不同维度可叠加，再点一次取消。": "Click a chart or legend to filter the details. Combine filters across charts, or click again to remove one.",
+  "查看 BUG 明细": "View bug details",
+  "同一 BUG 可涉及多个组件，每个组件分别计数。": "A bug can affect multiple components and is counted under each one.",
+  "未标注": "Unspecified",
+  "按提出人统计": "Bugs by reporter",
+  "提出人": "Reporter",
+  "没有符合筛选条件的 BUG": "No bugs match the current filters",
+  "所有时间和每日统计均使用导出设备的本地时区。": "Times and daily counts use the local time zone of the device that exported this report.",
+  "未记录": "Not recorded",
+  "提交量": "Submissions",
+  "每日 BUG 提交量": "Daily bug submissions",
+  "按创建日期统计，点击日期查看当天明细。": "Counts use the creation date. Select a date to see its bugs.",
+  "前 30 天": "Previous 30 days",
+  "后 30 天": "Next 30 days",
+  "当前筛选": "Active filters",
+  "清除全部筛选": "Clear all filters",
+  "显示第 {0}–{1} 条，共 {2} 条": "Showing {0}–{1} of {2}",
+  "共 0 条": "0 results",
+  "上一页": "Previous page",
+  "下一页": "Next page"
+}
