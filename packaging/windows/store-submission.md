@@ -1,5 +1,13 @@
 # Microsoft Store submission for Asgard Brigitte
 
+## November 15, 2026 — 1.0.24 submitted
+
+Version `1.0.24.0` updates the individual and batch repair prompts in local workspaces. When recommending a blocked status, the AI is asked to identify the blocker, the person or role and action needed, how to verify and report completion, and where to resume.
+
+Partner Center confirmed Submission 23 was published. The new x64 MSIX was **Validated** and formally submitted as Submission 24 (`1152921505702406897`). The update is **In certification / pre-processing** and will begin publishing after certification. English and Simplified Chinese release notes were saved. The existing product configuration, reviewer information and older packages were retained.
+
+The unsigned package was built locally from [source tagged v1.0.24](https://github.com/BenLampson/Asgard.Brigitte.Desktop/tree/v1.0.24), commit `e35c957bd7c21b55320a3f28d6d520bfe0604daf`, with SHA-256 `30c60a7350ad52c5ce4f923f8fc0a197a5da0425fcd3dcd68b84c478d45a4a1f`. All 315 local tests and the [Windows/Linux CI tests and Windows MAUI build](https://github.com/BenLampson/Asgard.Brigitte.Desktop/actions/runs/43674772357) passed. The package's identity, version, file integrity and both prompt languages were verified. Store-signed installation and upgrade and the [optional local Windows App Certification Kit check](https://learn.microsoft.com/en-us/windows/msix/package/packaging-uwp-apps#validate-your-app-package-locally) were not run. Local evidence: `publish/store/1.0.24.0/store-submitted.jpg`.
+
 ## November 12, 2026 — 1.0.23 submitted
 
 Version `1.0.23.0` adds pagination and interactive status, priority, component, reporter, and daily submission charts to the offline HTML bug report. Report timestamps and daily counts use the exporting device's local time zone. The online workspace also shows project creation and invitation actions according to account permissions.
